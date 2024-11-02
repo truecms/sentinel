@@ -10,12 +10,19 @@ def init_database():
     print("Database is ready")
     
     try:
-        # Run migrations using the new script
+        # Import necessary modules
+        from app.database import init_db
+        
+        # Create tables directly using SQLAlchemy
+        init_db()
+        print("Created database tables")
+        
+        # Run migrations using the manage_migrations script
         migrations_script = Path(__file__).parent / "manage_migrations.py"
         subprocess.run([sys.executable, str(migrations_script)], check=True)
         print("Database initialization completed successfully")
         
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         print(f"Error during database initialization: {e}")
         raise
 

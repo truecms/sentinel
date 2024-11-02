@@ -1,27 +1,32 @@
 import os
+import sys
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
-from app.models import Base
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Add the app directory to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+# Import settings and database configuration
+from app.core.config import settings
+from app.database import Base, SQLALCHEMY_DATABASE_URL
+
+# this is the Alembic Config object
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Override sqlalchemy.url with the URL from settings
+config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+
+# Interpret the config file for Python logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
-def get_url():
-    return f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_SERVER')}/{os.getenv('POSTGRES_DB')}"
-
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = get_url()
+    url = SQLALCHEMY_DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -35,7 +40,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
+    configuration["sqlalchemy.url"] = SQLALCHEMY_DATABASE_URL
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

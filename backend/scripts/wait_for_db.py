@@ -5,17 +5,45 @@ from typing import NoReturn
 
 
 def wait_for_postgres() -> NoReturn:
+    db_name = os.environ.get("POSTGRES_DB", "application_db")
+    user = os.environ.get("POSTGRES_USER", "postgres")
+    password = os.environ.get("POSTGRES_PASSWORD", "postgres")
+    host = os.environ.get("POSTGRES_SERVER", "db")
+
     while True:
         try:
-            psycopg2.connect(
-                dbname=os.environ["POSTGRES_DB"],
-                user=os.environ["POSTGRES_USER"],
-                password=os.environ["POSTGRES_PASSWORD"],
-                host=os.environ["POSTGRES_SERVER"],
+            # First connect to default database
+            conn = psycopg2.connect(
+                dbname="postgres",
+                user=user,
+                password=password,
+                host=host
             )
+            conn.autocommit = True
+            cursor = conn.cursor()
+            
+            # Check if our database exists
+            cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+            if cursor.fetchone() is None:
+                # Create database if it doesn't exist
+                print(f"Creating database {db_name}")
+                cursor.execute(f'CREATE DATABASE "{db_name}"')
+            
+            cursor.close()
+            conn.close()
+
+            # Now try connecting to our actual database
+            conn = psycopg2.connect(
+                dbname=db_name,
+                user=user,
+                password=password,
+                host=host
+            )
+            conn.close()
             break
-        except psycopg2.OperationalError:
-            print("Postgres is unavailable - sleeping")
+            
+        except psycopg2.OperationalError as e:
+            print(f"Postgres is unavailable - sleeping: {e}")
             time.sleep(1)
 
     print("Postgres is up - continuing...")

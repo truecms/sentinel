@@ -16,13 +16,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies and alembic
+# Install runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     postgresql-client \
-    build-essential \
     && rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir alembic==1.12.1 Mako>=1.2.2 python-editor>=1.0.4
+    pip install --no-cache-dir \
+    alembic==1.12.1 \
+    uvicorn==0.24.0 \
+    fastapi==0.104.1
 
 # Copy installed packages from builder
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
@@ -32,8 +34,9 @@ ENV PYTHONPATH="${PYTHONPATH}:/app"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Create necessary directories
-RUN mkdir -p /app/alembic/versions
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/alembic_migrations/versions && \
+    chmod -R 777 /app/alembic_migrations/versions
 
 # Copy application code
 COPY . .
