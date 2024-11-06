@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 from wait_for_db import wait_for_postgres
+from app.database import init_db
 
 def init_database():
     # Wait for database
@@ -10,9 +11,6 @@ def init_database():
     print("Database is ready")
     
     try:
-        # Import necessary modules
-        from app.database import init_db
-        
         # Create tables directly using SQLAlchemy
         init_db()
         print("Created database tables")
