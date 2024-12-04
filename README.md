@@ -59,7 +59,7 @@ This project is a FastAPI-based backend application designed to interact with a 
 
    ```bash
    git clone https://github.com/yourusername/your-repo.git
-   cd your-repo/backend
+   cd your-repo
    ```
 
 2. **Create a `.env` File**
@@ -611,7 +611,7 @@ If you need to create new migrations manually, follow these steps:
 ## Project Structure
 
 ```
-backend/
+.
 │
 ├── alembic.ini
 ├── Dockerfile
