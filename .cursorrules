@@ -1,0 +1,19 @@
+I am not a python programmer, so when I am writing python code, I need help.
+Try to solve problem by provindg revritten code rather than replying how to fix, unless I ask you for it.
+This is dev environment and early stages of discovery, so good to rewrite from scratch if too complex.
+
+This is a python project to run API using FastAPI. it will be run using docker compose. It uses concept of  a 'user' and 'organization'. User have roles like 'admin' and 'user'. Organization has users. It needs a superuser (manager of the project).
+
+Need to support creation of CRUD for:
+- User
+- Organization
+- Role
+- UserRole (link between user and role)
+- UserOrganization (link between user and organization)
+
+Each user can add a site (URL), which is a new object.
+Each site can be shared amongst users within an organization.
+Organisation admins can delete sites.
+Organisation admins can add other admins and users.
+Users can be registered by either a superuser or an admin.
+Each user can be allocated to a site (and organisation, if created by superuser).

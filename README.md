@@ -444,7 +444,7 @@ For best practices, it's recommended to keep your Postman collections organized 
 ### Directory Structure
 
 ```
-backend/
+./
 │
 ├── postman/
 │   ├── FastAPI_Testing_Collection.json
@@ -611,42 +611,39 @@ If you need to create new migrations manually, follow these steps:
 ## Project Structure
 
 ```
-.
-│
-├── alembic.ini
-├── Dockerfile
-├── Dockerfile.alt
-├── README.md
-├── requirements.txt
-├── scripts/
-│   ├── init_db.py
-│   ├── manage_migrations.py
-│   ├── test_api.py
-│   ├── verify_installation.py
-│   ├── wait-for-db.sh
-│   └── wait_for_db.py
+your-repo/
 ├── app/
-│   ├── main.py
+│   ├── api/
+│   │   └── v1/
+│   │       ├── endpoints/
+│   │       │   ├── auth.py
+│   │       │   ├── organizations.py
+│   │       │   ├── roles.py
+│   │       │   ├── sites.py
+│   │       │   └── users.py
+│   │       ├── __init__.py
+│   │       └── dependencies.py
 │   ├── core/
-│   │   ├── config.py
-│   │   └── ...
+│   │   ├── __init__.py
+│   │   └── security.py
 │   ├── database.py
-│   ├── models/
-│   │   └── ...
-│   └── ...
-├── alembic_migrations/
-│   ├── env.py
-│   ├── script.py.mako
+│   ├── main.py
+│   └── models/
+│       ├── __init__.py
+│       ├── organization.py
+│       ├── role.py
+│       ├── site.py
+│       ├── user.py
+│       ├── user_organization.py
+│       └── user_role.py
+├── alembic/
 │   ├── versions/
-│   │   ├── initial_migration.py
-│   │   └── ...
-│   └── __init__.py
-├── postman/
-│   ├── FastAPI_Testing_Collection.json
-│   └── README.md
-├── .dockerignore
-├── .gitattributes
-└── Specs.txt
+│   └── env.py
+├── .env
+├── docker-compose.yml
+├── Dockerfile
+├── README.md
+└── requirements.txt
 ```
 
 ## Contributing
