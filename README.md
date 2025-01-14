@@ -112,26 +112,82 @@ make migrations
 
 ## Testing
 
+The project includes a comprehensive test suite using pytest. Tests are run in a dedicated Docker container with its own PostgreSQL database instance.
+
+### Test Structure
+```
+tests/
+├── conftest.py           # Test configuration and fixtures
+├── test_api/            # API endpoint tests
+│   ├── test_auth.py     # Authentication tests
+│   ├── test_organizations.py
+│   ├── test_sites.py
+│   └── test_users.py
+└── test_core/           # Core functionality tests
+```
+
+### Test Dependencies
+Required packages are listed in `requirements-test.txt`:
+- pytest
+- pytest-asyncio
+- pytest-cov
+- httpx
+- pytest-env
+- faker
+- pytest-mock
+- aiosqlite
+- asgi-lifespan
+
 ### Running Tests
+
+#### Using Docker (Recommended)
+The easiest way to run tests is using the provided shell script:
+
 ```bash
-# Unit tests
-pytest tests/unit
+# Run all tests
+./scripts/run_tests.sh
 
-# Integration tests
-pytest tests/integration
+# Run specific test file
+./scripts/run_tests.sh tests/test_api/test_auth.py
 
-# Coverage report
-pytest --cov=app tests/
+# Run specific test function
+./scripts/run_tests.sh tests/test_api/test_auth.py -k test_login
 ```
 
-### Performance Testing
-```bash
-# Load testing
-locust -f tests/performance/locustfile.py
+This script will:
+1. Build the test container using Dockerfile.test
+2. Start a PostgreSQL container for testing
+3. Run the tests with proper environment variables
+4. Clean up containers after completion
 
-# Benchmark specific endpoint
-pytest tests/performance/test_endpoints.py
-```
+#### Test Configuration
+Tests are configured via `pytest.ini`:
+- Minimum coverage requirement: 80%
+- Coverage reports: Terminal and HTML
+- Environment variables for testing
+- Async test mode enabled
+
+#### Test Environment
+Tests run with these environment variables:
+- TESTING=True
+- POSTGRES_USER=test_user
+- POSTGRES_PASSWORD=test_password
+- POSTGRES_DB=test_db
+- JWT_SECRET_KEY=testing_secret_key_123
+- ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+### Coverage Reports
+After running tests, coverage reports are available:
+- Terminal output shows missing lines
+- HTML report in `htmlcov/` directory
+- Minimum required coverage: 80%
+
+### Continuous Integration
+The test suite is designed to run in CI environments. The test containers are configured to:
+- Use a separate test database
+- Run independently of development services
+- Generate coverage reports
+- Fail if coverage is below 80%
 
 ## Deployment
 
