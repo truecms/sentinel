@@ -124,31 +124,99 @@ GET http://localhost:8000/health
 
 ### 2. User Management
 
-#### a. Create User
+#### 1. User roles
+
+- Organisation admin
+  - Can create, update, delete users.
+  - Can invite users to the organization via email.
+  - Can create, update, delete organizations.
+  - Can create, update, delete sites.
+- Organisation user
+  - Can create, update, delete sites.
+- Organisation viewer
+  - Can view sites.
+
+#### 2. User management
+
+##### a. Create User
 
 - **Method:** POST
-- **URL:** `/api/v1/users/`
+- **URL:** `/api/v1/users/add`
 - **Description:** Registers a new user.
 - **Body:** JSON
+- **Fields:**
+  - `email`: Email address of the user.
+  - `password`: Password for the user. Encrypted before storing in database.
+  - `user_id`: User ID of the user - incremental integer
+  - `created_at`: Timestamp of when the user was created
+  - `updated_at`: Timestamp of when the user was last updated
+  - `organization_id`: Organization ID of the user.
+  - `role_id`: Role ID of the user.
+  - `role_name`: Role name of the user.
+  - `is_active`: Boolean indicating if the user is active.
+  - `is_deleted`: Boolean indicating if the user is deleted.
+  - `last_login`: Timestamp of when the user was last logged in.
 
 **Request Body:**
 
 ```json
 {
     "email": "test@example.com",
-    "password": "testpassword123"
+    "password": "testpassword123",
+    "organization_id": 1
 }
 ```
 
 **Example Request:**
 
 ```http
-POST http://localhost:8000/api/v1/users/
+POST http://localhost:8000/api/v1/users/add
 Content-Type: application/json
 
 {
     "email": "test@example.com",
-    "password": "testpassword123"
+    "password": "testpassword123",
+    "organization_id": 1
+}
+```
+
+#### b. Get user details
+
+- **Method:** GET
+- **URL:** `/api/v1/users/get/<user_id>`
+- **Description:** Get user details by user id.
+- **Headers:** `Authorization: Bearer <access_token>`
+- **Body:** JSON
+
+**Request Body:**
+
+```json
+{
+    "user_id": 1
+}
+```
+
+**Example Request:**
+
+```http
+GET http://localhost:8000/api/v1/users/get/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "user_id": 1,
+    "email": "test@example.com",
+    "created_at": "2024-11-06T09:08:24.005Z",
+    "updated_at": "2024-11-06T09:08:24.005Z",
+    "organization_id": 1,
+    "role_id": 1,
+    "role_name": "Administrator",
+    "is_active": true,
+    "is_deleted": false,
+    "last_login": "2024-11-06T09:08:24.005Z"
 }
 ```
 
@@ -158,6 +226,12 @@ Content-Type: application/json
 - **URL:** `/api/v1/auth/access-token`
 - **Description:** Authenticates a user and returns a JWT token.
 - **Body:** `application/x-www-form-urlencoded`
+- **Fields:**
+  - `username`: Email address of the user.
+  - `password`: Password for the user. Encrypted before comparison.
+- **Conditions:**
+  - User must be active and not deleted.
+  - User must belong to an organization.
 
 **Request Body:**
 
