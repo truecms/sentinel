@@ -1,28 +1,24 @@
-FROM python:3.11-slim
+FROM python:3.11-slim as builder
 
-# Set environment variables
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.11-slim
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY . .
+
+ENV PYTHONPATH="/app"
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set work directory
-WORKDIR /app
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Copy project
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Add this line to copy the script into the container
-COPY scripts/create_superuser.py /app/scripts/create_superuser.py
-
-# Set PYTHONPATH to include the app directory
-ENV PYTHONPATH="${PYTHONPATH}:/app"
-
-# Update the CMD to run the script before starting the application
-CMD ["sh", "-c", "python scripts/create_superuser.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

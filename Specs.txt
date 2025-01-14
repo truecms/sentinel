@@ -52,7 +52,7 @@ Overall Requirements
 Functional Requirements
 
 1. **Data Ingestion via Drupal Module**:
-   - The Drupal module installed on each monitored website will perform a scheduled (cron-based) POST request in JSON format to the platform’s REST API.
+   - The Drupal module installed on each monitored website will perform a scheduled (cron-based) POST request in JSON format to the platformï¿½s REST API.
    - Each POST request includes:
      - Site identifier (unique to each site).
      - Module version data, including Drupal core version and module versions.
@@ -123,7 +123,7 @@ To accommodate expanded tracking and auditing requirements, the database structu
 5. **Modules Table**:
    - `id` (Primary Key): Unique identifier for each module.
    - `module_name`: Name of the module.
-   - `drupal_link`: URL to the module’s page on Drupal.org.
+   - `drupal_link`: URL to the moduleï¿½s page on Drupal.org.
 
 6. **Module Versions Table**:
    - `id` (Primary Key): Unique identifier for each module version.
@@ -137,7 +137,7 @@ To accommodate expanded tracking and auditing requirements, the database structu
    - `module_id`: Foreign key linking to the Modules table.
    - `current_version_id`: Foreign key linking to the Module Versions table.
    - `update_available`: Boolean indicating if an update is available.
-   - `security_update`: Boolean indicating if it’s a security update.
+   - `security_update`: Boolean indicating if itï¿½s a security update.
 
 8. **Patch Runs Table**:
    - Records each patch run cycle for tracking historical updates.
@@ -151,4 +151,93 @@ To accommodate expanded tracking and auditing requirements, the database structu
    - `data`: JSON field capturing raw POST data from the Drupal module.
    - `status`: Status of the request (e.g., success, validation error).
    - `created_at`: Timestamp of the log entry.
+
+Database Models and Relationships
+
+1. **User Model**:
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `name`: String (Username)
+     - `email`: String (unique, indexed)
+     - `hashed_password`: String
+     - `is_active`: Boolean
+     - `is_superuser`: Boolean
+   - Relationships:
+     - Many-to-Many with Organizations through UserOrganization
+     - Many-to-Many with Roles through UserRole
+     - One-to-Many with Organizations (as creator)
+
+2. **Organization Model**:
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `uuid`: UUID (unique)
+     - `name`: String (indexed)
+     - `tax_id`: String
+     - `created_at`: DateTime
+     - `created_by`: Integer (Foreign Key to users.id)
+   - Relationships:
+     - Many-to-Many with Users through UserOrganization
+     - Many-to-Many with Sites through SiteOrganization
+     - One-to-Many from User (creator relationship)
+
+3. **Role Model**:
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `name`: String (unique, indexed)
+   - Predefined Values:
+     - Superuser
+     - Organization Admin
+     - User
+   - Relationships:
+     - Many-to-Many with Users through UserRole
+
+4. **UserRole Model** (Junction Table):
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `user_id`: Integer (Foreign Key to users.id)
+     - `role_id`: Integer (Foreign Key to roles.id)
+   - Constraints:
+     - Unique constraint on (user_id, role_id)
+
+5. **UserOrganization Model** (Junction Table):
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `user_id`: Integer (Foreign Key to users.id)
+     - `organization_id`: Integer (Foreign Key to organizations.id)
+   - Constraints:
+     - Unique constraint on (user_id, organization_id)
+
+6. **Site Model**:
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `uuid`: UUID (unique)
+     - `url`: String
+   - Relationships:
+     - Many-to-Many with Organizations through SiteOrganization
+
+7. **SiteOrganization Model** (Junction Table):
+   - Primary Fields:
+     - `id`: Integer (Primary Key)
+     - `site_id`: Integer (Foreign Key to sites.id)
+     - `organization_id`: Integer (Foreign Key to organizations.id)
+   - Constraints:
+     - Unique constraint on (site_id, organization_id)
+
+Model Access Control Rules:
+1. Superusers have full access to all models and operations
+2. Organization Admins can:
+   - Manage their organization's details
+   - Add/remove users from their organization
+   - Manage sites within their organization
+3. Regular Users can:
+   - View their organization details
+   - Add and edit sites (but not delete)
+   - View other users in their organization
+
+Database Implementation Notes:
+- All primary keys are auto-incrementing integers
+- UUIDs are used as public identifiers for organizations and sites
+- Indexed fields for optimized querying: email, organization name
+- Proper foreign key constraints for referential integrity
+- Junction tables implement many-to-many relationships with unique constraints
 
