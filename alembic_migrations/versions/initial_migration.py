@@ -27,6 +27,16 @@ def upgrade():
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
 
+    # Create roles table
+    op.create_table(
+        'roles',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_roles_id'), 'roles', ['id'], unique=False)
+    op.create_index(op.f('ix_roles_name'), 'roles', ['name'], unique=True)
+
     # Create organizations table
     op.create_table(
         'organizations',
@@ -40,24 +50,43 @@ def upgrade():
     op.create_index(op.f('ix_organizations_id'), 'organizations', ['id'], unique=False)
     op.create_index(op.f('ix_organizations_name'), 'organizations', ['name'], unique=False)
 
-    # Create organization_revisions table
+    # Create user_roles table
     op.create_table(
-        'organization_revisions',
+        'user_roles',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('organization_id', sa.Integer(), nullable=True),
-        sa.Column('revision_date', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('changes', sa.String(), nullable=True),
-        sa.ForeignKeyConstraint(['organization_id'], ['organizations.id'], ),
-        sa.PrimaryKeyConstraint('id')
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('role_id', sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(['role_id'], ['roles.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('user_id', 'role_id', name='_user_role_uc')
     )
-    op.create_index(op.f('ix_organization_revisions_id'), 'organization_revisions', ['id'], unique=False)
+    op.create_index(op.f('ix_user_roles_id'), 'user_roles', ['id'], unique=False)
+
+    # Create user_organizations table
+    op.create_table(
+        'user_organizations',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('organization_id', sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(['organization_id'], ['organizations.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('user_id', 'organization_id', name='_user_organization_uc')
+    )
+    op.create_index(op.f('ix_user_organizations_id'), 'user_organizations', ['id'], unique=False)
 
 def downgrade():
-    op.drop_index(op.f('ix_organization_revisions_id'), table_name='organization_revisions')
-    op.drop_table('organization_revisions')
+    op.drop_index(op.f('ix_user_organizations_id'), table_name='user_organizations')
+    op.drop_table('user_organizations')
+    op.drop_index(op.f('ix_user_roles_id'), table_name='user_roles')
+    op.drop_table('user_roles')
     op.drop_index(op.f('ix_organizations_name'), table_name='organizations')
     op.drop_index(op.f('ix_organizations_id'), table_name='organizations')
     op.drop_table('organizations')
+    op.drop_index(op.f('ix_roles_name'), table_name='roles')
+    op.drop_index(op.f('ix_roles_id'), table_name='roles')
+    op.drop_table('roles')
     op.drop_index(op.f('ix_users_id'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')

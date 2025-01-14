@@ -2,17 +2,11 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
-import os
-import sys
 
-# Add the app directory to the sys.path
-sys.path.append(os.path.join(sys.path[0], 'app'))
+from app.core.config import settings
+from app.database import SQLALCHEMY_DATABASE_URL, Base
+from app.models.base import User, Organization, Role, UserRole, UserOrganization, Site
 
-from app.database import Base
-from app.models import user, organization, role, user_role, user_organization, site
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
 
 # Interpret the config file for Python logging.

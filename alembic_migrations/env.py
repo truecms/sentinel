@@ -13,8 +13,7 @@ from app.core.config import settings
 from app.database import SQLALCHEMY_DATABASE_URL, Base
 
 # Import all models so Alembic can detect them
-from app.models.user import User
-from app.models.organization import Organization
+from app.models import User, Organization
 from app.models.role import Role
 from app.models.user_role import UserRole
 from app.models.user_organization import UserOrganization

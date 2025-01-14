@@ -21,5 +21,8 @@ EXPOSE 8000
 # Add this line to copy the script into the container
 COPY scripts/create_superuser.py /app/scripts/create_superuser.py
 
+# Set PYTHONPATH to include the app directory
+ENV PYTHONPATH="${PYTHONPATH}:/app"
+
 # Update the CMD to run the script before starting the application
 CMD ["sh", "-c", "python scripts/create_superuser.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
