@@ -258,6 +258,89 @@ username=test@example.com&password=testpassword123
 }
 ```
 
+#### c. User logout
+
+- **Method:** POST
+- **URL:** `/api/v1/auth/logout`
+- **Description:** Logs out a user.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+POST http://localhost:8000/api/v1/auth/logout
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "message": "Logged out successfully"
+}
+```
+
+#### d. Delete User
+
+- **Method:** DELETE
+- **URL:** `/api/v1/users/delete/<user_id>`
+- **Description:** Deletes a user.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+DELETE http://localhost:8000/api/v1/users/delete/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "message": "User deleted successfully"
+}
+```
+
+#### e. Update User
+
+- **Method:** PUT
+- **URL:** `/api/v1/users/update/<user_id>`
+- **Description:** Updates a user.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Request Body:**
+
+```json
+{
+    "email": "test@example.com",
+    "password": "testpassword123",
+    "organization_id": 1
+}
+```
+
+**Example Request:**
+
+```http
+PUT http://localhost:8000/api/v1/users/update/1
+Authorization: Bearer your_jwt_token
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "testpassword123",
+    "organization_id": 1
+}
+```
+
+**Expected Response:**
+
+```json
+{
+    "message": "User updated successfully"
+}
+```
+
 ### 3. Organization Management
 
 #### a. Create Organization
@@ -267,12 +350,22 @@ username=test@example.com&password=testpassword123
 - **Description:** Creates a new organization.
 - **Headers:** `Authorization: Bearer <access_token>`
 - **Body:** JSON
+- **Fields:**
+  - `name`: Name of the organization.
+  - `created_at`: Timestamp of when the organization was created.
+  - `created_by`: User ID of the user who created the organization.
+  - `updated_at`: Timestamp of when the organization was last updated.
+  - `updated_by`: User ID of the user who last updated the organization.
+  - `is_active`: Boolean indicating if the organization is active.
+  - `is_deleted`: Boolean indicating if the organization is deleted.
+  - `organization_id`: Organization ID of the organization.
 
 **Request Body:**
 
 ```json
 {
-    "name": "Test Organization"
+    "name": "Test Organization",
+    "created_by": 1
 }
 ```
 
@@ -284,21 +377,37 @@ Authorization: Bearer your_jwt_token
 Content-Type: application/json
 
 {
-    "name": "Test Organization"
+    "name": "Test Organization",
+    "created_by": 1
+}
+```
+
+**Expected Response:**
+
+```json
+{
+    "organization_id": 1,
+    "name": "Test Organization",
+    "created_at": "2024-11-06T09:08:24.005Z",
+    "created_by": 1,
+    "updated_at": "2024-11-06T09:08:24.005Z",
+    "updated_by": 1,
+    "is_active": true,
+    "is_deleted": false
 }
 ```
 
 #### b. Get Organizations
 
 - **Method:** GET
-- **URL:** `/api/v1/organizations/`
+- **URL:** `/api/v1/organizations/get`
 - **Description:** Retrieves a list of organizations.
 - **Headers:** `Authorization: Bearer <access_token>`
 
 **Example Request:**
 
 ```http
-GET http://localhost:8000/api/v1/organizations/
+GET http://localhost:8000/api/v1/organizations/get
 Authorization: Bearer your_jwt_token
 ```
 
@@ -307,10 +416,24 @@ Authorization: Bearer your_jwt_token
 ```json
 [
     {
-        "id": 1,
+        "organization_id": 1,
         "name": "Test Organization",
         "created_at": "2024-11-06T09:08:24.005Z",
-        "created_by": 1
+        "created_by": 1,
+        "updated_at": "2024-11-06T09:08:24.005Z",
+        "updated_by": 1,
+        "is_active": true,
+        "is_deleted": false
+    },
+    {
+        "organization_id": 2,
+        "name": "Test two Organization",
+        "created_at": "2024-11-06T09:08:24.005Z",
+        "created_by": 1,
+        "updated_at": "2024-11-06T09:08:24.005Z",
+        "updated_by": 1,
+        "is_active": true,
+        "is_deleted": false
     }
 ]
 ```
