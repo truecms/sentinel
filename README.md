@@ -1073,67 +1073,310 @@ If you need to create new migrations manually, follow these steps:
 
 ## Project Structure
 
+The project follows a modular structure with clear separation of concerns:
+
 ```
 your-repo/
 ├── app/
-│   ├── api/
+│   ├── api/                    # API endpoints and route definitions
 │   │   └── v1/
-│   │       ├── endpoints/
-│   │       │   ├── auth.py
+│   │       ├── endpoints/      # API endpoint implementations
+│   │       │   ├── auth.py     # Authentication endpoints
 │   │       │   ├── organizations.py
 │   │       │   ├── roles.py
 │   │       │   ├── sites.py
 │   │       │   └── users.py
 │   │       ├── __init__.py
-│   │       └── dependencies.py
-│   ├── core/
+│   │       └── dependencies.py # Shared API dependencies
+│   ├── core/                   # Core functionality and config
+│   │   ├── __init__.py
+│   │   ├── config.py          # Application configuration
+│   │   └── security.py        # Security utilities
+│   ├── db/                    # Database related code
+│   │   ├── __init__.py
+│   │   └── session.py         # Database session management
+│   ├── middleware/            # Custom middleware
+│   │   ├── __init__.py
+│   │   ├── rate_limit.py      # Rate limiting middleware
+│   │   └── security.py        # Security middleware
+│   ├── models/                # SQLAlchemy models
+│   │   ├── __init__.py
+│   │   ├── organization.py
+│   │   ├── role.py
+│   │   ├── site.py
+│   │   ├── user.py
+│   │   ├── user_organization.py
+│   │   └── user_role.py
+│   ├── schemas/               # Pydantic models/schemas
+│   │   ├── __init__.py
+│   │   ├── organization.py
+│   │   ├── role.py
+│   │   ├── site.py
+│   │   └── user.py
+│   ├── services/             # Business logic layer
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── organization.py
+│   │   └── user.py
+│   ├── utils/                # Utility functions
 │   │   ├── __init__.py
 │   │   └── security.py
-│   ├── database.py
-│   ├── main.py
-│   └── models/
-│       ├── __init__.py
-│       ├── organization.py
-│       ├── role.py
-│       ├── site.py
-│       ├── user.py
-│       ├── user_organization.py
-│       └── user_role.py
-├── alembic/
+│   ├── database.py           # Database configuration
+│   └── main.py              # Application entry point
+├── alembic/                  # Database migrations
 │   ├── versions/
 │   └── env.py
-├── .env
-├── docker-compose.yml
-├── Dockerfile
-├── README.md
-└── requirements.txt
+├── tests/                    # Test suite
+│   ├── __init__.py
+│   ├── conftest.py          # Test configuration
+│   ├── test_api/
+│   │   ├── __init__.py
+│   │   ├── test_auth.py
+│   │   ├── test_organizations.py
+│   │   └── test_users.py
+│   └── test_core/
+│       ├── __init__.py
+│       └── test_security.py
+├── scripts/                  # Utility scripts
+│   ├── init_db.py
+│   ├── verify_installation.py
+│   └── wait_for_db.py
+├── postman/                  # Postman collection
+│   ├── FastAPI_Testing_Collection.json
+│   └── environment.json
+├── .env                      # Environment variables
+├── .env.example             # Example environment variables
+├── .gitignore
+├── docker-compose.yml       # Docker compose configuration
+├── Dockerfile               # Docker build instructions
+├── requirements.txt         # Python dependencies
+└── README.md               # Project documentation
+```
+
+### Key Components
+
+1. **API Layer (`app/api/`)**: 
+   - Contains all API endpoints organized by version
+   - Implements REST API logic and request handling
+
+2. **Core (`app/core/`)**: 
+   - Contains core application functionality
+   - Handles configuration and security
+
+3. **Models (`app/models/`)**: 
+   - SQLAlchemy models defining database schema
+   - Implements relationships and constraints
+
+4. **Schemas (`app/schemas/`)**: 
+   - Pydantic models for request/response validation
+   - Defines data shapes for API communication
+
+5. **Services (`app/services/`)**: 
+   - Business logic implementation
+   - Separates concerns from API layer
+
+6. **Middleware (`app/middleware/`)**: 
+   - Custom middleware for rate limiting
+   - Security middleware implementation
+
+7. **Tests (`tests/`)**: 
+   - Comprehensive test suite
+   - API and core functionality tests
+
+## Testing with Postman
+
+### Environment Setup
+
+1. **Import Environment File**
+
+   ```bash
+   postman/environment.json
+   ```
+
+   Contains environment variables:
+   - `base_url`: API base URL
+   - `access_token`: JWT token storage
+   - `organization_id`: Current organization context
+   - `user_id`: Current user context
+
+2. **Configure Variables**
+
+   Development environment example:
+   ```json
+   {
+     "base_url": "http://localhost:8000",
+     "access_token": "",
+     "organization_id": "",
+     "user_id": ""
+   }
+   ```
+
+### Test Scenarios
+
+The Postman collection includes comprehensive test scenarios:
+
+1. **Authentication Flow**
+   - User registration
+   - Login and token acquisition
+   - Token refresh
+   - Password reset flow
+
+2. **User Management**
+   - CRUD operations for users
+   - Role assignment
+   - Organization membership
+
+3. **Organization Operations**
+   - Organization creation
+   - Member management
+   - Role assignments
+   - Site management
+
+4. **Site Management**
+   - Site creation and configuration
+   - Access token management
+   - Site statistics and monitoring
+
+### Automated Testing
+
+The collection includes pre-request scripts and tests:
+
+1. **Pre-request Scripts**
+   ```javascript
+   // Set authentication header
+   pm.request.headers.add({
+       key: 'Authorization',
+       value: 'Bearer ' + pm.environment.get('access_token')
+   });
+   ```
+
+2. **Test Scripts**
+   ```javascript
+   // Verify successful response
+   pm.test("Status code is 200", function () {
+       pm.response.to.have.status(200);
+   });
+
+   // Store authentication token
+   if (pm.response.code === 200) {
+       var jsonData = pm.response.json();
+       pm.environment.set("access_token", jsonData.access_token);
+   }
+   ```
+
+### Running Tests
+
+1. **Individual Endpoints**
+   ```bash
+   # Using Newman CLI
+   newman run postman/FastAPI_Testing_Collection.json -e postman/environment.json
+   ```
+
+2. **Complete Flow**
+   ```bash
+   # Run all tests in sequence
+   newman run postman/FastAPI_Testing_Collection.json -e postman/environment.json --folder "Authentication Flow"
+   newman run postman/FastAPI_Testing_Collection.json -e postman/environment.json --folder "User Management"
+   newman run postman/FastAPI_Testing_Collection.json -e postman/environment.json --folder "Organization Operations"
+   ```
+
+### CI/CD Integration
+
+Example GitHub Actions workflow:
+
+```yaml
+name: API Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Newman
+        run: npm install -g newman
+      - name: Run API Tests
+        run: |
+          newman run postman/FastAPI_Testing_Collection.json \
+            -e postman/environment.json \
+            --reporters cli,junit \
+            --reporter-junit-export results/junit-report.xml
 ```
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
+We welcome contributions! Please follow these steps:
 
 1. **Fork the Repository**
-2. **Create a New Branch**
-
+2. **Create a Feature Branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
-3. **Commit Your Changes**
-
+3. **Commit Changes**
    ```bash
-   git commit -m "Add your message here"
+   git commit -m "feat: add your feature description"
    ```
+   
+   Follow [Conventional Commits](https://www.conventionalcommits.org/) specification:
+   - `feat:` for new features
+   - `fix:` for bug fixes
+   - `docs:` for documentation
+   - `test:` for adding tests
+   - `refactor:` for code refactoring
 
-4. **Push to the Branch**
-
+4. **Push to Branch**
    ```bash
    git push origin feature/your-feature-name
    ```
 
-5. **Open a Pull Request**
+5. **Create Pull Request**
+   - Provide clear description of changes
+   - Reference any related issues
+   - Ensure tests pass
+   - Update documentation
+
+### Development Guidelines
+
+1. **Code Style**
+   - Follow PEP 8 for Python code
+   - Use type hints
+   - Document functions and classes
+
+2. **Testing**
+   - Write unit tests for new features
+   - Maintain test coverage
+   - Run full test suite before submitting PR
+
+3. **Documentation**
+   - Update README.md for new features
+   - Document API changes
+   - Include example usage
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024 Your Name
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
