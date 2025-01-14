@@ -438,6 +438,272 @@ Authorization: Bearer your_jwt_token
 ]
 ```
 
+#### c. Get organization details
+
+- **Method:** GET
+- **URL:** `/api/v1/organizations/get/<organization_id>`
+- **Description:** Retrieves details of a specific organization.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+GET http://localhost:8000/api/v1/organizations/get/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "organization_id": 1,
+    "name": "Test Organization",
+    "created_at": "2024-11-06T09:08:24.005Z",
+    "created_by": 1,
+    "updated_at": "2024-11-06T09:08:24.005Z",
+    "updated_by": 1,
+    "is_active": true,
+    "is_deleted": false
+}
+```
+
+#### d. Delete Organization
+
+- **Method:** DELETE
+- **URL:** `/api/v1/organizations/delete/<organization_id>`
+- **Description:** Deletes a specific organization.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+DELETE http://localhost:8000/api/v1/organizations/delete/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "message": "Organization deleted successfully",
+    "organization_id": 1,
+    "name": "Test Organization"
+}
+```
+
+#### e. Update Organization
+
+- **Method:** PUT
+- **URL:** `/api/v1/organizations/update/<organization_id>`
+- **Description:** Updates a specific organization.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Request Body:**
+
+```json
+{
+    "name": "Test Organization",
+    "updated_by": 1,
+    "organization_id": 1,
+    "is_active": true,
+    "is_deleted": false
+}
+```
+
+### 4. Site Management
+
+#### a. Create Site
+
+- **Method:** POST
+- **URL:** `/api/v1/sites/add`
+- **Description:** Creates a new site.
+- **Headers:** `Authorization: Bearer <access_token>`
+- **Fields:**
+  - `name`: Name of the site.
+  - `created_at`: Timestamp of when the site was created.
+  - `created_by`: User ID of the user who created the site.
+  - `updated_at`: Timestamp of when the site was last updated.
+  - `updated_by`: User ID of the user who last updated the site.
+  - `is_active`: Boolean indicating if the site is active.
+  - `is_deleted`: Boolean indicating if the site is deleted.
+  - `site_id`: Site ID of the site (auto-generated)
+  - `organization_id`: Organization ID of the organization the site belongs to.
+  - `url`: URL of the site.
+  - `description`: Description of the site.
+  - `access_token`: Access token of the site.
+  - `access_secret`: Access secret of the site.
+
+**Request Body:**
+
+```json
+{
+    "name": "Test Site",
+    "organization_id": 1,
+    "url": "https://test.com",
+    "description": "Test site",
+    "created_by": 1
+}
+```
+
+**Example Request:**
+
+```http
+POST http://localhost:8000/api/v1/sites/add
+Authorization: Bearer your_jwt_token
+Content-Type: application/json
+
+{
+    "name": "Test Site",
+    "organization_id": 1,
+    "url": "https://test.com",
+    "description": "Test site",
+    "created_by": 1
+}
+```
+
+**Expected Response:**
+
+```json
+{
+    "site_id": 1,
+    "name": "Test Site",
+    "organization_id": 1,
+    "url": "https://test.com",
+    "description": "Test site",
+    "created_at": "2024-11-06T09:08:24.005Z",
+    "created_by": 1,
+    "updated_at": "2024-11-06T09:08:24.005Z",
+    "updated_by": 1,
+    "is_active": true,
+    "is_deleted": false,
+    "message": "Site created successfully"
+}
+```
+
+#### b. Get all Sites of organisation
+
+- **Method:** GET
+- **URL:** `/api/v1/sites/get/organisation/<organization_id>`
+- **Description:** Retrieves all sites of an organisation.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+GET http://localhost:8000/api/v1/sites/get/organisation/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+[
+    {
+        "site_id": 1,
+        "name": "Test Site",
+        "organization_id": 1,
+        "url": "https://test.com",
+        "description": "Test site",
+        "created_at": "2024-11-06T09:08:24.005Z",
+        "created_by": 1,
+        "updated_at": "2024-11-06T09:08:24.005Z",
+        "updated_by": 1,
+        "is_active": true,
+        "is_deleted": false
+    },
+    {
+        "site_id": 2,
+        "name": "Test two Site",
+        "organization_id": 1,
+        "url": "https://test2.com",
+        "description": "Test two site",
+        "created_at": "2024-11-06T09:08:24.005Z",
+        "created_by": 1,
+        "updated_at": "2024-11-06T09:08:24.005Z",
+        "updated_by": 1,
+        "is_active": true,
+        "is_deleted": false
+    }
+]
+```
+
+#### c. Get Site Details
+
+- **Method:** GET
+- **URL:** `/api/v1/sites/get/<site_id>`
+- **Description:** Retrieves details of a specific site.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+GET http://localhost:8000/api/v1/sites/get/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "site_id": 1,
+    "name": "Test Site",
+    "organization_id": 1,
+    "url": "https://test.com",
+    "description": "Test site",
+    "created_at": "2024-11-06T09:08:24.005Z",
+    "created_by": 1,
+    "updated_at": "2024-11-06T09:08:24.005Z",
+    "updated_by": 1,
+    "is_active": true,
+    "is_deleted": false
+}
+```
+
+#### d. Delete Site
+
+- **Method:** DELETE
+- **URL:** `/api/v1/sites/delete/<site_id>`
+- **Description:** Deletes a specific site.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Example Request:**
+
+```http
+DELETE http://localhost:8000/api/v1/sites/delete/1
+Authorization: Bearer your_jwt_token
+```
+
+**Expected Response:**
+
+```json
+{
+    "message": "Site deleted successfully",
+    "site_id": 1,
+    "name": "Test Site"
+}
+```
+
+#### e. Update Site
+
+- **Method:** PUT
+- **URL:** `/api/v1/sites/update/<site_id>`
+- **Description:** Updates a specific site.
+- **Headers:** `Authorization: Bearer <access_token>`
+
+**Request Body:**
+
+```json
+{
+    "name": "Test Site", // Field managed by the organisation admin
+    "updated_by": 1,
+    "site_id": 1,
+    "is_active": false, // Field managed by the organisation admin
+    "is_deleted": true, // Field managed by the organisation admin
+    "organization_id": 1, // Field managed by the organisation admin
+    "description": "Test site" // Field managed by the organisation admin
+}
+```
+
 ## Testing with Postman
 
 To facilitate testing all API routes, a Postman collection has been provided. Follow the steps below to import and use the collection.
