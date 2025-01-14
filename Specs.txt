@@ -241,3 +241,359 @@ Database Implementation Notes:
 - Proper foreign key constraints for referential integrity
 - Junction tables implement many-to-many relationships with unique constraints
 
+User Fields:
+- id: User ID (integer, primary key)
+- uuid: User UUID (unique identifier)
+- name: Username
+- email: Email address
+- password: Hashed password
+- created_at: Timestamp
+- updated_at: Timestamp
+- is_active: Boolean
+- is_deleted: Boolean
+- last_login: Timestamp
+
+Organization Fields:
+- id: Organisation ID (primary key)
+- uuid: Organisation UUID
+- name: Organisation name
+- tax_id: Tax ID
+- created_at: Timestamp
+- updated_at: Timestamp
+- created_by: User ID (foreign key)
+- updated_by: User ID (foreign key)
+- is_active: Boolean
+- is_deleted: Boolean
+
+Role Hierarchy:
+1. Superuser
+   - Global permissions
+   - Can manage all organizations and users
+2. Organisation Admin
+   - Organization-level permissions
+   - CRUD operations on organization
+   - User management within organization
+3. User
+   - Basic permissions
+   - Site management within organization
+
+Site Fields:
+- id: Site ID (primary key)
+- uuid: Site UUID
+- url: Site URL
+- name: Site name
+- description: Site description
+- organization_id: Organization ID (foreign key)
+- created_at: Timestamp
+- updated_at: Timestamp
+- created_by: User ID (foreign key)
+- updated_by: User ID (foreign key)
+- is_active: Boolean
+- is_deleted: Boolean
+
+Error Handling Specifications
+
+1. **Standard Error Response Format**
+```json
+{
+    "status_code": integer,
+    "error": string,
+    "message": string,
+    "details": object | null,
+    "timestamp": string
+}
+```
+
+2. **HTTP Status Codes**
+- 400 Bad Request: Invalid input data
+- 401 Unauthorized: Missing or invalid authentication
+- 403 Forbidden: Insufficient permissions
+- 404 Not Found: Resource doesn't exist
+- 409 Conflict: Resource conflict (e.g., duplicate email)
+- 422 Unprocessable Entity: Validation error
+- 429 Too Many Requests: Rate limit exceeded
+- 500 Internal Server Error: Server-side error
+
+3. **API Error Handling**
+
+### Authentication Errors
+- 401 Unauthorized
+  ```json
+  {
+    "status_code": 401,
+    "error": "unauthorized",
+    "message": "Invalid credentials",
+    "details": null,
+    "timestamp": "2024-03-14T12:00:00Z"
+  }
+  ```
+
+### Permission Errors
+- 403 Forbidden
+  ```json
+  {
+    "status_code": 403,
+    "error": "forbidden",
+    "message": "Insufficient permissions to perform this action",
+    "details": {
+        "required_role": "admin",
+        "current_role": "user"
+    },
+    "timestamp": "2024-03-14T12:00:00Z"
+  }
+  ```
+
+### Validation Errors
+- 422 Unprocessable Entity
+  ```json
+  {
+    "status_code": 422,
+    "error": "validation_error",
+    "message": "Invalid input data",
+    "details": {
+        "email": ["Invalid email format"],
+        "password": ["Password must be at least 8 characters"]
+    },
+    "timestamp": "2024-03-14T12:00:00Z"
+  }
+  ```
+
+### Rate Limiting Errors
+- 429 Too Many Requests
+  ```json
+  {
+    "status_code": 429,
+    "error": "rate_limit_exceeded",
+    "message": "Too many requests",
+    "details": {
+        "retry_after": 60,
+        "limit": 100,
+        "reset_at": "2024-03-14T12:01:00Z"
+    },
+    "timestamp": "2024-03-14T12:00:00Z"
+  }
+  ```
+
+4. **Error Handling by Endpoint**
+
+### User Management
+- POST /api/v1/users/
+  - 400: Invalid user data
+  - 409: Email already exists
+  - 422: Validation error
+  
+- PUT /api/v1/users/{user_id}
+  - 404: User not found
+  - 409: Email conflict
+  - 422: Invalid update data
+
+### Organization Management
+- POST /api/v1/organizations/
+  - 400: Invalid organization data
+  - 409: Organization name exists
+  - 422: Validation error
+
+- PUT /api/v1/organizations/{org_id}
+  - 404: Organization not found
+  - 409: Name conflict
+  - 422: Invalid update data
+
+### Site Management
+- POST /api/v1/sites/
+  - 400: Invalid site data
+  - 409: URL already registered
+  - 422: Validation error
+
+- PUT /api/v1/sites/{site_id}
+  - 404: Site not found
+  - 409: URL conflict
+  - 422: Invalid update data
+
+5. **Error Logging**
+- All 5xx errors must be logged with:
+  - Full error stack trace
+  - Request context
+  - User ID (if authenticated)
+  - Timestamp
+  - Correlation ID
+
+6. **Rate Limiting**
+- Global rate limits:
+  - 100 requests per minute per IP
+  - 1000 requests per hour per user
+- Endpoint-specific limits:
+  - Authentication: 5 attempts per minute
+  - User creation: 10 per hour
+  - Organization creation: 5 per hour
+
+7. **Validation Rules**
+- Email: RFC 5322 compliant
+- Password: 
+  - Minimum 8 characters
+  - At least one uppercase
+  - At least one number
+  - At least one special character
+- URLs: Valid URL format with HTTPS
+- UUIDs: RFC 4122 compliant
+
+API Documentation Standards:
+1. OpenAPI/Swagger Integration
+   - All endpoints must be documented using FastAPI's automatic OpenAPI generation
+   - Include example requests/responses
+   - Document all query parameters, path parameters, and request bodies
+
+2. API Versioning Strategy
+   - URL-based versioning (/api/v1/)
+   - Version header support (X-API-Version)
+   - Deprecation policy and headers
+
+Security Requirements:
+1. Authentication
+   - JWT token structure and claims
+   - Token refresh mechanism
+   - Session management
+   - API key rotation policy
+
+2. Rate Limiting
+   - Per-endpoint limits
+   - User-based vs IP-based limits
+   - Burst allowance
+
+3. CORS Policy
+   - Allowed origins
+   - Allowed methods
+   - Credential handling
+
+Performance Specifications:
+1. Response Time Targets
+   - 95th percentile < 200ms
+   - 99th percentile < 500ms
+
+2. Caching Strategy
+   - Redis caching for frequently accessed data
+   - Cache invalidation rules
+   - TTL policies
+
+3. Database Optimization
+   - Indexing strategy
+   - Query performance requirements
+   - Connection pooling configuration
+
+API Response Envelope
+```json
+{
+    "data": object | array | null,
+    "meta": {
+        "page": integer,
+        "per_page": integer,
+        "total": integer
+    },
+    "links": {
+        "self": string,
+        "next": string,
+        "prev": string
+    }
+}
+```
+
+Pagination Requirements:
+- Cursor-based pagination for large datasets
+- Page-based pagination for small datasets
+- Default and maximum page sizes
+- Consistent link headers
+
+Operational Requirements:
+1. Health Checks
+   - Readiness probe
+   - Liveness probe
+   - Dependencies status
+
+2. Monitoring
+   - Prometheus metrics
+   - Custom business metrics
+   - SLA monitoring
+
+3. Logging
+   - Structured JSON logging
+   - Log levels and categories
+   - Correlation IDs
+
+Testing Standards:
+1. Unit Tests
+   - Minimum 80% coverage
+   - Mock external dependencies
+   - Test database fixtures
+
+2. Integration Tests
+   - API endpoint testing
+   - Database integration
+   - External service mocking
+
+3. Performance Tests
+   - Load testing scenarios
+   - Stress testing requirements
+   - Benchmark metrics
+
+# Additional Specifications
+
+## API Response Standards
+1. **Standard Response Format**
+```json
+{
+    "data": object | array | null,
+    "meta": {
+        "page": integer,
+        "per_page": integer,
+        "total": integer
+    },
+    "links": {
+        "self": string,
+        "next": string,
+        "prev": string
+    }
+}
+```
+
+## Error Handling Matrix
+| Endpoint | Error Code | Description | Response |
+|----------|------------|-------------|-----------|
+| All endpoints | 401 | Invalid/missing token | `{"error": "unauthorized"}` |
+| All endpoints | 403 | Insufficient permissions | `{"error": "forbidden"}` |
+| /users/* | 409 | Email exists | `{"error": "email_exists"}` |
+| /organizations/* | 409 | Name exists | `{"error": "name_exists"}` |
+| /sites/* | 409 | URL exists | `{"error": "url_exists"}` |
+
+## Performance SLAs
+1. **Response Time Requirements**
+   - API Response: 95% < 200ms
+   - Database Queries: 95% < 100ms
+   - Cache Operations: 95% < 50ms
+
+2. **Availability**
+   - API Uptime: 99.9%
+   - Database Uptime: 99.99%
+   - Cache Uptime: 99.95%
+
+## Caching Strategy
+1. **Cache Layers**
+   - Application Cache (In-memory)
+   - Redis Cache (Distributed)
+
+2. **Cache Keys**
+   ```
+   users:{id}:profile
+   org:{id}:details
+   site:{id}:config
+   ```
+
+3. **TTL Values**
+   - User Profile: 15 minutes
+   - Organization Details: 30 minutes
+   - Site Configuration: 1 hour
+   - Authentication Tokens: 24 hours
+
+4. **Invalidation Rules**
+   - On Update: Immediate invalidation
+   - On Delete: Cascade invalidation
+   - Background Job: Daily cleanup
+

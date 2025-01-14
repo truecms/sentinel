@@ -1354,29 +1354,248 @@ We welcome contributions! Please follow these steps:
    - Document API changes
    - Include example usage
 
-## License
+## Development Standards and Guidelines
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Code Style and Structure
 
-```
-MIT License
+### Python Code Style
+1. **PEP 8 Compliance**
+   - Use 4 spaces for indentation
+   - Maximum line length: 88 characters (Black formatter)
+   - Use snake_case for functions and variables
+   - Use PascalCase for classes
+   - Use UPPERCASE for constants
 
-Copyright (c) 2024 Your Name
+2. **Type Hints**
+   ```python
+   from typing import Optional, List, Dict
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+   def get_user(user_id: int) -> Optional[Dict[str, any]]:
+       pass
+   ```
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+3. **Docstrings**
+   ```python
+   def create_user(user_data: Dict[str, any]) -> Dict[str, any]:
+       """
+       Create a new user in the system.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+       Args:
+           user_data (Dict[str, any]): User information including email and password
+
+       Returns:
+           Dict[str, any]: Created user object
+
+       Raises:
+           HTTPException: If user already exists or validation fails
+       """
+       pass
+   ```
+
+### FastAPI Best Practices
+1. **Router Organization**
+   ```python
+   from fastapi import APIRouter
+
+   router = APIRouter(prefix="/api/v1/users", tags=["users"])
+   ```
+
+2. **Dependency Injection**
+   ```python
+   from fastapi import Depends
+   from sqlalchemy.orm import Session
+
+   def get_db():
+       db = SessionLocal()
+       try:
+           yield db
+       finally:
+           db.close()
+   ```
+
+3. **Response Models**
+   ```python
+   from pydantic import BaseModel
+
+   class UserResponse(BaseModel):
+       id: int
+       email: str
+       class Config:
+           from_attributes = True
+   ```
+
+## Database Guidelines
+
+1. **SQLAlchemy Models**
+   ```python
+   from sqlalchemy import Column, Integer, String
+   from database import Base
+
+   class User(Base):
+       __tablename__ = "users"
+       id = Column(Integer, primary_key=True)
+       email = Column(String, unique=True, index=True)
+   ```
+
+2. **Migration Standards**
+   - Descriptive migration names
+   - One change per migration
+   - Always include downgrade path
+
+## Testing Standards
+
+1. **Test Structure**
+   ```python
+   def test_create_user(client, db):
+       # Arrange
+       user_data = {"email": "test@example.com"}
+       # Act
+       response = client.post("/api/v1/users/", json=user_data)
+       # Assert
+       assert response.status_code == 201
+   ```
+
+2. **Test Coverage**
+   - Minimum 80% coverage required
+   - Critical paths require 100% coverage
+   - Integration tests for all endpoints
+
+## Git Usage
+### Commit Message Prefixes:
+   - "fix": for bug fixes
+   - "feat": for new features
+   - "perf": for performance improvements
+   - "docs": for documentation updates
+   - "style": for frontend changes (SCSS, Twig, etc.)
+   - "refactor": for code refactoring
+   - "test": for adding or updating tests
+   - "chore": for maintenance tasks
+
+### Rules:
+   - Begin commit message with main verb in past tense, e.g. "Created", "Updated", "Fixed"
+   - Use lowercase for commit messages
+   - Keep the summary line concise
+   - Reference issue numbers when applicable
+
+## Pull Request Process
+
+1. **PR Template**
+   ```markdown
+   ## Description
+   Brief description of changes
+
+   ## Type of Change
+   - [ ] Bug fix
+   - [ ] New feature
+   - [ ] Breaking change
+   - [ ] Documentation update
+
+   ## Testing
+   - [ ] Unit tests added/updated
+   - [ ] Integration tests added/updated
+   - [ ] Manual testing performed
+
+   ## Checklist
+   - [ ] Code follows style guidelines
+   - [ ] Documentation updated
+   - [ ] Tests passing
+   - [ ] PR is linked to issue
+   ```
+
+2. **Review Requirements**
+   - At least one approving review required
+   - All automated checks must pass
+   - No unresolved comments
+   - Coverage requirements met
+
+## API Documentation Standards
+
+1. **OpenAPI Documentation**
+   ```python
+   @router.post("/", response_model=UserResponse)
+   async def create_user(
+       user: UserCreate,
+       db: Session = Depends(get_db)
+   ) -> Any:
+       """
+       Create a new user.
+
+       Args:
+           user: User creation data
+           db: Database session
+
+       Returns:
+           Created user object
+       """
+       return await create_user_service(db, user)
+   ```
+
+2. **Response Examples**
+   ```python
+   class UserResponse(BaseModel):
+       id: int
+       email: str
+
+       class Config:
+           schema_extra = {
+               "example": {
+                   "id": 1,
+                   "email": "user@example.com"
+               }
+           }
+   ```
+
+## Error Handling
+
+1. **Exception Structure**
+   ```python
+   from fastapi import HTTPException
+
+   async def get_user(user_id: int) -> User:
+       user = await find_user(user_id)
+       if not user:
+           raise HTTPException(
+               status_code=404,
+               detail="User not found"
+           )
+       return user
+   ```
+
+2. **Error Responses**
+   ```python
+   @router.get("/{user_id}")
+   async def read_user(
+       user_id: int,
+       current_user: User = Depends(get_current_user)
+   ):
+       try:
+           return await get_user(user_id)
+       except NotFoundException as e:
+           raise HTTPException(status_code=404, detail=str(e))
+       except PermissionError as e:
+           raise HTTPException(status_code=403, detail=str(e))
+   ```
+
+## Performance Guidelines
+
+1. **Async Operations**
+   - Use async/await for I/O operations
+   - Implement proper connection pooling
+   - Use background tasks for long-running operations
+
+2. **Caching**
+   - Implement Redis caching for frequent queries
+   - Use proper cache invalidation strategies
+   - Set appropriate TTL values
+
+## Security Standards
+
+1. **Authentication**
+   - Implement JWT token validation
+   - Use proper password hashing
+   - Implement rate limiting
+
+2. **Authorization**
+   - Implement role-based access control
+   - Validate permissions at endpoint level
+   - Log security events
