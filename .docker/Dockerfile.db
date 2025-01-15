@@ -1,0 +1,42 @@
+FROM postgres:15-alpine
+
+ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
+ARG POSTGRES_DB
+ARG POSTGRES_HOST_AUTH_METHOD
+
+# Create app directory
+RUN mkdir -p /app
+
+# Copy initialization scripts
+COPY ./scripts /app/scripts
+COPY ./scripts/sql/init.sql /docker-entrypoint-initdb.d/
+# COPY ./scripts/sql/functions.sql /app/sql/
+# COPY ./scripts/sql/triggers.sql /app/sql/
+
+# Set environment variables from config.py
+ENV POSTGRES_USER=${POSTGRES_USER:-postgres} \
+    POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres} \
+    POSTGRES_DB=${POSTGRES_DB:-application_db}
+
+# Create necessary directories and set permissions
+RUN mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql/data && \
+    chmod 700 /var/lib/postgresql/data
+
+# Create the app directory structure
+RUN mkdir -p /app/backups && \
+    mkdir -p /app/logs && \
+    chown -R postgres:postgres /app && \
+    chmod -R 755 /app
+
+# Add custom PostgreSQL configuration
+COPY .docker/postgresql.conf /etc/postgresql/postgresql.conf
+
+USER postgres
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Set the default command
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

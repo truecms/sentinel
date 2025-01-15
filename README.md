@@ -5,12 +5,13 @@ Backend service providing REST API endpoints for user, organization, and site ma
 
 ## Table of Contents
 - [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Database Setup](#database-setup)
+- [Running the Application](#running-the-application)
 - [API Documentation](#api-documentation)
-- [Development Setup](#development-setup)
+- [Development](#development)
 - [Testing](#testing)
-- [Deployment](#deployment)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
 
 ## Features
 - User Management with RBAC
@@ -21,6 +22,112 @@ Backend service providing REST API endpoints for user, organization, and site ma
 - API Versioning
 - Automated Testing
 - Docker Deployment
+
+## Prerequisites
+- Docker and Docker Compose
+- PostgreSQL client (psql) for database management
+- Make (optional)
+
+## Installation
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd <repository-name>
+```
+
+2. Create .env file:
+```bash
+cp .env.example .env
+```
+
+## Database Setup
+Before starting the application, you need to create the database manually:
+
+1. First, stop any running containers and remove volumes:
+```bash
+docker-compose down -v
+```
+
+2. Start the database container:
+```bash
+docker-compose up db -d
+```
+
+3. Wait for PostgreSQL to initialize (check logs until you see "database system is ready"):
+```bash
+docker-compose logs -f db
+```
+
+4. Create the database (in a new terminal):
+```bash
+docker-compose exec -u postgres db psql -c "CREATE DATABASE application_db;"
+```
+
+5. Verify the database was created:
+```bash
+docker-compose exec -u postgres db psql -c "\l"
+```
+
+6. Start the API service:
+```bash
+docker-compose up -d
+```
+
+7. Run database migrations:
+```bash
+docker-compose exec api alembic upgrade head
+```
+
+## Running the Application
+
+1. The API will be available at:
+- API: http://localhost:8000
+- Documentation: http://localhost:8000/docs
+- OpenAPI Spec: http://localhost:8000/openapi.json
+
+2. Health check:
+```bash
+curl http://localhost:8000/health
+```
+
+## Development
+
+### Making Database Changes
+1. Create a new migration:
+```bash
+docker-compose exec api alembic revision --autogenerate -m "description"
+```
+
+2. Apply migrations:
+```bash
+docker-compose exec api alembic upgrade head
+```
+
+3. Rollback migrations:
+```bash
+docker-compose exec api alembic downgrade -1
+```
+
+### Common Commands
+```bash
+# View logs
+docker-compose logs -f api
+
+# Restart services
+docker-compose restart api
+
+# Rebuild services
+docker-compose up -d --build
+
+# Connect to database
+docker-compose exec -u postgres db psql -d application_db
+```
+
+## Testing
+Run tests using:
+```bash
+docker-compose exec api pytest
+```
 
 ## API Documentation
 

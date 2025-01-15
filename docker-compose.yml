@@ -1,10 +1,13 @@
 services:
   db:
-    image: postgres:13
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts:/docker-entrypoint-initdb.d/scripts
-      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - postgres_data:/var/lib/postgresql/data:rw
+      - ./scripts:/docker-entrypoint-initdb.d/scripts:ro
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    user: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -21,7 +24,9 @@ services:
       retries: 5
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
@@ -50,7 +55,7 @@ services:
   test:
     build:
       context: .
-      dockerfile: Dockerfile.test
+      dockerfile: .docker/Dockerfile.test
     command: tail -f /dev/null  # Keep container running without executing tests
     volumes:
       - .:/app
