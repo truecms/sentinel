@@ -1,0 +1,30 @@
+{
+  "id": "your-environment-id",
+  "name": "FastAPI Development",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "organization_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ]
+} 

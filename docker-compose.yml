@@ -3,6 +3,7 @@ services:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -49,19 +50,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
-    command: pytest -v
+    command: tail -f /dev/null  # Keep container running without executing tests
     volumes:
       - .:/app
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
       - POSTGRES_DB=test_db
       - POSTGRES_HOST=db
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - POSTGRES_PORT=5432
+      - JWT_SECRET_KEY=testing_secret_key_123
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - PYTHONPATH=/app
       - TESTING=1
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
     depends_on:
       db:
         condition: service_healthy

@@ -141,24 +141,32 @@ Required packages are listed in `requirements-test.txt`:
 ### Running Tests
 
 #### Using Docker (Recommended)
-The easiest way to run tests is using the provided shell script:
+The project includes a dedicated test container with all necessary dependencies and configurations. Here's how to use it:
 
+1. Start the test environment:
 ```bash
-# Run all tests
-./scripts/run_tests.sh
-
-# Run specific test file
-./scripts/run_tests.sh tests/test_api/test_auth.py
-
-# Run specific test function
-./scripts/run_tests.sh tests/test_api/test_auth.py -k test_login
+docker-compose up -d test
 ```
 
-This script will:
-1. Build the test container using Dockerfile.test
-2. Start a PostgreSQL container for testing
-3. Run the tests with proper environment variables
-4. Clean up containers after completion
+2. Execute tests in the running container:
+```bash
+# Run all tests
+docker-compose exec test pytest
+
+# Run specific test file
+docker-compose exec test pytest tests/test_api/test_auth.py
+
+# Run specific test function
+docker-compose exec test pytest tests/test_api/test_auth.py -k test_login
+
+# Run tests with coverage report
+docker-compose exec test pytest --cov=app --cov-report=term-missing
+```
+
+The test container remains running and ready for executing tests at any time. This is particularly useful for:
+- Development: Quick test execution during development
+- CI/CD: Integration with continuous integration pipelines
+- Manual Testing: Ad-hoc test execution as needed
 
 #### Test Configuration
 Tests are configured via `pytest.ini`:
@@ -175,6 +183,19 @@ Tests run with these environment variables:
 - POSTGRES_DB=test_db
 - JWT_SECRET_KEY=testing_secret_key_123
 - ACCESS_TOKEN_EXPIRE_MINUTES=30
+- SUPERUSER_EMAIL - Admin user email from .env
+- SUPERUSER_PASSWORD - Admin user password from .env
+
+The test environment includes a superuser account with full system permissions. This superuser can:
+- Create, update, and delete any users
+- Manage all organizations
+- Access all endpoints without restrictions
+- Perform system-wide administrative tasks
+
+This superuser account is particularly useful for:
+- Setting up test data
+- Testing administrative functions
+- Verifying role-based access controls
 
 ### Coverage Reports
 After running tests, coverage reports are available:
