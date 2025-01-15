@@ -3,6 +3,7 @@ services:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts:/docker-entrypoint-initdb.d/scripts
       - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     environment:
       - POSTGRES_USER=${POSTGRES_USER}

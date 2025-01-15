@@ -85,12 +85,17 @@ cd your-repo
 cp .env.example .env
 ```
 
-3. Start services:
+3. Initialize database:
+```bash
+./scripts/init-db.sh
+```
+
+4. Start services:
 ```bash
 docker-compose up -d
 ```
 
-4. Run migrations:
+5. Run migrations:
 ```bash
 docker-compose exec api alembic upgrade head
 ```

@@ -15,7 +15,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \

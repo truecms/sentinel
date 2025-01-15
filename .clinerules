@@ -87,7 +87,72 @@ Ensure all necessary environment variables are set either in the `.env` file or 
 
 ## Running the Application
 
-Use Docker Compose to build and run the application.
+### Container Execution
+
+All scripts and commands should be executed within the appropriate Docker container. The main application container is named `api`.
+
+To execute commands within the container:
+
+```bash
+docker-compose exec api <command>
+```
+
+For example, to run database migrations:
+
+```bash
+docker-compose exec api alembic upgrade head
+```
+
+To run tests:
+
+```bash
+docker-compose exec api pytest
+```
+
+To access a shell within the container:
+
+```bash
+docker-compose exec api bash
+```
+
+### Executing Scripts
+
+All scripts should be executed within the Docker container. Here are some common examples:
+
+1. Running database initialization scripts:
+```bash
+docker-compose exec api bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB -f /app/scripts/sql/tables.sql"
+```
+
+2. Running database seed scripts:
+```bash
+docker-compose exec api bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB -f /app/scripts/sql/seed.sql"
+```
+
+3. Running database migrations:
+```bash
+docker-compose exec api alembic upgrade head
+```
+
+4. Running tests:
+```bash
+docker-compose exec api pytest
+```
+
+5. Running custom Python scripts:
+```bash
+docker-compose exec api python /app/scripts/your_script.py
+```
+
+When executing scripts, ensure you:
+- Use the correct container name ('api')
+- Use absolute paths within the container (/app/...)
+- Pass any required environment variables
+- Use proper quoting for commands with spaces or special characters
+
+### Starting the Application
+
+Use Docker Compose to build and run the application:
 
 ```bash
 docker-compose up --build
