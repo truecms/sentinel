@@ -1599,3 +1599,53 @@ We welcome contributions! Please follow these steps:
    - Implement role-based access control
    - Validate permissions at endpoint level
    - Log security events
+```
+
+# Development Workflow Rules
+
+# IMPORTANT: Do not remove existing code/content unless explicitly rewriting it.
+# When modifying files, always:
+# 1. Read the existing content first
+# 2. Use '// ... existing code ...' to preserve unmodified sections
+# 3. Make minimal necessary changes
+# 4. Test changes before committing
+
+# Development Cycle Commands
+
+## 1. Environment Management
+rebuild_env:
+  description: "Rebuild and restart the environment"
+  commands:
+    - "docker-compose down -v"
+    - "docker-compose up --build -d"
+    - "sleep 5"  # Wait for services to start
+
+## 2. Command Execution
+execute_command:
+  description: "Execute a command and verify its result"
+  commands:
+    - "@verify_command"
+    - "@check_logs"
+
+## 3. Log Monitoring
+check_logs:
+  description: "Monitor application logs"
+  commands:
+    - "docker logs monitoring-api-1 --tail 50"
+    - "docker logs monitoring-db-1 --tail 50"
+
+## 4. Development Loop
+dev_loop:
+  description: "Complete development cycle"
+  commands:
+    - "@rebuild_env"
+    - "@execute_command"
+    - "@check_logs"
+    - "echo 'Development cycle completed. Check results and repeat if needed.'"
+
+## 5. Verification
+verify_command:
+  description: "Verify command execution"
+  commands:
+    - "curl http://localhost:8000/health"
+    - "docker ps"
