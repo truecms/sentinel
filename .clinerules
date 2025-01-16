@@ -21,6 +21,13 @@ This project is a FastAPI-based backend application designed to interact with a 
 - [Contributing](#contributing)
 - [License](#license)
 
+## Codebase instructions
+
+- Always update README.md file with changes you make
+- Make suggestions how to improve prompts to make tasks clearer.
+- Commit after successful code changes and ensure detailed commit message about your changes.
+- When creating migrations, always suggest the command to execute it.
+
 ## Features
 
 - **User Management:** Create and authenticate users.
@@ -1141,7 +1148,7 @@ If you need to create new migrations manually, follow these steps:
 The project follows a modular structure with clear separation of concerns:
 
 ```
-your-repo/
+/
 ├── app/
 │   ├── api/                    # API endpoints and route definitions
 │   │   └── v1/

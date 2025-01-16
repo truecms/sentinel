@@ -5,8 +5,6 @@ services:
       dockerfile: .docker/Dockerfile.db
     volumes:
       - postgres_data:/var/lib/postgresql/data:rw
-      - ./scripts:/docker-entrypoint-initdb.d/scripts:ro
-      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     user: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}

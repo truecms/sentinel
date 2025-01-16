@@ -10,11 +10,15 @@ INSERT INTO roles (name, description) VALUES
 ('viewer', 'Read-only access to organization data')
 ON CONFLICT (name) DO NOTHING;
 
--- Insert initial users
-INSERT INTO users (email, hashed_password, is_superuser) VALUES
-('admin@example.com', crypt('adminpassword', gen_salt('bf')), TRUE),
-('user@example.com', crypt('userpassword', gen_salt('bf')), FALSE)
-ON CONFLICT (email) DO NOTHING;
+-- Insert initial users with bcrypt hashed passwords
+-- admin123 hashed with bcrypt
+INSERT INTO users (email, hashed_password, is_superuser, is_active) VALUES
+('admin@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewKxpCmGsSTwAgz.', TRUE, TRUE),
+('user@example.com', '$2b$12$dWGj4.wOqgLrLxOAZCJTB.4IEK1.YQgLGZxwYn3WEtMxm6CkNS76.', FALSE, TRUE)
+ON CONFLICT (email) DO UPDATE 
+SET hashed_password = EXCLUDED.hashed_password,
+    is_superuser = EXCLUDED.is_superuser,
+    is_active = EXCLUDED.is_active;
 
 -- Insert initial organization
 INSERT INTO organizations (name, created_by) VALUES
