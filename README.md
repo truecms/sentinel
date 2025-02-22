@@ -384,3 +384,242 @@ Types:
 - refactor: Code restructuring
 - test: Adding tests
 - chore: Maintenance
+
+# Organization Management API Documentation
+
+## Overview
+
+The Organization Management API provides endpoints for creating, reading, updating, and deleting organizations. All endpoints require authentication using JWT tokens.
+
+## Authentication
+
+All endpoints require a valid JWT token in the Authorization header:
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+## Endpoints
+
+### 1. List Organizations
+
+**Endpoint:** `GET /api/v1/organizations/`
+
+**Description:** Retrieves a paginated list of organizations with their associated users.
+
+**Query Parameters:**
+- `skip` (optional): Number of records to skip (default: 0)
+- `limit` (optional): Maximum number of records to return (default: 100)
+
+**Response:**
+```json
+[
+  {
+    "name": "Organization Name",
+    "description": null,
+    "is_active": true,
+    "id": 1,
+    "created_at": "2025-02-22T12:07:52.945534",
+    "created_by": 1,
+    "updated_at": "2025-02-22T12:07:52.945536",
+    "updated_by": 1,
+    "users": []
+  }
+]
+```
+
+### 2. Create Organization
+
+**Endpoint:** `POST /api/v1/organizations/`
+
+**Description:** Creates a new organization.
+
+**Request Body:**
+```json
+{
+  "name": "Organization Name"
+}
+```
+
+**Response:**
+```json
+{
+  "name": "Organization Name",
+  "description": null,
+  "is_active": true,
+  "id": 1,
+  "created_at": "2025-02-22T12:07:52.945534",
+  "created_by": 1,
+  "updated_at": "2025-02-22T12:07:52.945536",
+  "updated_by": 1,
+  "users": []
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: If an organization with the same name already exists
+- `401 Unauthorized`: If the authentication token is missing or invalid
+- `403 Forbidden`: If the user doesn't have permission to create organizations
+
+### 3. Get Organization Details
+
+**Endpoint:** `GET /api/v1/organizations/{organization_id}`
+
+**Description:** Retrieves detailed information about a specific organization.
+
+**Path Parameters:**
+- `organization_id`: The ID of the organization to retrieve
+
+**Response:**
+```json
+{
+  "name": "Organization Name",
+  "description": null,
+  "is_active": true,
+  "id": 1,
+  "created_at": "2025-02-22T12:07:52.945534",
+  "created_by": 1,
+  "updated_at": "2025-02-22T12:07:52.945536",
+  "updated_by": 1,
+  "users": []
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: If the organization doesn't exist
+- `401 Unauthorized`: If the authentication token is missing or invalid
+- `403 Forbidden`: If the user doesn't have permission to view the organization
+
+### 4. Update Organization
+
+**Endpoint:** `PUT /api/v1/organizations/{organization_id}`
+
+**Description:** Updates an existing organization.
+
+**Path Parameters:**
+- `organization_id`: The ID of the organization to update
+
+**Request Body:**
+```json
+{
+  "name": "Updated Organization Name",
+  "description": "Updated description",
+  "is_active": true
+}
+```
+
+**Response:**
+```json
+{
+  "name": "Updated Organization Name",
+  "description": "Updated description",
+  "is_active": true,
+  "id": 1,
+  "created_at": "2025-02-22T12:07:52.945534",
+  "created_by": 1,
+  "updated_at": "2025-02-22T12:07:52.945536",
+  "updated_by": 1,
+  "users": []
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: If the organization doesn't exist
+- `401 Unauthorized`: If the authentication token is missing or invalid
+- `403 Forbidden`: If the user doesn't have permission to update the organization
+
+### 5. Delete Organization
+
+**Endpoint:** `DELETE /api/v1/organizations/{organization_id}`
+
+**Description:** Soft deletes an organization by marking it as inactive.
+
+**Path Parameters:**
+- `organization_id`: The ID of the organization to delete
+
+**Response:**
+```json
+{
+  "name": "Organization Name",
+  "description": null,
+  "is_active": false,
+  "id": 1,
+  "created_at": "2025-02-22T12:07:52.945534",
+  "created_by": 1,
+  "updated_at": "2025-02-22T12:07:52.945536",
+  "updated_by": 1,
+  "users": []
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: If the organization doesn't exist
+- `401 Unauthorized`: If the authentication token is missing or invalid
+- `403 Forbidden`: If the user doesn't have permission to delete the organization
+
+## Data Models
+
+### Organization Schema
+
+```python
+{
+    "id": int,                    # Organization ID
+    "name": str,                  # Organization name (required, unique)
+    "description": str | null,    # Optional description
+    "is_active": bool,           # Organization status
+    "created_at": datetime,      # Creation timestamp
+    "created_by": int,           # User ID who created the organization
+    "updated_at": datetime,      # Last update timestamp
+    "updated_by": int,           # User ID who last updated the organization
+    "users": [                   # List of users in the organization
+        {
+            "id": int,
+            "email": str,
+            # ... other user fields
+        }
+    ]
+}
+```
+
+## Error Handling
+
+All endpoints follow a consistent error response format:
+
+```json
+{
+    "detail": "Error message describing what went wrong"
+}
+```
+
+Common HTTP status codes:
+- `200`: Success
+- `400`: Bad Request (e.g., validation errors)
+- `401`: Unauthorized (missing or invalid token)
+- `403`: Forbidden (insufficient permissions)
+- `404`: Not Found
+- `422`: Unprocessable Entity (validation errors)
+- `500`: Internal Server Error
+
+## Authentication
+
+All endpoints require a valid JWT token obtained through the authentication endpoint:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/auth/access-token" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "username=your_email@example.com&password=your_password"
+```
+
+The token should be included in the Authorization header of subsequent requests:
+
+```bash
+curl -X GET "http://localhost:8000/api/v1/organizations/" \
+     -H "Authorization: Bearer your_jwt_token"
+```
+
+## Rate Limiting
+
+The API implements rate limiting to prevent abuse. Clients should handle 429 Too Many Requests responses by implementing appropriate backoff strategies.
+
+## Pagination
+
+List endpoints support pagination through `skip` and `limit` query parameters. Clients should use these parameters to handle large datasets efficiently.

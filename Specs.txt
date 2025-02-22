@@ -1,486 +1,159 @@
 Project Documentation for Monitoring and Reporting Platform
-Platform Overview and Concept
-Platform Summary
-
-This platform is designed to serve as a centralized monitoring and reporting system for multiple Drupal websites. 
-It will track and report on module versions, including security and non-security updates, across all registered sites. 
-By facilitating comprehensive version tracking and update reporting, the platform enables site administrators and developers 
-to maintain updated, secure environments.
-
-Core Principles
-
-1. **Centralized Monitoring**: Aggregate module version data from multiple Drupal websites, providing administrators a consolidated view of module versions and pending updates.
-2. **Version History and Reporting**: Retain historical records of module versions and updates, enabling detailed reporting for any time period (e.g., weekly, monthly, year-to-date).
-3. **Prioritized Security Updates**: Emphasize security updates for easy identification, ensuring that site administrators can prioritize critical patches.
-4. **Role-Based Access at Organization Level**: Recognize users at the organization level rather than individual accounts. Each organization can have multiple members with different roles, such as Administrators (full access) and Developers (read-only access).
-5. **Customizable Notifications**: Offer configurable email notifications for module updates, including security and non-security updates, with frequency settings and preferences.
-
-Technology Stack and Architectural Overview
-
-The following technology stack has been selected for the initial development of the monitoring and reporting platform, 
-chosen based on requirements for high concurrency, scalability, and efficient handling of data from multiple Drupal sites.
-
-1. **Back-End Framework**: **FastAPI (Python)**
-   - Provides asynchronous processing for high throughput and efficient handling of REST API requests.
-   - Supports easy integration with Redis and PostgreSQL, enabling smooth data ingestion and processing.
-
-2. **Front-End Framework**: **React**
-   - Allows for dynamic, responsive interfaces that support complex data visualization and user interactions.
-   - Enables integration with role-based access controls, providing distinct views and functionalities for different user roles (Administrator vs. Developer).
-
-3. **Database**: **PostgreSQL**
-   - A robust, relational database with support for JSONB fields to store semi-structured JSON payloads from the Drupal sites.
-   - Ideal for structured storage and relational querying, essential for tracking module versions and maintaining historical records.
-
-4. **Queue and Data Streams**: **Redis Streams**
-   - Redis Streams will handle incoming data bursts from the API, enabling asynchronous processing and buffering during high-traffic periods.
-   - Facilitates real-time updates and high-speed data handling with low latency.
-
-5. **Authentication and Security Layer**:
-   - **API Key-Based Authentication**: For secure communication between Drupal sites and the REST API.
-   - **Rate Limiting**: Implemented using Redis-based counters to manage and control request frequency.
-
-6. **Push Notifications (Stage 2)**:
-   - Notifications for security and non-security updates will be handled via **Firebase Cloud Messaging (FCM)** and **Apple Push Notification Service (APNS)** for mobile alerts.
-
-7. **Mobile Application (Stage 2)**:
-   - Future mobile applications will be developed using **React Native** to allow code reuse and seamless integration with the existing React front-end components.
-
-This stack provides a balanced approach to performance, scalability, and flexibility, accommodating the current functional requirements and facilitating future expansion into mobile and real-time notification capabilities.
-
-Overall Requirements
-Functional Requirements
-
-1. **Data Ingestion via Drupal Module**:
-   - The Drupal module installed on each monitored website will perform a scheduled (cron-based) POST request in JSON format to the platform�s REST API.
-   - Each POST request includes:
-     - Site identifier (unique to each site).
-     - Module version data, including Drupal core version and module versions.
-   - After updates are applied on a site (e.g., during a patch run), the module will push the latest module versions to the platform, ensuring records remain up-to-date.
-
-2. **Site and Module Management**:
-   - **Site List**: A user-accessible list of all sites registered within the organization. Each entry includes:
-     - Site name (editable in the interface by administrators).
-     - URL (editable in the interface by administrators).
-     - Date added (read-only).
-     - Current core version and counts of modules with available updates and security updates.
-   - **Site Detail View**: Displays:
-     - List of modules installed on the site.
-     - Module name, current version, link to Drupal.org module page.
-     - **Update Prioritization**:
-       - Security updates should be highlighted at the top in a standalone list.
-       - Non-security updates follow.
-       - Modules with no updates will be displayed in a separate list.
-
-3. **Reporting and Historical Records**:
-   - **Historical Report Generation**: Allow users to generate historical reports covering specified timeframes.
-   - **Patch Run Reports**: Track each update cycle as a "patch run," documenting updated versions.
-   - **Update Lag Tracking**: Report on the time taken to apply security updates.
-
-4. **Email Notifications**:
-   - Configurable email alerts for updates, with user-configurable preferences:
-     - Frequency: For security and non-security updates.
-     - Email Address: Specify preferred emails for updates.
-     - Disable Notifications: Option to disable notifications entirely.
-
-Refactored Database Structure
-
-To accommodate expanded tracking and auditing requirements, the database structure has been revised as follows:
-
-1. **Organizations Table**:
-   - `id` (Primary Key): Unique identifier for the organization.
-   - `name`: Organization name.
-   - `created_at`: Timestamp of organization creation.
-   - `created_by`: Foreign key linking to the user who created the organization.
-   - `modified_at`: Timestamp of last modification.
-
-2. **Organization Revisions Table** (New):
-   - **id** (Primary Key): Unique identifier for each revision.
-   - `organization_id`: Foreign key linking to the Organizations table.
-   - `created_by`: User who created this revision.
-   - `created_at`: Timestamp of when the revision was created.
-   - `modified_by`: User who last modified this revision.
-   - `modified_at`: Timestamp of the last modification.
-
-3. **Users Table**:
-   - `id` (Primary Key): Unique identifier for each user.
-   - `email`: Email address of the user.
-   - `organization_id`: Foreign key linking to the Organizations table.
-   - `role`: Role within the organization (Administrator or Developer).
-   - `password_hash`: Hash of the user password (stored securely).
-   - `created_at`: Timestamp of user creation.
-   - `modified_at`: Timestamp of the last modification.
-   - `notification_preferences`: JSON field storing user-specific notification settings.
-
-4. **Sites Table**:
-   - `id` (Primary Key): Unique identifier for each site.
-   - `organization_id`: Foreign key linking to the Organizations table.
-   - `uuid`: Unique identifier for the site (provided to the Drupal module).
-   - `name`: Name of the site.
-   - `url`: URL of the site.
-   - `created_at`: Timestamp when the site was registered.
-
-5. **Modules Table**:
-   - `id` (Primary Key): Unique identifier for each module.
-   - `module_name`: Name of the module.
-   - `drupal_link`: URL to the module�s page on Drupal.org.
-
-6. **Module Versions Table**:
-   - `id` (Primary Key): Unique identifier for each module version.
-   - `module_id`: Foreign key linking to the Modules table.
-   - `version_number`: Version number of the module.
-   - `release_date`: Date when this version was released.
-
-7. **Site Modules Table**:
-   - Tracks the current version of each module installed on each site.
-   - `site_id`: Foreign key linking to the Sites table.
-   - `module_id`: Foreign key linking to the Modules table.
-   - `current_version_id`: Foreign key linking to the Module Versions table.
-   - `update_available`: Boolean indicating if an update is available.
-   - `security_update`: Boolean indicating if it�s a security update.
-
-8. **Patch Runs Table**:
-   - Records each patch run cycle for tracking historical updates.
-   - `id` (Primary Key): Unique identifier for each patch run.
-   - `site_id`: Foreign key linking to the Sites table.
-   - `run_date`: Timestamp for when the patch run was recorded.
-
-9. **Audit Logs Table**:
-   - `id` (Primary Key): Unique identifier for each log entry.
-   - `site_id`: Foreign key linking to the Sites table.
-   - `data`: JSON field capturing raw POST data from the Drupal module.
-   - `status`: Status of the request (e.g., success, validation error).
-   - `created_at`: Timestamp of the log entry.
-
-Database Models and Relationships
-
-1. **User Model**:
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `name`: String (Username)
-     - `email`: String (unique, indexed)
-     - `hashed_password`: String
-     - `is_active`: Boolean
-     - `is_superuser`: Boolean
-   - Relationships:
-     - Many-to-Many with Organizations through UserOrganization
-     - Many-to-Many with Roles through UserRole
-     - One-to-Many with Organizations (as creator)
-
-2. **Organization Model**:
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `uuid`: UUID (unique)
-     - `name`: String (indexed)
-     - `tax_id`: String
-     - `created_at`: DateTime
-     - `created_by`: Integer (Foreign Key to users.id)
-   - Relationships:
-     - Many-to-Many with Users through UserOrganization
-     - Many-to-Many with Sites through SiteOrganization
-     - One-to-Many from User (creator relationship)
-
-3. **Role Model**:
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `name`: String (unique, indexed)
-   - Predefined Values:
-     - Superuser
-     - Organization Admin
-     - User
-   - Relationships:
-     - Many-to-Many with Users through UserRole
-
-4. **UserRole Model** (Junction Table):
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `user_id`: Integer (Foreign Key to users.id)
-     - `role_id`: Integer (Foreign Key to roles.id)
-   - Constraints:
-     - Unique constraint on (user_id, role_id)
-
-5. **UserOrganization Model** (Junction Table):
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `user_id`: Integer (Foreign Key to users.id)
-     - `organization_id`: Integer (Foreign Key to organizations.id)
-   - Constraints:
-     - Unique constraint on (user_id, organization_id)
-
-6. **Site Model**:
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `uuid`: UUID (unique)
-     - `url`: String
-   - Relationships:
-     - Many-to-Many with Organizations through SiteOrganization
-
-7. **SiteOrganization Model** (Junction Table):
-   - Primary Fields:
-     - `id`: Integer (Primary Key)
-     - `site_id`: Integer (Foreign Key to sites.id)
-     - `organization_id`: Integer (Foreign Key to organizations.id)
-   - Constraints:
-     - Unique constraint on (site_id, organization_id)
-
-Model Access Control Rules:
-1. Superusers have full access to all models and operations
-2. Organization Admins can:
-   - Manage their organization's details
-   - Add/remove users from their organization
-   - Manage sites within their organization
-3. Regular Users can:
-   - View their organization details
-   - Add and edit sites (but not delete)
-   - View other users in their organization
-
-Database Implementation Notes:
-- All primary keys are auto-incrementing integers
-- UUIDs are used as public identifiers for organizations and sites
-- Indexed fields for optimized querying: email, organization name
-- Proper foreign key constraints for referential integrity
-- Junction tables implement many-to-many relationships with unique constraints
-
-User Fields:
-- id: User ID (integer, primary key)
-- uuid: User UUID (unique identifier)
-- name: Username
-- email: Email address
-- password: Hashed password
-- created_at: Timestamp
-- updated_at: Timestamp
-- is_active: Boolean
-- is_deleted: Boolean
-- last_login: Timestamp
-
-Organization Fields:
-- id: Organisation ID (primary key)
-- uuid: Organisation UUID
-- name: Organisation name
-- tax_id: Tax ID
-- created_at: Timestamp
-- updated_at: Timestamp
-- created_by: User ID (foreign key)
-- updated_by: User ID (foreign key)
-- is_active: Boolean
-- is_deleted: Boolean
-
-Role Hierarchy:
-1. Superuser
-   - Global permissions
-   - Can manage all organizations and users
-2. Organisation Admin
-   - Organization-level permissions
-   - CRUD operations on organization
-   - User management within organization
-3. User
-   - Basic permissions
-   - Site management within organization
-
-Site Fields:
-- id: Site ID (primary key)
-- uuid: Site UUID
-- url: Site URL
-- name: Site name
-- description: Site description
-- organization_id: Organization ID (foreign key)
-- created_at: Timestamp
-- updated_at: Timestamp
-- created_by: User ID (foreign key)
-- updated_by: User ID (foreign key)
-- is_active: Boolean
-- is_deleted: Boolean
-
-Error Handling Specifications
-
-1. **Standard Error Response Format**
-```json
-{
-    "status_code": integer,
-    "error": string,
-    "message": string,
-    "details": object | null,
-    "timestamp": string
-}
-```
-
-2. **HTTP Status Codes**
-- 400 Bad Request: Invalid input data
-- 401 Unauthorized: Missing or invalid authentication
-- 403 Forbidden: Insufficient permissions
-- 404 Not Found: Resource doesn't exist
-- 409 Conflict: Resource conflict (e.g., duplicate email)
-- 422 Unprocessable Entity: Validation error
-- 429 Too Many Requests: Rate limit exceeded
-- 500 Internal Server Error: Server-side error
-
-3. **API Error Handling**
-
-### Authentication Errors
-- 401 Unauthorized
-  ```json
-  {
-    "status_code": 401,
-    "error": "unauthorized",
-    "message": "Invalid credentials",
-    "details": null,
-    "timestamp": "2024-03-14T12:00:00Z"
-  }
-  ```
-
-### Permission Errors
-- 403 Forbidden
-  ```json
-  {
-    "status_code": 403,
-    "error": "forbidden",
-    "message": "Insufficient permissions to perform this action",
-    "details": {
-        "required_role": "admin",
-        "current_role": "user"
-    },
-    "timestamp": "2024-03-14T12:00:00Z"
-  }
-  ```
-
-### Validation Errors
-- 422 Unprocessable Entity
-  ```json
-  {
-    "status_code": 422,
-    "error": "validation_error",
-    "message": "Invalid input data",
-    "details": {
-        "email": ["Invalid email format"],
-        "password": ["Password must be at least 8 characters"]
-    },
-    "timestamp": "2024-03-14T12:00:00Z"
-  }
-  ```
-
-### Rate Limiting Errors
-- 429 Too Many Requests
-  ```json
-  {
-    "status_code": 429,
-    "error": "rate_limit_exceeded",
-    "message": "Too many requests",
-    "details": {
-        "retry_after": 60,
-        "limit": 100,
-        "reset_at": "2024-03-14T12:01:00Z"
-    },
-    "timestamp": "2024-03-14T12:00:00Z"
-  }
-  ```
-
-4. **Error Handling by Endpoint**
-
-### User Management
-- POST /api/v1/users/
-  - 400: Invalid user data
-  - 409: Email already exists
-  - 422: Validation error
-  
-- PUT /api/v1/users/{user_id}
-  - 404: User not found
-  - 409: Email conflict
-  - 422: Invalid update data
-
-### Organization Management
-- POST /api/v1/organizations/
-  - 400: Invalid organization data
-  - 409: Organization name exists
-  - 422: Validation error
-
-- PUT /api/v1/organizations/{org_id}
-  - 404: Organization not found
-  - 409: Name conflict
-  - 422: Invalid update data
-
-### Site Management
-- POST /api/v1/sites/
-  - 400: Invalid site data
-  - 409: URL already registered
-  - 422: Validation error
-
-- PUT /api/v1/sites/{site_id}
-  - 404: Site not found
-  - 409: URL conflict
-  - 422: Invalid update data
-
-5. **Error Logging**
-- All 5xx errors must be logged with:
-  - Full error stack trace
-  - Request context
-  - User ID (if authenticated)
-  - Timestamp
-  - Correlation ID
-
-6. **Rate Limiting**
-- Global rate limits:
-  - 100 requests per minute per IP
-  - 1000 requests per hour per user
-- Endpoint-specific limits:
-  - Authentication: 5 attempts per minute
-  - User creation: 10 per hour
-  - Organization creation: 5 per hour
-
-7. **Validation Rules**
-- Email: RFC 5322 compliant
-- Password: 
-  - Minimum 8 characters
-  - At least one uppercase
-  - At least one number
-  - At least one special character
-- URLs: Valid URL format with HTTPS
-- UUIDs: RFC 4122 compliant
-
-API Documentation Standards:
-1. OpenAPI/Swagger Integration
-   - All endpoints must be documented using FastAPI's automatic OpenAPI generation
-   - Include example requests/responses
-   - Document all query parameters, path parameters, and request bodies
-
-2. API Versioning Strategy
-   - URL-based versioning (/api/v1/)
-   - Version header support (X-API-Version)
-   - Deprecation policy and headers
-
-Security Requirements:
-1. Authentication
-   - JWT token structure and claims
-   - Token refresh mechanism
-   - Session management
-   - API key rotation policy
-
-2. Rate Limiting
-   - Per-endpoint limits
-   - User-based vs IP-based limits
-   - Burst allowance
-
-3. CORS Policy
-   - Allowed origins
-   - Allowed methods
-   - Credential handling
-
-Performance Specifications:
-1. Response Time Targets
-   - 95th percentile < 200ms
-   - 99th percentile < 500ms
-
-2. Caching Strategy
-   - Redis caching for frequently accessed data
-   - Cache invalidation rules
-   - TTL policies
-
-3. Database Optimization
-   - Indexing strategy
-   - Query performance requirements
-   - Connection pooling configuration
-
-API Response Envelope
-```json
+================================================================
+
+Overview and Concept
+----------------------
+This platform is designed to serve as a centralized monitoring and reporting system for multiple Drupal websites. It aggregates module version data, tracks historical updates, and emphasizes security updates to ensure administrators are informed and can maintain secure environments.
+
+Core Principles:
+----------------
+1. Centralized Monitoring: Aggregate module version data from multiple Drupal websites. 
+2. Version History and Reporting: Maintain historical records for detailed reporting (weekly, monthly, YTD).
+3. Prioritized Security Updates: Highlight security updates for immediate attention.
+4. Role-Based Access at Organization Level: Support multi-member organizations with roles (Organization Admin, Developer, Viewer).
+5. Customizable Notifications: Allow configurable email notifications for updates.
+
+Technology Stack and Architectural Overview:
+---------------------------------------------
+- Back-End: FastAPI (Python) supporting asynchronous processing, using SQLAlchemy and PostgreSQL. Redis is used for rate limiting and buffering.
+- Front-End: React for dynamic interfaces and data visualizations.
+- Database: PostgreSQL with relational and JSONB support.
+- Data Streams: Redis Streams for handling bursts of data from Drupal sites.
+- Security: API Key-based authentication; JWT for user authentication; enforced rate limiting.
+- Future Enhancements: Push notifications (FCM/APNS) and mobile app integration (React Native).
+
+Database Models and Relationships (Refactored):
+------------------------------------------------
+* Organizations Table: id, uuid, name, tax_id, created_at, updated_at, created_by, updated_by, is_active, is_deleted.
+* Organization Revisions Table: id, organization_id, created_by, created_at, modified_by, modified_at.
+* Users Table: id, uuid, name, email, hashed_password, organization_id, role, created_at, updated_at, is_active, is_deleted, last_login, notification_preferences (JSON).
+* Sites Table: id, uuid, url, name, description, organization_id, created_at, updated_at, created_by, updated_by, is_active, is_deleted.
+* Modules Table: id, module_name, drupal_link.
+* Module Versions Table: id, module_id, version_number, release_date.
+* Site Modules Table: site_id, module_id, current_version_id, update_available, security_update.
+* Patch Runs Table: id, site_id, run_date.
+* Audit Logs Table: id, site_id, data (JSON), status, created_at.
+
+API Endpoints and Business Logic
+--------------------------------
+In order to support the requirements of the platform, the API is designed with clear RESTful endpoints, grouped by resource type. Each endpoint implements robust validation, error handling, and RBAC. Below is an overview of the API endpoints and the associated logic:
+
+1. User Management
+   ----------------
+   - POST /api/v1/users/add
+     Description: Create a new user. Validates email uniqueness, hashes the password, assigns a default role, and saves the record.
+     Logic: Validate input; check if email exists; hash the password using bcrypt/passlib; save user and link to an organization.
+
+   - GET /api/v1/users/{user_id}
+     Description: Retrieve user details, including organization affiliation and role information.
+     Logic: Query the Users table (joined with Organizations and Roles) by user_id; return user details.
+
+   - PUT /api/v1/users/update/{user_id}
+     Description: Update user information. Validates updates and refreshes the modified_at timestamp.
+     Logic: Retrieve user; apply updates; validate and save changes.
+
+   - DELETE /api/v1/users/delete/{user_id}
+     Description: Soft-delete a user by marking is_deleted=true.
+     Logic: Update the user record, ensuring data integrity.
+
+2. Authentication
+   ----------------
+   - POST /api/v1/auth/login
+     Description: Authenticate user credentials and generate a JWT token.
+     Logic: Validate provided email and password; generate and return a JWT token with an expiration time.
+
+   - POST /api/v1/auth/logout
+     Description: Logout the user. (JWT tokens are primarily stateless; logout may involve client-side token removal and optional server-side logging.)
+     Logic: Optionally record logout events in audit logs.
+
+3. Organization Management
+   -------------------------
+   - POST /api/v1/organizations
+     Description: Create a new organization. Validates uniqueness of organization name.
+     Logic: Validate data; ensure no duplicate organization names; save record with created_by and timestamps.
+
+   - GET /api/v1/organizations
+     Description: Retrieve a paginated list of organizations.
+     Logic: Query Organizations table; apply pagination filters.
+
+   - GET /api/v1/organizations/{org_id}
+     Description: Retrieve detailed information for a specific organization.
+     Logic: Query organization record by id and return details.
+
+   - PUT /api/v1/organizations/{org_id}
+     Description: Update organization information.
+     Logic: Validate input, update record, and log modifications.
+
+   - DELETE /api/v1/organizations/{org_id}
+     Description: Soft-delete an organization and cascade necessary updates.
+     Logic: Mark organization as deleted; handle related user/site deactivation.
+
+4. Site Management
+   -----------------
+   - POST /api/v1/sites
+     Description: Register a new site under an organization.
+     Logic: Validate site details, ensure URL uniqueness, save record with organization linkage.
+
+   - GET /api/v1/sites
+     Description: Retrieve a list of sites, optionally filtered by organization.
+     Logic: Query Sites table with optional filters; apply pagination if needed.
+
+   - GET /api/v1/sites/{site_id}
+     Description: Retrieve detailed information for a specific site.
+     Logic: Query site by id and return complete details.
+
+   - PUT /api/v1/sites/{site_id}
+     Description: Update site details.
+     Logic: Validate input; update record; log the updated timestamp.
+
+   - DELETE /api/v1/sites/{site_id}
+     Description: Soft-delete a site.
+     Logic: Mark site as deleted without permanently removing the record.
+
+5. Module Management
+   -------------------
+   - POST /api/v1/sites/{site_id}/modules
+     Description: Accept module version data from a Drupal site. Processes module names, current versions, and flags update status.
+     Logic: Parse incoming JSON payload; validate module and version data; update or insert records into Site Modules and Module Versions tables; flag security updates.
+
+   - GET /api/v1/sites/{site_id}/modules
+     Description: Retrieve current module information for the given site.
+     Logic: Query the Site Modules table joined with Modules and Module Versions for current data.
+
+   - GET /api/v1/modules/{module_id}/versions
+     Description: Retrieve historical version data for a specific module.
+     Logic: Query Module Versions table filtering by module_id.
+
+6. Patch Run Management
+   ----------------------
+   - POST /api/v1/sites/{site_id}/patch-run
+     Description: Record a patch run cycle detailing module updates applied.
+     Logic: Log details of the patch run and timestamp in the Patch Runs table.
+
+   - GET /api/v1/sites/{site_id}/patch-run
+     Description: Retrieve historical patch run records for analysis.
+     Logic: Query Patch Runs table by site_id with filtering options.
+
+7. Audit Logs
+   ------------
+   - GET /api/v1/audit-logs
+     Description: Retrieve audit logs for monitoring and troubleshooting (admin access only).
+     Logic: Query Audit Logs table; allow filtering by date or status.
+
+8. Reporting
+   ---------
+   - GET /api/v1/reports/module-updates
+     Description: Generate reports highlighting modules with available updates, prioritizing security updates.
+     Logic: Aggregate data from Sites, Site Modules, and Module Versions tables. Format report according to standard response envelope.
+
+   - GET /api/v1/reports/patch-run
+     Description: Generate historical reports covering patch run cycles.
+     Logic: Aggregate and filter patch run data, presenting trends and update lag metrics.
+
+Response Envelope:
+------------------
+All endpoints return responses in a standardized envelope:
+
 {
     "data": object | array | null,
     "meta": {
@@ -494,106 +167,65 @@ API Response Envelope
         "prev": string
     }
 }
-```
 
-Pagination Requirements:
-- Cursor-based pagination for large datasets
-- Page-based pagination for small datasets
-- Default and maximum page sizes
-- Consistent link headers
+Error Handling:
+---------------
+Standardized error responses include status_code, error, message, details, and timestamp. Refer to the Error Handling Matrix for specifics.
 
-Operational Requirements:
-1. Health Checks
-   - Readiness probe
-   - Liveness probe
-   - Dependencies status
+Security, Middleware, and Rate Limiting:
+-----------------------------------------
+- Use JWT token and API key-based authentication.
+- Enforce RBAC at endpoint level based on user roles (Superuser, Organization Admin, Developer, Viewer).
+- Utilize middlewares for global error handling, authentication verification, and rate limiting.
 
-2. Monitoring
-   - Prometheus metrics
-   - Custom business metrics
-   - SLA monitoring
+This updated specification resolves previous inconsistencies by clearly defining API endpoints, expected logic, and data handling strategies to ensure a consistent and robust implementation.
 
-3. Logging
-   - Structured JSON logging
-   - Log levels and categories
-   - Correlation IDs
+Roadmap and Recommendations
+-----------------------------
 
-Testing Standards:
-1. Unit Tests
-   - Minimum 80% coverage
-   - Mock external dependencies
-   - Test database fixtures
+Based on the project goals and our in-depth review, the following roadmap and recommendations are proposed to guide the future development and scaling of the Monitoring and Reporting Platform:
 
-2. Integration Tests
-   - API endpoint testing
-   - Database integration
-   - External service mocking
+1. API Versioning and Deprecation Strategy
+   - Formalize versioning using URL prefixes (e.g., /api/v1/) and version headers (e.g., X-API-Version).
+   - Document a deprecation policy and migration guidelines for future API versions.
 
-3. Performance Tests
-   - Load testing scenarios
-   - Stress testing requirements
-   - Benchmark metrics
+2. Soft-Delete and Data Lifecycle Management
+   - Clearly document soft-delete behavior for users, organizations, and sites.
+   - Implement background jobs to archive or clean up soft-deleted records after a defined retention period.
 
-# Additional Specifications
+3. Database Performance and Indexing
+   - Audit and add appropriate indexes on high-usage columns (e.g., email, organization name, UUIDs).
+   - Employ database connection pooling and query caching to support high concurrency and fast query response times.
 
-## API Response Standards
-1. **Standard Response Format**
-```json
-{
-    "data": object | array | null,
-    "meta": {
-        "page": integer,
-        "per_page": integer,
-        "total": integer
-    },
-    "links": {
-        "self": string,
-        "next": string,
-        "prev": string
-    }
-}
-```
+4. Security Enhancements
+   - Strengthen input validation, data sanitization, and error messaging across endpoints.
+   - Ensure robust JWT handling including expiry, token rotation, and refresh mechanisms.
+   - Reinforce the RBAC model and monitor for potential privilege escalations.
+   - Use centralized audit logging with correlation IDs.
 
-## Error Handling Matrix
-| Endpoint | Error Code | Description | Response |
-|----------|------------|-------------|-----------|
-| All endpoints | 401 | Invalid/missing token | `{"error": "unauthorized"}` |
-| All endpoints | 403 | Insufficient permissions | `{"error": "forbidden"}` |
-| /users/* | 409 | Email exists | `{"error": "email_exists"}` |
-| /organizations/* | 409 | Name exists | `{"error": "name_exists"}` |
-| /sites/* | 409 | URL exists | `{"error": "url_exists"}` |
+5. Rate Limiting and Traffic Management
+   - Validate the current limits through load testing and adjust thresholds based on peak traffic scenarios.
+   - Consider reactive measures and dynamic rate limiting policies to handle unexpected bursts.
 
-## Performance SLAs
-1. **Response Time Requirements**
-   - API Response: 95% < 200ms
-   - Database Queries: 95% < 100ms
-   - Cache Operations: 95% < 50ms
+6. Error Handling and Monitoring
+   - Implement global error middleware to capture and uniformly handle exceptions.
+   - Integrate structured JSON logging and performance metrics (e.g., via Prometheus) to monitor system health.
 
-2. **Availability**
-   - API Uptime: 99.9%
-   - Database Uptime: 99.99%
-   - Cache Uptime: 99.95%
+7. Testing and Quality Assurance
+   - Expand test suites to include not only unit and integration tests (80%+ coverage) but also performance and load testing.
+   - Adopt contract testing to ensure consistent API responses over time.
 
-## Caching Strategy
-1. **Cache Layers**
-   - Application Cache (In-memory)
-   - Redis Cache (Distributed)
+8. Asynchronous Processing and Job Management
+   - Evaluate the need for background task processing (e.g., using Celery) to offload heavy processing tasks.
+   - Ensure asynchronous operations, especially when handling data ingestion from Drupal sites, are robustly tested.
 
-2. **Cache Keys**
-   ```
-   users:{id}:profile
-   org:{id}:details
-   site:{id}:config
-   ```
+9. Documentation and Developer Guides
+   - Maintain an up-to-date developer guide with detailed runbooks, integration diagrams, and troubleshooting guides.
+   - Document complex workflows such as module version ingestion and patch run reporting.
 
-3. **TTL Values**
-   - User Profile: 15 minutes
-   - Organization Details: 30 minutes
-   - Site Configuration: 1 hour
-   - Authentication Tokens: 24 hours
+10. Deployment and Scalability Improvements
+    - Transition from Docker Compose to orchestration platforms (e.g., Kubernetes) for production scalability.
+    - Enhance health check endpoints to monitor not only the API but also dependencies like the database and Redis.
 
-4. **Invalidation Rules**
-   - On Update: Immediate invalidation
-   - On Delete: Cascade invalidation
-   - Background Job: Daily cleanup
+This roadmap is intended to ensure that our platform remains secure, scalable, and maintainable as we expand functionality and respond to future requirements.
 
