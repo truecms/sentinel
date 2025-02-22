@@ -1,10 +1,12 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.models.organization import Organization
 from app.models.user import User
 from app.core.security import get_password_hash
+from app.db.session import async_session_maker
 
 pytestmark = pytest.mark.asyncio
 
@@ -251,19 +253,19 @@ async def test_list_organizations_with_filters(
     db_session: AsyncSession
 ):
     """Test listing organizations with filters."""
-    # Store organization name before async operation
+    # Store organization name and ID before async operation
     org_name = test_organization.name
     org_id = test_organization.id
+    creator_id = test_organization.created_by
 
     # Create another organization with different status
     inactive_org = Organization(
         name="Inactive Organization",
         is_active=False,
-        created_by=test_organization.created_by
+        created_by=creator_id
     )
     db_session.add(inactive_org)
     await db_session.commit()
-    await db_session.refresh(inactive_org)
 
     # Test filtering by active status
     response = await client.get(
@@ -325,3 +327,106 @@ async def test_delete_organization_with_resources(
     result = await db_session.execute(user_query)
     user = result.scalar_one()
     assert user.organization_id is None
+
+async def test_update_organization_success(client: AsyncClient, test_organization: Organization, test_superuser: User, superuser_token_headers: dict):
+    """Test successful organization update."""
+    update_data = {
+        "name": "Updated Organization",
+        "description": "Updated description",
+        "is_active": True
+    }
+    response = await client.put(
+        f"/api/v1/organizations/{test_organization.id}",
+        json=update_data,
+        headers=superuser_token_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == update_data["name"]
+    assert data["description"] == update_data["description"]
+    assert data["is_active"] == update_data["is_active"]
+
+async def test_list_organizations_pagination(client: AsyncClient, test_superuser: User, superuser_token_headers: dict):
+    """Test organization listing with pagination."""
+    # Create multiple organizations
+    org_names = ["Org 1", "Org 2", "Org 3"]
+    for name in org_names:
+        await client.post(
+            "/api/v1/organizations/",
+            json={"name": name},
+            headers=superuser_token_headers
+        )
+    
+    # Test pagination
+    response = await client.get(
+        "/api/v1/organizations/?skip=1&limit=2",
+        headers=superuser_token_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) <= 2  # Should respect the limit
+
+async def test_delete_organization_cascade(
+    client: AsyncClient,
+    test_organization: Organization,
+    test_superuser: User,
+    superuser_token_headers: dict,
+    db_session: AsyncSession
+):
+    """Test organization deletion with cascade effect on related entities."""
+    # Store organization ID before async operations
+    org_id = test_organization.id
+
+    # Create a user associated with the organization
+    user_data = {
+        "email": "test_cascade@example.com",
+        "password": "testpassword123",
+        "organization_id": org_id,
+        "role": "user",
+        "is_active": True,
+        "is_superuser": False
+    }
+
+    # Create user
+    user_response = await client.post(
+        "/api/v1/users/",
+        json=user_data,
+        headers=superuser_token_headers
+    )
+    assert user_response.status_code == 200
+
+    # Delete the organization
+    response = await client.delete(
+        f"/api/v1/organizations/{org_id}",
+        headers=superuser_token_headers
+    )
+    assert response.status_code == 200
+
+    # Verify organization is marked as deleted and user's organization_id is set to None
+    async with async_session_maker() as session:
+        async with session.begin():
+            # Check organization status
+            org_query = select(Organization).where(Organization.id == org_id)
+            result = await session.execute(org_query)
+            deleted_org = result.scalar_one()
+            assert deleted_org.is_deleted is True
+            assert deleted_org.is_active is False
+
+            # Check user's organization_id
+            user_query = select(User).where(User.email == "test_cascade@example.com")
+            result = await session.execute(user_query)
+            user = result.scalar_one()
+            assert user.organization_id is None
+
+async def test_update_organization_not_found(client: AsyncClient, test_superuser: User, superuser_token_headers: dict):
+    """Test updating a non-existent organization."""
+    update_data = {
+        "name": "Updated Organization",
+        "description": "Updated description"
+    }
+    response = await client.put(
+        "/api/v1/organizations/99999",
+        json=update_data,
+        headers=superuser_token_headers
+    )
+    assert response.status_code == 404

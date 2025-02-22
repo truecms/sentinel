@@ -231,6 +231,127 @@ jobs:
         uses: codecov/codecov-action@v2
 ```
 
+6. Async Database Operations
+---------------------------
+### Key Rules for Async Database Operations
+1. Always use `async with` when working with async database sessions
+2. Never perform database operations outside of async context
+3. Use proper async fixtures and dependencies
+4. Handle transaction management correctly
+5. Ensure proper cleanup of async resources
+
+### Common Pitfalls and Solutions
+```python
+# WRONG - Database operation outside async context
+def test_wrong_db_operation(db_session):
+    result = db_session.execute(query)  # Will fail with MissingGreenlet
+
+# CORRECT - Using async context
+async def test_correct_db_operation(db_session):
+    async with db_session as session:
+        result = await session.execute(query)
+```
+
+### Async Session Management
+```python
+# WRONG - Not using async context manager
+async def test_wrong_session_usage(db_session):
+    user = await db_session.get(User, user_id)  # May cause MissingGreenlet
+    await db_session.commit()
+
+# CORRECT - Using async context manager
+async def test_correct_session_usage(db_session):
+    async with db_session as session:
+        user = await session.get(User, user_id)
+        await session.commit()
+```
+
+### Database Operations in Tests
+```python
+# Example of correct async database operations in tests
+async def test_database_operations(db_session: AsyncSession):
+    async with db_session as session:
+        # Create
+        new_user = User(email="test@example.com")
+        session.add(new_user)
+        await session.commit()
+        await session.refresh(new_user)
+
+        # Read
+        query = select(User).where(User.email == "test@example.com")
+        result = await session.execute(query)
+        user = result.scalar_one()
+
+        # Update
+        user.is_active = False
+        await session.commit()
+        await session.refresh(user)
+
+        # Delete
+        await session.delete(user)
+        await session.commit()
+```
+
+### Async Fixture Setup
+```python
+@pytest_asyncio.fixture
+async def async_db_fixture(async_session_maker):
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.rollback()
+        finally:
+            await session.close()
+
+# Using the fixture
+async def test_with_fixture(async_db_fixture):
+    async with async_db_fixture as session:
+        # Perform database operations
+        result = await session.execute(query)
+```
+
+### Transaction Management
+```python
+# WRONG - Missing transaction management
+async def test_wrong_transaction():
+    user = await session.get(User, 1)
+    user.name = "New Name"
+    # Missing commit, changes won't persist
+
+# CORRECT - Proper transaction management
+async def test_correct_transaction():
+    async with session as transaction:
+        user = await session.get(User, 1)
+        user.name = "New Name"
+        await session.commit()
+        # Use refresh to get updated data
+        await session.refresh(user)
+```
+
+### Error Handling
+```python
+async def test_with_error_handling():
+    async with session as transaction:
+        try:
+            # Database operations
+            await session.commit()
+        except SQLAlchemyError as e:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+```
+
+### Best Practices for Async Database Testing
+1. Always use `pytest.mark.asyncio` decorator for async tests
+2. Properly scope your database fixtures
+3. Handle session cleanup in fixtures
+4. Use transaction rollback for test isolation
+5. Implement proper error handling
+6. Avoid mixing sync and async operations
+7. Ensure all database operations are awaited
+8. Use appropriate assertion patterns for async results
+
 Remember:
 - Keep tests simple and focused
 - Use proper fixtures
