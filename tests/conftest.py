@@ -49,7 +49,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session")
 async def test_engine():
-    """Create a test engine."""
+    """Create a test engine and initialize the database with a superuser."""
     engine = create_async_engine(
         TEST_SQLALCHEMY_DATABASE_URL,
         echo=True,
@@ -61,6 +61,29 @@ async def test_engine():
     # Create tables at the start of the test session
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Create a session to add the superuser
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    
+    async with async_session() as session:
+        # Check if superuser exists
+        query = select(User).where(User.email == settings.SUPERUSER_EMAIL)
+        result = await session.execute(query)
+        superuser = result.scalar_one_or_none()
+        
+        if not superuser:
+            # Create superuser if it doesn't exist
+            superuser = User(
+                email=settings.SUPERUSER_EMAIL,
+                hashed_password=get_password_hash(settings.SUPERUSER_PASSWORD),
+                is_active=True,
+                is_superuser=True,
+                role="superuser"
+            )
+            session.add(superuser)
+            await session.commit()
     
     yield engine
     
