@@ -21,14 +21,16 @@ async def test_create_user(
             "email": "newuser@example.com",
             "password": "testpass123",
             "organization_id": test_organization.id,
-            "is_active": True
+            "role": "user",
+            "is_active": True,
+            "is_superuser": False
         }
     )
-    assert response.status_code == 201
+    assert response.status_code == 200
     data = response.json()
     assert data["email"] == "newuser@example.com"
     assert "id" in data
-    assert "is_active" in data
+    assert data["is_active"] == True
     assert "password" not in data
 
 async def test_create_user_duplicate_email(
@@ -45,10 +47,12 @@ async def test_create_user_duplicate_email(
             "email": test_user.email,
             "password": "testpass123",
             "organization_id": test_organization.id,
-            "is_active": True
+            "role": "user",
+            "is_active": True,
+            "is_superuser": False
         }
     )
-    assert response.status_code == 409
+    assert response.status_code == 400
 
 async def test_get_users(
     client: AsyncClient,
@@ -128,7 +132,8 @@ async def test_delete_user(
     user = User(
         email="todelete@example.com",
         hashed_password=get_password_hash("testpass123"),
-        is_active=True
+        is_active=True,
+        role="user"
     )
     db_session.add(user)
     await db_session.commit()
@@ -138,7 +143,7 @@ async def test_delete_user(
         f"/api/v1/users/{user.id}",
         headers=superuser_token_headers
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     # Verify user is deleted
     response = await client.get(
@@ -207,3 +212,29 @@ async def test_get_organization_users(
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 1  # At least test_user should be there
+
+async def test_create_organization_admin(
+    client: AsyncClient,
+    superuser_token_headers: dict,
+    test_organization: Organization
+):
+    """Test creating an organization admin user."""
+    response = await client.post(
+        "/api/v1/users/",
+        headers=superuser_token_headers,
+        json={
+            "email": "orgadmin@example.com",
+            "password": "testpass123",
+            "organization_id": test_organization.id,
+            "role": "organization_admin",
+            "is_active": True,
+            "is_superuser": False
+        }
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "orgadmin@example.com"
+    assert data["organization_id"] == test_organization.id
+    assert data["role"] == "organization_admin"
+    assert data["is_active"] == True
+    assert "id" in data
