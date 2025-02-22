@@ -149,7 +149,8 @@ async def test_get_nonexistent_organization(
 async def test_get_organizations_as_org_admin(
     client: AsyncClient,
     db_session: AsyncSession,
-    test_organization: Organization
+    test_organization: Organization,
+    test_superuser: User
 ):
     """Test that organization admin can only see their own organization."""
     # Create an organization admin user
@@ -167,8 +168,8 @@ async def test_get_organizations_as_org_admin(
     # Create another organization that shouldn't be visible
     other_org = Organization(
         name="Other Organization",
-        created_by=1,
-        updated_by=1
+        created_by=test_superuser.id,
+        updated_by=test_superuser.id
     )
     db_session.add(other_org)
     await db_session.commit()
