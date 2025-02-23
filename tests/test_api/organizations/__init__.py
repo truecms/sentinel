@@ -1,5 +1,5 @@
 """
-Organization tests have been split into multiple files for better organization and readability.
+Organization tests are split into multiple files for better organization and readability.
 Please see the following files for specific test cases:
 
 1. test_organization_create.py - Creation-related tests
@@ -17,4 +17,4 @@ from .test_organization_update import *
 from .test_organization_delete import *
 from .test_organization_filters import *
 from .test_organization_users import *
-from .test_organization_permissions import *
+from .test_organization_permissions import * 
