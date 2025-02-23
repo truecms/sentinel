@@ -212,3 +212,26 @@ def superuser_token_headers(test_superuser: User) -> dict:
         data={"sub": test_superuser.email}
     )
     return {"Authorization": f"Bearer {access_token}"}
+
+@pytest_asyncio.fixture
+async def test_regular_user(db_session: AsyncSession) -> User:
+    """Create a regular (non-superuser) test user."""
+    user = User(
+        email="test_regular_user@example.com",
+        hashed_password=get_password_hash("test123"),
+        is_active=True,
+        is_superuser=False,
+        role="user"
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def regular_user_token_headers(test_regular_user: User) -> dict:
+    """Create authorization headers with regular user JWT token."""
+    access_token = create_access_token(
+        data={"sub": test_regular_user.email}
+    )
+    return {"Authorization": f"Bearer {access_token}"}

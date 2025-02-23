@@ -430,3 +430,82 @@ async def test_update_organization_not_found(client: AsyncClient, test_superuser
         headers=superuser_token_headers
     )
     assert response.status_code == 404
+
+@pytest.mark.asyncio
+async def test_create_organization_non_superuser(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    regular_user_token_headers: dict
+):
+    """Test that non-superuser cannot create an organization."""
+    response = await client.post(
+        "/api/v1/organizations/",
+        headers=regular_user_token_headers,
+        json={"name": "Test Organization"}
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.asyncio
+async def test_create_organization_empty_name(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    superuser_token_headers: dict
+):
+    """Test that organization cannot be created with empty name."""
+    response = await client.post(
+        "/api/v1/organizations/",
+        headers=superuser_token_headers,
+        json={"name": ""}
+    )
+    assert response.status_code == 422
+    error_detail = response.json()["detail"][0]
+    assert error_detail["msg"] == "String should have at least 1 character"
+    assert error_detail["type"] == "string_too_short"
+    assert error_detail["loc"] == ["body", "name"]
+
+@pytest.mark.asyncio
+async def test_read_organization_unauthorized_access(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    regular_user_token_headers: dict,
+    test_organization: Organization
+):
+    """Test that user cannot access organization they don't belong to."""
+    response = await client.get(
+        f"/api/v1/organizations/{test_organization.id}",
+        headers=regular_user_token_headers
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.asyncio
+async def test_update_organization_non_superuser(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    regular_user_token_headers: dict,
+    test_organization: Organization
+):
+    """Test that non-superuser cannot update an organization."""
+    response = await client.put(
+        f"/api/v1/organizations/{test_organization.id}",
+        headers=regular_user_token_headers,
+        json={"name": "Updated Organization"}
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not enough permissions"
+
+@pytest.mark.asyncio
+async def test_delete_organization_non_superuser(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    regular_user_token_headers: dict,
+    test_organization: Organization
+):
+    """Test that non-superuser cannot delete an organization."""
+    response = await client.delete(
+        f"/api/v1/organizations/{test_organization.id}",
+        headers=regular_user_token_headers
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Not enough permissions"
