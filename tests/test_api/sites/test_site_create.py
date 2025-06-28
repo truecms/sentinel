@@ -5,6 +5,7 @@ Tests for site creation operations.
 import pytest
 from httpx import AsyncClient
 from app.models.organization import Organization
+from app.models.site import Site
 
 pytestmark = pytest.mark.asyncio
 

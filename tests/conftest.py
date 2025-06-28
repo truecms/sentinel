@@ -119,7 +119,10 @@ async def db_session(test_engine) -> AsyncSession:
 
         # Delete all data from tables in correct order to handle foreign keys
         await session.execute(text("DELETE FROM user_organizations"))
+        await session.execute(text("DELETE FROM site_modules"))  # Delete site-module associations first
         await session.execute(text("DELETE FROM sites"))
+        await session.execute(text("DELETE FROM module_versions"))  # Delete versions before modules
+        await session.execute(text("DELETE FROM modules"))  # Delete modules
         # First set created_by and updated_by to NULL in organizations
         await session.execute(text("UPDATE organizations SET created_by = NULL, updated_by = NULL"))
         # Delete all users except superuser
