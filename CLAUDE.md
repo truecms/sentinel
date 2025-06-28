@@ -128,6 +128,124 @@ Key environment variables:
 - URL pattern: `/api/v1/[resource]`
 - Version can be specified via header: `X-API-Version`
 
+## Postman API Testing
+
+### Running Postman Tests
+```bash
+# Install Newman (Postman CLI) if not already installed
+npm install -g newman
+
+# Run the updated Postman collection with proper environment
+newman run "postman/FastAPI_Monitoring_Updated.postman_collection.json" -e postman/environment.json
+
+# Run with verbose output for debugging
+newman run "postman/FastAPI_Monitoring_Updated.postman_collection.json" -e postman/environment.json --verbose
+```
+
+### Postman Collection Maintenance
+
+#### Current Collection Status
+- **Active Collection**: `FastAPI_Monitoring_Updated.postman_collection.json` 
+- **Environment File**: `postman/environment.json`
+- **Legacy Collection**: `FastAPI Monitoring Platform.postman_collection.json` (deprecated)
+
+#### Expected API Endpoint Patterns
+The application uses RESTful endpoints with the following patterns:
+- **Authentication**: `POST /api/v1/auth/access-token` (form-data: username/password)
+- **Users**: `GET|POST /api/v1/users/`, `GET /api/v1/users/{id}`
+- **Organizations**: `GET|POST /api/v1/organizations/`, `GET /api/v1/organizations/{id}`
+- **Sites**: `GET|POST /api/v1/sites/`, `GET /api/v1/sites/{id}`
+- **Health**: `GET /health`
+
+#### When to Update Postman Collection
+
+**ALWAYS update the Postman collection when:**
+1. **New API endpoints** are added
+2. **Endpoint URLs change** (e.g., `/users/add` → `/users/`)
+3. **Request/response schemas change** (new required fields, data types)
+4. **Authentication methods change** (token format, headers)
+5. **Error response formats change**
+
+#### Updating Postman Collection Process
+
+1. **Test Current Endpoints**:
+   ```bash
+   # Verify API is running
+   curl http://localhost:8000/health
+   
+   # Check OpenAPI documentation for current endpoints
+   curl http://localhost:8000/api/v1/openapi.json | jq '.paths | keys'
+   ```
+
+2. **Update Collection Requirements**:
+   - Match actual endpoint URLs exactly
+   - Use correct HTTP methods (GET/POST/PUT/DELETE)
+   - Include proper request headers (Content-Type, Authorization)
+   - Set correct request body formats (JSON vs form-data)
+   - Add response assertions for status codes and data validation
+
+3. **Token Management**:
+   ```javascript
+   // In Login test script, use environment variables for token storage
+   if (pm.response.code === 200) {
+       const responseJson = pm.response.json();
+       pm.environment.set('access_token', responseJson.access_token);
+   }
+   
+   // In other requests, use Authorization header
+   // Authorization: Bearer {{access_token}}
+   ```
+
+4. **Environment Configuration**:
+   ```json
+   // postman/environment.json should contain:
+   {
+     "values": [
+       {"key": "base_url", "value": "http://localhost:8000"},
+       {"key": "admin_email", "value": "admin@example.com"},
+       {"key": "admin_password", "value": "admin123"}
+     ]
+   }
+   ```
+
+#### Critical Authentication Setup
+
+**Admin User Password Synchronization:**
+```bash
+# If Postman auth fails, reset the superuser password
+HASH=$(docker-compose exec -T api python -c "from app.core.security import get_password_hash; print(get_password_hash('admin123'))")
+docker-compose exec -T db psql -U appuser832jdsf -d postgres -c "UPDATE users SET hashed_password = '$HASH' WHERE email = 'admin@example.com';"
+```
+
+#### Common Postman Issues and Solutions
+
+1. **401 Unauthorized on all endpoints**:
+   - Check if login is working and token is being set
+   - Verify admin credentials in environment file
+   - Reset superuser password as shown above
+
+2. **404 Not Found errors**:
+   - Check endpoint URLs match current API routes
+   - Verify base_url in environment is correct
+   - Use OpenAPI docs to confirm current endpoint structure
+
+3. **422 Validation errors**:
+   - Check request body schema matches API expectations
+   - Verify required fields are included
+   - Ensure data types match (integers vs strings)
+
+4. **500 Internal Server errors**:
+   - Check API logs: `docker-compose logs api | tail -20`
+   - Verify database is running: `docker-compose logs db | tail -10`
+   - Check for missing CRUD functions or schema mismatches
+
+#### Integration with CI/CD
+
+The GitHub Actions workflow runs Postman tests automatically:
+- Collection: `FastAPI_Monitoring_Updated.postman_collection.json`
+- Environment: `postman/environment.json`
+- Prerequisites: Docker services must be running and healthy
+
 ## Common Pitfalls
 
 1. **Database initialization**: Must manually create database before first run
@@ -135,3 +253,5 @@ Key environment variables:
 3. **Async context**: All database operations must use async/await
 4. **Permission checks**: Always verify user has access to organization resources
 5. **Audit fields**: Let the system handle created_by/updated_by automatically
+6. **Postman collection drift**: Always update collection when API endpoints change
+7. **Authentication token expiry**: Tokens expire after 30 minutes, regenerate for long test sessions
