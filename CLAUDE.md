@@ -135,3 +135,87 @@ Key environment variables:
 3. **Async context**: All database operations must use async/await
 4. **Permission checks**: Always verify user has access to organization resources
 5. **Audit fields**: Let the system handle created_by/updated_by automatically
+
+## Postman Testing
+
+### Running Postman Tests Locally
+
+```bash
+# Install Newman CLI (if not already installed)
+npm install -g newman
+
+# Run the main API testing collection
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --reporters cli,json \
+  --reporter-json-export postman-results.json
+
+# Alternative: Run with Docker (if Newman is not installed locally)
+docker run --rm -v $(pwd)/postman:/etc/newman \
+  postman/newman run "FastAPI Monitoring Platform.postman_collection.json" \
+  --environment FastAPI_Testing_Environment.postman_environment.json
+```
+
+### Current Collection Status
+
+- **Main Collection**: `postman/FastAPI Monitoring Platform.postman_collection.json`
+- **Environment File**: `postman/FastAPI_Testing_Environment.postman_environment.json`
+- **Legacy Collection**: `postman/FastAPI_Testing_Collection.json` (deprecated)
+
+The main collection includes:
+- Authentication workflow (login, token management)
+- User management endpoints (CRUD operations)
+- Organization management endpoints
+- Site management endpoints
+- Comprehensive error handling tests
+
+### When to Update Postman Collections
+
+Update the Postman collection when:
+
+1. **New API endpoints are added**: Add corresponding requests to test new functionality
+2. **Request/response schemas change**: Update request bodies and assertions
+3. **Authentication flow changes**: Modify token management or login procedures
+4. **Environment variables change**: Update the environment file with new variables
+5. **API versioning updates**: Ensure version headers and URLs are current
+
+### Token Management
+
+The collection uses automatic token management:
+- Login request stores JWT token in `{{authToken}}` environment variable
+- Subsequent requests automatically include: `Authorization: Bearer {{authToken}}`
+- Token expiration is handled by re-authentication when needed
+
+### Environment Configuration
+
+Key environment variables in `FastAPI_Testing_Environment.postman_environment.json`:
+- `baseUrl`: API base URL (default: http://localhost:8000)
+- `adminEmail`: Default admin user email (admin@example.com)
+- `adminPassword`: Default admin password (admin123)
+- `authToken`: JWT token (auto-populated by login request)
+
+### Troubleshooting Common Issues
+
+1. **Connection Refused**: Ensure Docker services are running (`docker-compose up -d`)
+2. **Authentication Failed**: Check admin credentials in environment file
+3. **404 Errors**: Verify API endpoints match current FastAPI routes
+4. **Token Expired**: Re-run login request to refresh token
+5. **Schema Validation**: Update request bodies to match current Pydantic schemas
+
+### CI/CD Integration
+
+The collection is automatically tested in GitHub Actions:
+- Tests run on every PR and push to main
+- Uses Docker Compose to start services
+- Newman CLI executes the collection
+- Results are reported in CI logs
+
+### Updating Collections Process
+
+1. **Make API changes** in the FastAPI application
+2. **Test locally** with Postman GUI to verify new functionality
+3. **Export updated collection** from Postman GUI
+4. **Replace the collection file** in `postman/` directory
+5. **Update environment variables** if needed
+6. **Test with Newman CLI** to ensure automated tests pass
+7. **Commit and push** changes to trigger CI validation
