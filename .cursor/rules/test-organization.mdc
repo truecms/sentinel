@@ -1,0 +1,118 @@
+---
+description: Test Organization Standards
+globs: tests/**/*.py
+---
+# Test Organization Standards
+
+Standards for organizing and structuring test files in the project.
+
+<rule>
+name: test_organization
+description: Standards for organizing test files and test cases
+filters:
+  - type: file_extension
+    pattern: "\\.py$"
+  - type: path
+    pattern: "^tests/"
+  - type: content
+    pattern: "(?s)import pytest"
+
+actions:
+  - type: suggest
+    message: |
+      When organizing tests:
+
+      1. Test File Structure:
+         - Split large test files into smaller, focused files
+         - Each test file should focus on a specific feature or functionality
+         - Keep test files under 500 lines of code
+         - Use descriptive file names that indicate what is being tested
+
+      2. Test File Naming:
+         ```
+         tests/
+         ├── test_api/
+         │   ├── users/
+         │   │   ├── test_user_create.py
+         │   │   ├── test_user_read.py
+         │   │   ├── test_user_update.py
+         │   │   └── test_user_delete.py
+         │   ├── organizations/
+         │   │   ├── test_organization_create.py
+         │   │   ├── test_organization_read.py
+         │   │   ├── test_organization_update.py
+         │   │   └── test_organization_delete.py
+         │   └── ...
+         └── ...
+         ```
+
+      3. Test Case Organization:
+         - Group related test cases in the same file
+         - Use descriptive test names that explain the scenario
+         - Keep test functions focused and concise
+         - Include both positive and negative test cases
+
+      4. Test Categories:
+         - Create separate files for different types of tests:
+           * CRUD operations
+           * Authentication/Authorization
+           * Validation
+           * Error handling
+           * Edge cases
+           * Integration tests
+
+      5. Shared Resources:
+         - Place shared fixtures in conftest.py files
+         - Use nested conftest.py files for module-specific fixtures
+         - Keep fixtures focused and well-documented
+
+      6. Test Documentation:
+         - Include docstrings for test functions
+         - Document test data and expected outcomes
+         - Explain complex test scenarios
+         - Document any assumptions or prerequisites
+
+      7. Coverage:
+         - Aim for 80% or higher code coverage
+         - Focus on critical path testing
+         - Include edge cases and error conditions
+         - Document areas intentionally not covered
+
+examples:
+  - input: |
+      # Bad: All tests in one file
+      tests/test_api/test_users.py
+
+      # Good: Split into focused files
+      tests/test_api/users/test_user_create.py
+      tests/test_api/users/test_user_read.py
+      tests/test_api/users/test_user_update.py
+      tests/test_api/users/test_user_delete.py
+    output: "Correctly organized test files"
+
+  - input: |
+      # Bad: Mixed concerns in one file
+      def test_user_crud():
+          # 100+ lines of mixed CRUD operations
+          pass
+
+      # Good: Focused test files
+      # test_user_create.py
+      def test_create_user_success():
+          pass
+
+      def test_create_user_validation():
+          pass
+
+      # test_user_read.py
+      def test_get_user_by_id():
+          pass
+
+      def test_list_users():
+          pass
+    output: "Correctly organized test cases"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 

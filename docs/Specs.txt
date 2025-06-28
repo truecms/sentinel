@@ -1,0 +1,231 @@
+Project Documentation for Monitoring and Reporting Platform
+================================================================
+
+Overview and Concept
+----------------------
+This platform is designed to serve as a centralized monitoring and reporting system for multiple Drupal websites. It aggregates module version data, tracks historical updates, and emphasizes security updates to ensure administrators are informed and can maintain secure environments.
+
+Core Principles:
+----------------
+1. Centralized Monitoring: Aggregate module version data from multiple Drupal websites. 
+2. Version History and Reporting: Maintain historical records for detailed reporting (weekly, monthly, YTD).
+3. Prioritized Security Updates: Highlight security updates for immediate attention.
+4. Role-Based Access at Organization Level: Support multi-member organizations with roles (Organization Admin, Developer, Viewer).
+5. Customizable Notifications: Allow configurable email notifications for updates.
+
+Technology Stack and Architectural Overview:
+---------------------------------------------
+- Back-End: FastAPI (Python) supporting asynchronous processing, using SQLAlchemy and PostgreSQL. Redis is used for rate limiting and buffering.
+- Front-End: React for dynamic interfaces and data visualizations.
+- Database: PostgreSQL with relational and JSONB support.
+- Data Streams: Redis Streams for handling bursts of data from Drupal sites.
+- Security: API Key-based authentication; JWT for user authentication; enforced rate limiting.
+- Future Enhancements: Push notifications (FCM/APNS) and mobile app integration (React Native).
+
+Database Models and Relationships (Refactored):
+------------------------------------------------
+* Organizations Table: id, uuid, name, tax_id, created_at, updated_at, created_by, updated_by, is_active, is_deleted.
+* Organization Revisions Table: id, organization_id, created_by, created_at, modified_by, modified_at.
+* Users Table: id, uuid, name, email, hashed_password, organization_id, role, created_at, updated_at, is_active, is_deleted, last_login, notification_preferences (JSON).
+* Sites Table: id, uuid, url, name, description, organization_id, created_at, updated_at, created_by, updated_by, is_active, is_deleted.
+* Modules Table: id, module_name, drupal_link.
+* Module Versions Table: id, module_id, version_number, release_date.
+* Site Modules Table: site_id, module_id, current_version_id, update_available, security_update.
+* Patch Runs Table: id, site_id, run_date.
+* Audit Logs Table: id, site_id, data (JSON), status, created_at.
+
+API Endpoints and Business Logic
+--------------------------------
+In order to support the requirements of the platform, the API is designed with clear RESTful endpoints, grouped by resource type. Each endpoint implements robust validation, error handling, and RBAC. Below is an overview of the API endpoints and the associated logic:
+
+1. User Management
+   ----------------
+   - POST /api/v1/users/add
+     Description: Create a new user. Validates email uniqueness, hashes the password, assigns a default role, and saves the record.
+     Logic: Validate input; check if email exists; hash the password using bcrypt/passlib; save user and link to an organization.
+
+   - GET /api/v1/users/{user_id}
+     Description: Retrieve user details, including organization affiliation and role information.
+     Logic: Query the Users table (joined with Organizations and Roles) by user_id; return user details.
+
+   - PUT /api/v1/users/update/{user_id}
+     Description: Update user information. Validates updates and refreshes the modified_at timestamp.
+     Logic: Retrieve user; apply updates; validate and save changes.
+
+   - DELETE /api/v1/users/delete/{user_id}
+     Description: Soft-delete a user by marking is_deleted=true.
+     Logic: Update the user record, ensuring data integrity.
+
+2. Authentication
+   ----------------
+   - POST /api/v1/auth/login
+     Description: Authenticate user credentials and generate a JWT token.
+     Logic: Validate provided email and password; generate and return a JWT token with an expiration time.
+
+   - POST /api/v1/auth/logout
+     Description: Logout the user. (JWT tokens are primarily stateless; logout may involve client-side token removal and optional server-side logging.)
+     Logic: Optionally record logout events in audit logs.
+
+3. Organization Management
+   -------------------------
+   - POST /api/v1/organizations
+     Description: Create a new organization. Validates uniqueness of organization name.
+     Logic: Validate data; ensure no duplicate organization names; save record with created_by and timestamps.
+
+   - GET /api/v1/organizations
+     Description: Retrieve a paginated list of organizations.
+     Logic: Query Organizations table; apply pagination filters.
+
+   - GET /api/v1/organizations/{org_id}
+     Description: Retrieve detailed information for a specific organization.
+     Logic: Query organization record by id and return details.
+
+   - PUT /api/v1/organizations/{org_id}
+     Description: Update organization information.
+     Logic: Validate input, update record, and log modifications.
+
+   - DELETE /api/v1/organizations/{org_id}
+     Description: Soft-delete an organization and cascade necessary updates.
+     Logic: Mark organization as deleted; handle related user/site deactivation.
+
+4. Site Management
+   -----------------
+   - POST /api/v1/sites
+     Description: Register a new site under an organization.
+     Logic: Validate site details, ensure URL uniqueness, save record with organization linkage.
+
+   - GET /api/v1/sites
+     Description: Retrieve a list of sites, optionally filtered by organization.
+     Logic: Query Sites table with optional filters; apply pagination if needed.
+
+   - GET /api/v1/sites/{site_id}
+     Description: Retrieve detailed information for a specific site.
+     Logic: Query site by id and return complete details.
+
+   - PUT /api/v1/sites/{site_id}
+     Description: Update site details.
+     Logic: Validate input; update record; log the updated timestamp.
+
+   - DELETE /api/v1/sites/{site_id}
+     Description: Soft-delete a site.
+     Logic: Mark site as deleted without permanently removing the record.
+
+5. Module Management
+   -------------------
+   - POST /api/v1/sites/{site_id}/modules
+     Description: Accept module version data from a Drupal site. Processes module names, current versions, and flags update status.
+     Logic: Parse incoming JSON payload; validate module and version data; update or insert records into Site Modules and Module Versions tables; flag security updates.
+
+   - GET /api/v1/sites/{site_id}/modules
+     Description: Retrieve current module information for the given site.
+     Logic: Query the Site Modules table joined with Modules and Module Versions for current data.
+
+   - GET /api/v1/modules/{module_id}/versions
+     Description: Retrieve historical version data for a specific module.
+     Logic: Query Module Versions table filtering by module_id.
+
+6. Patch Run Management
+   ----------------------
+   - POST /api/v1/sites/{site_id}/patch-run
+     Description: Record a patch run cycle detailing module updates applied.
+     Logic: Log details of the patch run and timestamp in the Patch Runs table.
+
+   - GET /api/v1/sites/{site_id}/patch-run
+     Description: Retrieve historical patch run records for analysis.
+     Logic: Query Patch Runs table by site_id with filtering options.
+
+7. Audit Logs
+   ------------
+   - GET /api/v1/audit-logs
+     Description: Retrieve audit logs for monitoring and troubleshooting (admin access only).
+     Logic: Query Audit Logs table; allow filtering by date or status.
+
+8. Reporting
+   ---------
+   - GET /api/v1/reports/module-updates
+     Description: Generate reports highlighting modules with available updates, prioritizing security updates.
+     Logic: Aggregate data from Sites, Site Modules, and Module Versions tables. Format report according to standard response envelope.
+
+   - GET /api/v1/reports/patch-run
+     Description: Generate historical reports covering patch run cycles.
+     Logic: Aggregate and filter patch run data, presenting trends and update lag metrics.
+
+Response Envelope:
+------------------
+All endpoints return responses in a standardized envelope:
+
+{
+    "data": object | array | null,
+    "meta": {
+        "page": integer,
+        "per_page": integer,
+        "total": integer
+    },
+    "links": {
+        "self": string,
+        "next": string,
+        "prev": string
+    }
+}
+
+Error Handling:
+---------------
+Standardized error responses include status_code, error, message, details, and timestamp. Refer to the Error Handling Matrix for specifics.
+
+Security, Middleware, and Rate Limiting:
+-----------------------------------------
+- Use JWT token and API key-based authentication.
+- Enforce RBAC at endpoint level based on user roles (Superuser, Organization Admin, Developer, Viewer).
+- Utilize middlewares for global error handling, authentication verification, and rate limiting.
+
+This updated specification resolves previous inconsistencies by clearly defining API endpoints, expected logic, and data handling strategies to ensure a consistent and robust implementation.
+
+Roadmap and Recommendations
+-----------------------------
+
+Based on the project goals and our in-depth review, the following roadmap and recommendations are proposed to guide the future development and scaling of the Monitoring and Reporting Platform:
+
+1. API Versioning and Deprecation Strategy
+   - Formalize versioning using URL prefixes (e.g., /api/v1/) and version headers (e.g., X-API-Version).
+   - Document a deprecation policy and migration guidelines for future API versions.
+
+2. Soft-Delete and Data Lifecycle Management
+   - Clearly document soft-delete behavior for users, organizations, and sites.
+   - Implement background jobs to archive or clean up soft-deleted records after a defined retention period.
+
+3. Database Performance and Indexing
+   - Audit and add appropriate indexes on high-usage columns (e.g., email, organization name, UUIDs).
+   - Employ database connection pooling and query caching to support high concurrency and fast query response times.
+
+4. Security Enhancements
+   - Strengthen input validation, data sanitization, and error messaging across endpoints.
+   - Ensure robust JWT handling including expiry, token rotation, and refresh mechanisms.
+   - Reinforce the RBAC model and monitor for potential privilege escalations.
+   - Use centralized audit logging with correlation IDs.
+
+5. Rate Limiting and Traffic Management
+   - Validate the current limits through load testing and adjust thresholds based on peak traffic scenarios.
+   - Consider reactive measures and dynamic rate limiting policies to handle unexpected bursts.
+
+6. Error Handling and Monitoring
+   - Implement global error middleware to capture and uniformly handle exceptions.
+   - Integrate structured JSON logging and performance metrics (e.g., via Prometheus) to monitor system health.
+
+7. Testing and Quality Assurance
+   - Expand test suites to include not only unit and integration tests (80%+ coverage) but also performance and load testing.
+   - Adopt contract testing to ensure consistent API responses over time.
+
+8. Asynchronous Processing and Job Management
+   - Evaluate the need for background task processing (e.g., using Celery) to offload heavy processing tasks.
+   - Ensure asynchronous operations, especially when handling data ingestion from Drupal sites, are robustly tested.
+
+9. Documentation and Developer Guides
+   - Maintain an up-to-date developer guide with detailed runbooks, integration diagrams, and troubleshooting guides.
+   - Document complex workflows such as module version ingestion and patch run reporting.
+
+10. Deployment and Scalability Improvements
+    - Transition from Docker Compose to orchestration platforms (e.g., Kubernetes) for production scalability.
+    - Enhance health check endpoints to monitor not only the API but also dependencies like the database and Redis.
+
+This roadmap is intended to ensure that our platform remains secure, scalable, and maintainable as we expand functionality and respond to future requirements.
+

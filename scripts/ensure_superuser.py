@@ -3,6 +3,10 @@ from app.models.user import User
 from app.db.session import SessionLocal
 import asyncio
 from sqlalchemy import select
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 async def ensure_superuser():
     async with SessionLocal() as db:
@@ -12,19 +16,34 @@ async def ensure_superuser():
         user = result.scalar_one_or_none()
         
         if not user:
-            print("Creating superuser...")
+            logger.info("Creating superuser...")
+            # Generate password hash
+            hashed_password = get_password_hash('admin123')
+            logger.debug(f"Generated password hash: {hashed_password}")
+            
+            # Create user
             user = User(
                 email='admin@example.com',
-                hashed_password=get_password_hash('admin123'),
+                hashed_password=hashed_password,
                 is_superuser=True,
                 is_active=True
             )
             db.add(user)
             await db.commit()
-            print("Superuser created successfully")
+            await db.refresh(user)
+            logger.info("Superuser created successfully")
+            logger.debug(f"Created user details: {user.__dict__}")
         else:
-            print("Superuser already exists")
-            print(f"User details: id={user.id}, email={user.email}, is_active={user.is_active}, is_superuser={user.is_superuser}")
+            logger.info("Superuser already exists")
+            logger.debug(f"User details: id={user.id}, email={user.email}, is_active={user.is_active}, is_superuser={user.is_superuser}")
+            
+            # Update password if needed
+            hashed_password = get_password_hash('admin123')
+            if user.hashed_password != hashed_password:
+                logger.info("Updating superuser password...")
+                user.hashed_password = hashed_password
+                await db.commit()
+                logger.info("Password updated successfully")
 
 if __name__ == "__main__":
     asyncio.run(ensure_superuser()) 
