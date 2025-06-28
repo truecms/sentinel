@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel
 
 from app.schemas.organization import OrganizationResponse
 
@@ -23,7 +23,6 @@ class SiteUpdate(BaseModel):
 
 class SiteInDBBase(SiteBase):
     id: int
-    uuid: UUID4
     created_at: datetime
     updated_at: datetime
     is_active: bool
