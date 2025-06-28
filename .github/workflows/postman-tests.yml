@@ -6,7 +6,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       
       - name: Create environment file
         run: |
@@ -24,14 +27,21 @@ jobs:
           echo "SUPERUSER_PASSWORD=admin123" >> .env
 
       - name: Start services
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Wait for database to be ready
         run: |
-          timeout 60 bash -c 'until docker-compose exec -T db pg_isready -U appuser832jdsf; do echo "Waiting for database..."; sleep 2; done'
+          timeout 60 bash -c 'until docker compose exec -T db pg_isready -U appuser832jdsf; do echo "Waiting for database..."; sleep 2; done'
 
       - name: Run database migrations
-        run: docker-compose exec -T api alembic upgrade head
+        run: docker compose exec -T api alembic upgrade head
+
+      - name: Setup superuser password
+        run: |
+          # Wait for the API to create the superuser first
+          sleep 10
+          HASH=$(docker compose exec -T api python -c "from app.core.security import get_password_hash; print(get_password_hash('admin123'))")
+          docker compose exec -T db psql -U appuser832jdsf -d postgres -c "UPDATE users SET hashed_password = '$HASH' WHERE email = 'admin@example.com';"
 
       - name: Wait for API to be healthy
         run: |
@@ -41,4 +51,4 @@ jobs:
         run: npm install -g newman
         
       - name: Run Postman Collection
-        run: newman run "postman/FastAPI Monitoring Platform.postman_collection.json" -e postman/environment.json
+        run: newman run "postman/FastAPI_Monitoring_Updated.postman_collection.json" -e postman/environment.json

@@ -6,6 +6,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.site import Site
+from app.models.organization import Organization
 
 pytestmark = pytest.mark.asyncio
 
