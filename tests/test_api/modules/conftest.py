@@ -4,7 +4,7 @@ Fixtures specific to module tests.
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone
+from datetime import datetime
 
 from app.models.module import Module
 from app.models.module_version import ModuleVersion
@@ -92,7 +92,7 @@ async def test_module_version(
         module_id=test_module.id,
         version_string="1.0.0",
         semantic_version="1.0.0",
-        release_date=datetime(2024, 1, 1, tzinfo=timezone.utc),
+        release_date=datetime(2024, 1, 1),
         is_security_update=False,
         release_notes_link="https://drupal.org/project/test_module/releases/1.0.0",
         drupal_core_compatibility=["9.x", "10.x"],
@@ -118,7 +118,7 @@ async def test_security_version(
         module_id=test_module.id,
         version_string="1.1.0",
         semantic_version="1.1.0",
-        release_date=datetime(2024, 2, 1, tzinfo=timezone.utc),
+        release_date=datetime(2024, 2, 1),
         is_security_update=True,
         release_notes_link="https://drupal.org/project/test_module/releases/1.1.0",
         drupal_core_compatibility=["9.x", "10.x"],
@@ -144,7 +144,7 @@ async def test_latest_version(
         module_id=test_module.id,
         version_string="2.0.0",
         semantic_version="2.0.0",
-        release_date=datetime(2024, 6, 1, tzinfo=timezone.utc),
+        release_date=datetime(2024, 6, 1),
         is_security_update=False,
         release_notes_link="https://drupal.org/project/test_module/releases/2.0.0",
         drupal_core_compatibility=["10.x", "11.x"],
@@ -179,6 +179,61 @@ async def test_site_module(
         security_update_available=False,
         created_by=test_user.id,
         updated_by=test_user.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(site_module)
+    await db_session.commit()
+    await db_session.refresh(site_module)
+    return site_module
+
+
+@pytest.fixture
+async def org_test_site(
+    db_session: AsyncSession,
+    test_organization_with_users
+) -> Site:
+    """Create a test site within the organization."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    site = Site(
+        name="Org Test Site",
+        url="https://orgtest.example.com",
+        description="Site for organization testing",
+        organization_id=org.id,
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(site)
+    await db_session.commit()
+    await db_session.refresh(site)
+    return site
+
+
+@pytest.fixture
+async def org_test_site_module(
+    db_session: AsyncSession,
+    org_test_site: Site,
+    org_test_module: Module,
+    org_test_module_version: ModuleVersion,
+    org_test_latest_version: ModuleVersion,
+    test_organization_with_users
+) -> SiteModule:
+    """Create a test site-module association for organization site."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    site_module = SiteModule(
+        site_id=org_test_site.id,
+        module_id=org_test_module.id,
+        current_version_id=org_test_module_version.id,
+        latest_version_id=org_test_latest_version.id,
+        enabled=True,
+        update_available=True,
+        security_update_available=False,
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
         is_active=True,
         is_deleted=False
     )
@@ -347,3 +402,120 @@ async def test_organization_with_users(
     await db_session.refresh(org_user)
     
     return org, org_admin, org_user
+
+
+@pytest.fixture
+async def org_user_token_headers(test_organization_with_users) -> dict:
+    """Create authorization headers with organization user JWT token."""
+    from app.core.security import create_access_token
+    
+    org, org_admin, org_user = test_organization_with_users
+    access_token = create_access_token(
+        data={"sub": org_user.email}
+    )
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+@pytest.fixture
+async def org_test_module(
+    db_session: AsyncSession,
+    test_organization_with_users
+) -> Module:
+    """Create a test module within the organization."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    module = Module(
+        machine_name="org_test_module",
+        display_name="Org Test Module",
+        drupal_org_link="https://drupal.org/project/org_test_module",
+        module_type="contrib",
+        description="A test module for organization testing",
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(module)
+    await db_session.commit()
+    await db_session.refresh(module)
+    return module
+
+
+@pytest.fixture
+async def org_test_custom_module(
+    db_session: AsyncSession,
+    test_organization_with_users
+) -> Module:
+    """Create a test custom module within the organization."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    module = Module(
+        machine_name="org_custom_test_module",
+        display_name="Org Custom Test Module",
+        module_type="custom",
+        description="A custom test module for organization testing",
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(module)
+    await db_session.commit()
+    await db_session.refresh(module)
+    return module
+
+
+@pytest.fixture
+async def org_test_module_version(
+    db_session: AsyncSession,
+    org_test_module: Module,
+    test_organization_with_users
+) -> ModuleVersion:
+    """Create a test module version within the organization."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    version = ModuleVersion(
+        module_id=org_test_module.id,
+        version_string="1.0.0",
+        semantic_version="1.0.0",
+        release_date=datetime(2024, 1, 1),
+        is_security_update=False,
+        release_notes_link="https://drupal.org/project/org_test_module/releases/1.0.0",
+        drupal_core_compatibility=["9.x", "10.x"],
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(version)
+    await db_session.commit()
+    await db_session.refresh(version)
+    return version
+
+
+@pytest.fixture
+async def org_test_latest_version(
+    db_session: AsyncSession,
+    org_test_module: Module,
+    test_organization_with_users
+) -> ModuleVersion:
+    """Create the latest test module version within the organization."""
+    org, org_admin, org_user = test_organization_with_users
+    
+    version = ModuleVersion(
+        module_id=org_test_module.id,
+        version_string="2.0.0",
+        semantic_version="2.0.0",
+        release_date=datetime(2024, 6, 1),
+        is_security_update=False,
+        release_notes_link="https://drupal.org/project/org_test_module/releases/2.0.0",
+        drupal_core_compatibility=["10.x", "11.x"],
+        created_by=org_admin.id,
+        updated_by=org_admin.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(version)
+    await db_session.commit()
+    await db_session.refresh(version)
+    return version

@@ -37,6 +37,60 @@
       "value": "admin123",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "module_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "version_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "site_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "drupal_version",
+      "value": "10.x",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "new_version_id",
+      "value": "2",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "module_id_1",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "module_id_2",
+      "value": "2",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "version_id_1",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "version_id_2",
+      "value": "2",
+      "type": "default",
+      "enabled": true
     }
   ]
 } 

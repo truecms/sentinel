@@ -15,6 +15,7 @@ from app.schemas.site_module import (
     SiteModuleListResponse,
     SiteModuleStatsResponse
 )
+from app.schemas.module_version import ModuleVersionResponse
 
 router = APIRouter()
 
@@ -149,11 +150,69 @@ async def get_site_modules(
     # Convert to response format with nested data
     module_responses = []
     for site_module in site_modules:
+        # Create current version response
+        current_version_response = ModuleVersionResponse(
+            id=site_module.current_version.id,
+            module_id=site_module.current_version.module_id,
+            version_string=site_module.current_version.version_string,
+            semantic_version=site_module.current_version.semantic_version,
+            release_date=site_module.current_version.release_date,
+            is_security_update=site_module.current_version.is_security_update,
+            release_notes_link=site_module.current_version.release_notes_link,
+            drupal_core_compatibility=site_module.current_version.drupal_core_compatibility,
+            is_active=site_module.current_version.is_active,
+            is_deleted=site_module.current_version.is_deleted,
+            created_at=site_module.current_version.created_at,
+            updated_at=site_module.current_version.updated_at,
+            created_by=site_module.current_version.created_by,
+            updated_by=site_module.current_version.updated_by,
+            module_name=site_module.module.display_name,
+            module_machine_name=site_module.module.machine_name
+        )
+        
+        # Create latest version response if exists
+        latest_version_response = None
+        if site_module.latest_version:
+            latest_version_response = ModuleVersionResponse(
+                id=site_module.latest_version.id,
+                module_id=site_module.latest_version.module_id,
+                version_string=site_module.latest_version.version_string,
+                semantic_version=site_module.latest_version.semantic_version,
+                release_date=site_module.latest_version.release_date,
+                is_security_update=site_module.latest_version.is_security_update,
+                release_notes_link=site_module.latest_version.release_notes_link,
+                drupal_core_compatibility=site_module.latest_version.drupal_core_compatibility,
+                is_active=site_module.latest_version.is_active,
+                is_deleted=site_module.latest_version.is_deleted,
+                created_at=site_module.latest_version.created_at,
+                updated_at=site_module.latest_version.updated_at,
+                created_by=site_module.latest_version.created_by,
+                updated_by=site_module.latest_version.updated_by,
+                module_name=site_module.module.display_name,
+                module_machine_name=site_module.module.machine_name
+            )
+        
         module_response = SiteModuleResponse(
-            **site_module.__dict__,
-            module=site_module.module.__dict__,
-            current_version=site_module.current_version.__dict__,
-            latest_version=site_module.latest_version.__dict__ if site_module.latest_version else None,
+            id=site_module.id,
+            site_id=site_module.site_id,
+            module_id=site_module.module_id,
+            current_version_id=site_module.current_version_id,
+            enabled=site_module.enabled,
+            update_available=site_module.update_available,
+            security_update_available=site_module.security_update_available,
+            latest_version_id=site_module.latest_version_id,
+            first_seen=site_module.first_seen,
+            last_seen=site_module.last_seen,
+            last_updated=site_module.last_updated,
+            is_active=site_module.is_active,
+            is_deleted=site_module.is_deleted,
+            created_at=site_module.created_at,
+            updated_at=site_module.updated_at,
+            created_by=site_module.created_by,
+            updated_by=site_module.updated_by,
+            module=site_module.module,
+            current_version=current_version_response,
+            latest_version=latest_version_response,
             site_name=site_module.site.name,
             site_url=site_module.site.url
         )
@@ -232,11 +291,69 @@ async def add_site_module(
     
     db_site_module = await crud_site_module.create_site_module(db, site_module, current_user.id)
     
+    # Create current version response
+    current_version_response = ModuleVersionResponse(
+        id=version.id,
+        module_id=version.module_id,
+        version_string=version.version_string,
+        semantic_version=version.semantic_version,
+        release_date=version.release_date,
+        is_security_update=version.is_security_update,
+        release_notes_link=version.release_notes_link,
+        drupal_core_compatibility=version.drupal_core_compatibility,
+        is_active=version.is_active,
+        is_deleted=version.is_deleted,
+        created_at=version.created_at,
+        updated_at=version.updated_at,
+        created_by=version.created_by,
+        updated_by=version.updated_by,
+        module_name=module.display_name,
+        module_machine_name=module.machine_name
+    )
+    
+    # Create latest version response if exists
+    latest_version_response = None
+    if db_site_module.latest_version:
+        latest_version_response = ModuleVersionResponse(
+            id=db_site_module.latest_version.id,
+            module_id=db_site_module.latest_version.module_id,
+            version_string=db_site_module.latest_version.version_string,
+            semantic_version=db_site_module.latest_version.semantic_version,
+            release_date=db_site_module.latest_version.release_date,
+            is_security_update=db_site_module.latest_version.is_security_update,
+            release_notes_link=db_site_module.latest_version.release_notes_link,
+            drupal_core_compatibility=db_site_module.latest_version.drupal_core_compatibility,
+            is_active=db_site_module.latest_version.is_active,
+            is_deleted=db_site_module.latest_version.is_deleted,
+            created_at=db_site_module.latest_version.created_at,
+            updated_at=db_site_module.latest_version.updated_at,
+            created_by=db_site_module.latest_version.created_by,
+            updated_by=db_site_module.latest_version.updated_by,
+            module_name=module.display_name,
+            module_machine_name=module.machine_name
+        )
+    
     return SiteModuleResponse(
-        **db_site_module.__dict__,
-        module=module.__dict__,
-        current_version=version.__dict__,
-        latest_version=db_site_module.latest_version.__dict__ if db_site_module.latest_version else None,
+        id=db_site_module.id,
+        site_id=db_site_module.site_id,
+        module_id=db_site_module.module_id,
+        current_version_id=db_site_module.current_version_id,
+        enabled=db_site_module.enabled,
+        update_available=db_site_module.update_available,
+        security_update_available=db_site_module.security_update_available,
+        latest_version_id=db_site_module.latest_version_id,
+        first_seen=db_site_module.first_seen,
+        last_seen=db_site_module.last_seen,
+        last_updated=db_site_module.last_updated,
+        is_active=db_site_module.is_active,
+        is_deleted=db_site_module.is_deleted,
+        created_at=db_site_module.created_at,
+        updated_at=db_site_module.updated_at,
+        created_by=db_site_module.created_by,
+        updated_by=db_site_module.updated_by,
+        module=module,
+        current_version=current_version_response,
+        latest_version=latest_version_response,
         site_name=site.name,
         site_url=site.url
     )
@@ -287,11 +404,69 @@ async def update_site_module(
             detail="Site-module association not found"
         )
     
+    # Create current version response
+    current_version_response = ModuleVersionResponse(
+        id=db_site_module.current_version.id,
+        module_id=db_site_module.current_version.module_id,
+        version_string=db_site_module.current_version.version_string,
+        semantic_version=db_site_module.current_version.semantic_version,
+        release_date=db_site_module.current_version.release_date,
+        is_security_update=db_site_module.current_version.is_security_update,
+        release_notes_link=db_site_module.current_version.release_notes_link,
+        drupal_core_compatibility=db_site_module.current_version.drupal_core_compatibility,
+        is_active=db_site_module.current_version.is_active,
+        is_deleted=db_site_module.current_version.is_deleted,
+        created_at=db_site_module.current_version.created_at,
+        updated_at=db_site_module.current_version.updated_at,
+        created_by=db_site_module.current_version.created_by,
+        updated_by=db_site_module.current_version.updated_by,
+        module_name=db_site_module.module.display_name,
+        module_machine_name=db_site_module.module.machine_name
+    )
+    
+    # Create latest version response if exists
+    latest_version_response = None
+    if db_site_module.latest_version:
+        latest_version_response = ModuleVersionResponse(
+            id=db_site_module.latest_version.id,
+            module_id=db_site_module.latest_version.module_id,
+            version_string=db_site_module.latest_version.version_string,
+            semantic_version=db_site_module.latest_version.semantic_version,
+            release_date=db_site_module.latest_version.release_date,
+            is_security_update=db_site_module.latest_version.is_security_update,
+            release_notes_link=db_site_module.latest_version.release_notes_link,
+            drupal_core_compatibility=db_site_module.latest_version.drupal_core_compatibility,
+            is_active=db_site_module.latest_version.is_active,
+            is_deleted=db_site_module.latest_version.is_deleted,
+            created_at=db_site_module.latest_version.created_at,
+            updated_at=db_site_module.latest_version.updated_at,
+            created_by=db_site_module.latest_version.created_by,
+            updated_by=db_site_module.latest_version.updated_by,
+            module_name=db_site_module.module.display_name,
+            module_machine_name=db_site_module.module.machine_name
+        )
+    
     return SiteModuleResponse(
-        **db_site_module.__dict__,
-        module=db_site_module.module.__dict__,
-        current_version=db_site_module.current_version.__dict__,
-        latest_version=db_site_module.latest_version.__dict__ if db_site_module.latest_version else None,
+        id=db_site_module.id,
+        site_id=db_site_module.site_id,
+        module_id=db_site_module.module_id,
+        current_version_id=db_site_module.current_version_id,
+        enabled=db_site_module.enabled,
+        update_available=db_site_module.update_available,
+        security_update_available=db_site_module.security_update_available,
+        latest_version_id=db_site_module.latest_version_id,
+        first_seen=db_site_module.first_seen,
+        last_seen=db_site_module.last_seen,
+        last_updated=db_site_module.last_updated,
+        is_active=db_site_module.is_active,
+        is_deleted=db_site_module.is_deleted,
+        created_at=db_site_module.created_at,
+        updated_at=db_site_module.updated_at,
+        created_by=db_site_module.created_by,
+        updated_by=db_site_module.updated_by,
+        module=db_site_module.module,
+        current_version=current_version_response,
+        latest_version=latest_version_response,
         site_name=db_site_module.site.name,
         site_url=db_site_module.site.url
     )

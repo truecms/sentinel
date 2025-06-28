@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a FastAPI-based monitoring and reporting platform providing REST API endpoints for user, organization, and site management with role-based access control (RBAC).
 
+## Repository Information
+
+- Github repository for this project: https://github.com/truecms/sentinel
+
 ## Key Commands
 
 ### Development Setup

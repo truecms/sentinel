@@ -109,7 +109,7 @@ async def get_module_with_details(
         query = query.options(joinedload(Module.site_modules))
     
     result = await db.execute(query)
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
 
 
 async def create_module(db: AsyncSession, module: ModuleCreate, created_by: int) -> Module:

@@ -20,14 +20,14 @@ class TestSiteModulesList:
     async def test_get_site_modules_success(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test successful site modules list retrieval."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -54,14 +54,14 @@ class TestSiteModulesList:
     async def test_get_site_modules_filter_updates(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test filtering site modules by updates available."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules?updates_only=true",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules?updates_only=true",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -73,14 +73,14 @@ class TestSiteModulesList:
     async def test_get_site_modules_filter_security(
         self,
         client: AsyncClient,
-        test_site: Site,
+        org_test_site: Site,
         test_site_module_with_security: SiteModule,
-        user_token_headers: dict
+        org_user_token_headers: dict
     ):
         """Test filtering site modules by security updates."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules?security_only=true",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules?security_only=true",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -92,14 +92,14 @@ class TestSiteModulesList:
     async def test_get_site_modules_filter_enabled(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test filtering site modules by enabled status."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules?enabled_only=false",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules?enabled_only=false",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -109,14 +109,14 @@ class TestSiteModulesList:
     async def test_get_site_modules_pagination(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test site modules pagination."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules?skip=0&limit=1",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules?skip=0&limit=1",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -128,12 +128,12 @@ class TestSiteModulesList:
     async def test_get_site_modules_not_found(
         self,
         client: AsyncClient,
-        user_token_headers: dict
+        org_user_token_headers: dict
     ):
         """Test getting modules for non-existent site."""
         response = await client.get(
             "/api/v1/sites/99999/modules",
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 404
 
@@ -181,10 +181,10 @@ class TestSiteModulesList:
     async def test_get_site_modules_requires_auth(
         self,
         client: AsyncClient,
-        test_site: Site
+        org_test_site: Site
     ):
         """Test that site modules list requires authentication."""
-        response = await client.get(f"/api/v1/sites/{test_site.id}/modules")
+        response = await client.get(f"/api/v1/sites/{org_test_site.id}/modules")
         assert response.status_code == 401
 
 
@@ -194,23 +194,23 @@ class TestSiteModuleCreate:
     async def test_add_site_module_success(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_module: Module,
-        test_module_version: ModuleVersion,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_module: Module,
+        org_test_module_version: ModuleVersion,
+        org_user_token_headers: dict
     ):
         """Test successful site module addition."""
         site_module_data = {
-            "site_id": test_site.id,
-            "module_id": test_module.id,
-            "current_version_id": test_module_version.id,
+            "site_id": org_test_site.id,
+            "module_id": org_test_module.id,
+            "current_version_id": org_test_module_version.id,
             "enabled": True
         }
         
         response = await client.post(
-            f"/api/v1/sites/{test_site.id}/modules",
+            f"/api/v1/sites/{org_test_site.id}/modules",
             json=site_module_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 201
         
@@ -225,22 +225,22 @@ class TestSiteModuleCreate:
     async def test_add_site_module_duplicate(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test adding duplicate site module association."""
         site_module_data = {
-            "site_id": test_site.id,
-            "module_id": test_site_module.module_id,
-            "current_version_id": test_site_module.current_version_id,
+            "site_id": org_test_site.id,
+            "module_id": org_test_site_module.module_id,
+            "current_version_id": org_test_site_module.current_version_id,
             "enabled": True
         }
         
         response = await client.post(
-            f"/api/v1/sites/{test_site.id}/modules",
+            f"/api/v1/sites/{org_test_site.id}/modules",
             json=site_module_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 400
         assert "already associated" in response.json()["detail"]
@@ -248,24 +248,24 @@ class TestSiteModuleCreate:
     async def test_add_site_module_invalid_version(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_module: Module,
-        test_custom_module: Module,
-        test_module_version: ModuleVersion,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_module: Module,
+        org_test_custom_module: Module,
+        org_test_module_version: ModuleVersion,
+        org_user_token_headers: dict
     ):
         """Test adding site module with wrong version for module."""
         site_module_data = {
-            "site_id": test_site.id,
-            "module_id": test_custom_module.id,  # Different module
-            "current_version_id": test_module_version.id,  # Version for different module
+            "site_id": org_test_site.id,
+            "module_id": org_test_custom_module.id,  # Different module
+            "current_version_id": org_test_module_version.id,  # Version for different module
             "enabled": True
         }
         
         response = await client.post(
-            f"/api/v1/sites/{test_site.id}/modules",
+            f"/api/v1/sites/{org_test_site.id}/modules",
             json=site_module_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 400
         assert "Invalid version" in response.json()["detail"]
@@ -273,23 +273,23 @@ class TestSiteModuleCreate:
     async def test_add_site_module_site_id_mismatch(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_module: Module,
-        test_module_version: ModuleVersion,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_module: Module,
+        org_test_module_version: ModuleVersion,
+        org_user_token_headers: dict
     ):
         """Test adding site module with mismatched site ID."""
         site_module_data = {
             "site_id": 99999,  # Different from URL
-            "module_id": test_module.id,
-            "current_version_id": test_module_version.id,
+            "module_id": org_test_module.id,
+            "current_version_id": org_test_module_version.id,
             "enabled": True
         }
         
         response = await client.post(
-            f"/api/v1/sites/{test_site.id}/modules",
+            f"/api/v1/sites/{org_test_site.id}/modules",
             json=site_module_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 400
         assert "Site ID in URL must match" in response.json()["detail"]
@@ -297,18 +297,18 @@ class TestSiteModuleCreate:
     async def test_add_site_module_requires_auth(
         self,
         client: AsyncClient,
-        test_site: Site
+        org_test_site: Site
     ):
         """Test that site module addition requires authentication."""
         site_module_data = {
-            "site_id": test_site.id,
+            "site_id": org_test_site.id,
             "module_id": 1,
             "current_version_id": 1,
             "enabled": True
         }
         
         response = await client.post(
-            f"/api/v1/sites/{test_site.id}/modules",
+            f"/api/v1/sites/{org_test_site.id}/modules",
             json=site_module_data
         )
         assert response.status_code == 401
@@ -320,21 +320,21 @@ class TestSiteModuleUpdate:
     async def test_update_site_module_success(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        test_latest_version: ModuleVersion,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_test_latest_version: ModuleVersion,
+        org_user_token_headers: dict
     ):
         """Test successful site module update."""
         update_data = {
             "enabled": False,
-            "current_version_id": test_latest_version.id
+            "current_version_id": org_test_latest_version.id
         }
         
         response = await client.put(
-            f"/api/v1/sites/{test_site.id}/modules/{test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
             json=update_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -345,20 +345,22 @@ class TestSiteModuleUpdate:
     async def test_update_site_module_invalid_version(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        test_custom_module: Module,
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_test_custom_module: Module,
         db_session: AsyncSession,
-        test_user: User,
-        user_token_headers: dict
+        test_organization_with_users: tuple[Organization, User, User],
+        org_user_token_headers: dict
     ):
         """Test updating site module with invalid version."""
+        org, org_admin, org_user = test_organization_with_users
+        
         # Create a version for a different module
         other_version = ModuleVersion(
-            module_id=test_custom_module.id,
+            module_id=org_test_custom_module.id,
             version_string="1.0.0",
-            created_by=test_user.id,
-            updated_by=test_user.id
+            created_by=org_user.id,
+            updated_by=org_user.id
         )
         db_session.add(other_version)
         await db_session.commit()
@@ -369,9 +371,9 @@ class TestSiteModuleUpdate:
         }
         
         response = await client.put(
-            f"/api/v1/sites/{test_site.id}/modules/{test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
             json=update_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 400
         assert "Invalid version" in response.json()["detail"]
@@ -379,30 +381,30 @@ class TestSiteModuleUpdate:
     async def test_update_site_module_not_found(
         self,
         client: AsyncClient,
-        test_site: Site,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_user_token_headers: dict
     ):
         """Test updating non-existent site module."""
         update_data = {"enabled": False}
         
         response = await client.put(
-            f"/api/v1/sites/{test_site.id}/modules/99999",
+            f"/api/v1/sites/{org_test_site.id}/modules/99999",
             json=update_data,
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 404
 
     async def test_update_site_module_requires_auth(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule
+        org_test_site: Site,
+        org_test_site_module: SiteModule
     ):
         """Test that site module update requires authentication."""
         update_data = {"enabled": False}
         
         response = await client.put(
-            f"/api/v1/sites/{test_site.id}/modules/{test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
             json=update_data
         )
         assert response.status_code == 401
@@ -414,39 +416,39 @@ class TestSiteModuleDelete:
     async def test_remove_site_module_success(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test successful site module removal."""
         response = await client.delete(
-            f"/api/v1/sites/{test_site.id}/modules/{test_site_module.module_id}",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
+            headers=org_user_token_headers
         )
         assert response.status_code == 204
 
     async def test_remove_site_module_not_found(
         self,
         client: AsyncClient,
-        test_site: Site,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_user_token_headers: dict
     ):
         """Test removing non-existent site module."""
         response = await client.delete(
-            f"/api/v1/sites/{test_site.id}/modules/99999",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules/99999",
+            headers=org_user_token_headers
         )
         assert response.status_code == 404
 
     async def test_remove_site_module_requires_auth(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule
+        org_test_site: Site,
+        org_test_site_module: SiteModule
     ):
         """Test that site module removal requires authentication."""
         response = await client.delete(
-            f"/api/v1/sites/{test_site.id}/modules/{test_site_module.module_id}"
+            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}"
         )
         assert response.status_code == 401
 
@@ -457,14 +459,14 @@ class TestSiteModuleStats:
     async def test_get_site_module_stats_success(
         self,
         client: AsyncClient,
-        test_site: Site,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_site: Site,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test successful site module statistics retrieval."""
         response = await client.get(
-            f"/api/v1/sites/{test_site.id}/modules/stats",
-            headers=user_token_headers
+            f"/api/v1/sites/{org_test_site.id}/modules/stats",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -485,22 +487,22 @@ class TestSiteModuleStats:
     async def test_get_site_module_stats_not_found(
         self,
         client: AsyncClient,
-        user_token_headers: dict
+        org_user_token_headers: dict
     ):
         """Test getting stats for non-existent site."""
         response = await client.get(
             "/api/v1/sites/99999/modules/stats",
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 404
 
     async def test_get_site_module_stats_requires_auth(
         self,
         client: AsyncClient,
-        test_site: Site
+        org_test_site: Site
     ):
         """Test that site module stats require authentication."""
-        response = await client.get(f"/api/v1/sites/{test_site.id}/modules/stats")
+        response = await client.get(f"/api/v1/sites/{org_test_site.id}/modules/stats")
         assert response.status_code == 401
 
 
@@ -510,14 +512,14 @@ class TestModuleSites:
     async def test_get_module_sites_success(
         self,
         client: AsyncClient,
-        test_module: Module,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_module: Module,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test successful module sites list retrieval."""
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/sites",
-            headers=user_token_headers
+            f"/api/v1/modules/{org_test_module.id}/sites",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -535,15 +537,15 @@ class TestModuleSites:
     async def test_get_module_sites_filter_by_version(
         self,
         client: AsyncClient,
-        test_module: Module,
-        test_module_version: ModuleVersion,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_module: Module,
+        org_test_module_version: ModuleVersion,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test filtering module sites by version."""
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/sites?version_id={test_module_version.id}",
-            headers=user_token_headers
+            f"/api/v1/modules/{org_test_module.id}/sites?version_id={org_test_module_version.id}",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -553,14 +555,14 @@ class TestModuleSites:
     async def test_get_module_sites_pagination(
         self,
         client: AsyncClient,
-        test_module: Module,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_module: Module,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test module sites pagination."""
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/sites?skip=0&limit=1",
-            headers=user_token_headers
+            f"/api/v1/modules/{org_test_module.id}/sites?skip=0&limit=1",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -570,22 +572,22 @@ class TestModuleSites:
     async def test_get_module_sites_not_found(
         self,
         client: AsyncClient,
-        user_token_headers: dict
+        org_user_token_headers: dict
     ):
         """Test getting sites for non-existent module."""
         response = await client.get(
             "/api/v1/modules/99999/sites",
-            headers=user_token_headers
+            headers=org_user_token_headers
         )
         assert response.status_code == 404
 
     async def test_get_module_sites_requires_auth(
         self,
         client: AsyncClient,
-        test_module: Module
+        org_test_module: Module
     ):
         """Test that module sites require authentication."""
-        response = await client.get(f"/api/v1/modules/{test_module.id}/sites")
+        response = await client.get(f"/api/v1/modules/{org_test_module.id}/sites")
         assert response.status_code == 401
 
 
@@ -595,14 +597,14 @@ class TestModuleSiteModules:
     async def test_get_module_site_modules_success(
         self,
         client: AsyncClient,
-        test_module: Module,
-        test_site_module: SiteModule,
-        user_token_headers: dict
+        org_test_module: Module,
+        org_test_site_module: SiteModule,
+        org_user_token_headers: dict
     ):
         """Test successful module site-modules list retrieval."""
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/site-modules",
-            headers=user_token_headers
+            f"/api/v1/modules/{org_test_module.id}/site-modules",
+            headers=org_user_token_headers
         )
         assert response.status_code == 200
         
@@ -623,8 +625,8 @@ class TestModuleSiteModules:
     async def test_get_module_site_modules_requires_auth(
         self,
         client: AsyncClient,
-        test_module: Module
+        org_test_module: Module
     ):
         """Test that module site-modules require authentication."""
-        response = await client.get(f"/api/v1/modules/{test_module.id}/site-modules")
+        response = await client.get(f"/api/v1/modules/{org_test_module.id}/site-modules")
         assert response.status_code == 401

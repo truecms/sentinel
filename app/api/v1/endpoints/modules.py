@@ -70,7 +70,18 @@ async def get_modules(
         has_security = await crud_module_version.get_latest_security_version(db, module.id) is not None
         
         module_response = ModuleResponse(
-            **module.__dict__,
+            id=module.id,
+            machine_name=module.machine_name,
+            display_name=module.display_name,
+            drupal_org_link=module.drupal_org_link,
+            module_type=module.module_type,
+            description=module.description,
+            is_active=module.is_active,
+            is_deleted=module.is_deleted,
+            created_at=module.created_at,
+            updated_at=module.updated_at,
+            created_by=module.created_by,
+            updated_by=module.updated_by,
             versions_count=versions_count,
             sites_count=sites_count,
             latest_version=latest_version_string,
@@ -119,7 +130,18 @@ async def create_module(
     db_module = await crud_module.create_module(db, module, current_user.id)
     
     return ModuleResponse(
-        **db_module.__dict__,
+        id=db_module.id,
+        machine_name=db_module.machine_name,
+        display_name=db_module.display_name,
+        drupal_org_link=db_module.drupal_org_link,
+        module_type=db_module.module_type,
+        description=db_module.description,
+        is_active=db_module.is_active,
+        is_deleted=db_module.is_deleted,
+        created_at=db_module.created_at,
+        updated_at=db_module.updated_at,
+        created_by=db_module.created_by,
+        updated_by=db_module.updated_by,
         versions_count=0,
         sites_count=0,
         latest_version=None,
@@ -151,11 +173,9 @@ async def get_module(
         )
     
     # Calculate additional fields
-    versions_result = await crud_module_version.get_module_versions(db, module.id, limit=1000)
-    versions_count = len(versions_result[0])
+    versions_list, versions_count = await crud_module_version.get_module_versions(db, module.id, limit=1000)
     
-    sites_result = await crud_site_module.get_module_sites(db, module.id, limit=1000)
-    sites_count = len(sites_result[0])
+    sites_list, sites_count = await crud_site_module.get_module_sites(db, module.id, limit=1000)
     
     latest_version = await crud_module_version.get_latest_version(db, module.id)
     latest_version_string = latest_version.version_string if latest_version else None
@@ -163,7 +183,18 @@ async def get_module(
     has_security = await crud_module_version.get_latest_security_version(db, module.id) is not None
     
     return ModuleResponse(
-        **module.__dict__,
+        id=module.id,
+        machine_name=module.machine_name,
+        display_name=module.display_name,
+        drupal_org_link=module.drupal_org_link,
+        module_type=module.module_type,
+        description=module.description,
+        is_active=module.is_active,
+        is_deleted=module.is_deleted,
+        created_at=module.created_at,
+        updated_at=module.updated_at,
+        created_by=module.created_by,
+        updated_by=module.updated_by,
         versions_count=versions_count,
         sites_count=sites_count,
         latest_version=latest_version_string,
@@ -196,11 +227,9 @@ async def update_module(
         )
     
     # Calculate additional fields
-    versions_result = await crud_module_version.get_module_versions(db, module.id, limit=1000)
-    versions_count = len(versions_result[0])
+    versions_list, versions_count = await crud_module_version.get_module_versions(db, module.id, limit=1000)
     
-    sites_result = await crud_site_module.get_module_sites(db, module.id, limit=1000)
-    sites_count = len(sites_result[0])
+    sites_list, sites_count = await crud_site_module.get_module_sites(db, module.id, limit=1000)
     
     latest_version = await crud_module_version.get_latest_version(db, module.id)
     latest_version_string = latest_version.version_string if latest_version else None
@@ -208,7 +237,18 @@ async def update_module(
     has_security = await crud_module_version.get_latest_security_version(db, module.id) is not None
     
     return ModuleResponse(
-        **module.__dict__,
+        id=module.id,
+        machine_name=module.machine_name,
+        display_name=module.display_name,
+        drupal_org_link=module.drupal_org_link,
+        module_type=module.module_type,
+        description=module.description,
+        is_active=module.is_active,
+        is_deleted=module.is_deleted,
+        created_at=module.created_at,
+        updated_at=module.updated_at,
+        created_by=module.created_by,
+        updated_by=module.updated_by,
         versions_count=versions_count,
         sites_count=sites_count,
         latest_version=latest_version_string,
@@ -242,7 +282,18 @@ async def delete_module(
         )
     
     return ModuleResponse(
-        **module.__dict__,
+        id=module.id,
+        machine_name=module.machine_name,
+        display_name=module.display_name,
+        drupal_org_link=module.drupal_org_link,
+        module_type=module.module_type,
+        description=module.description,
+        is_active=module.is_active,
+        is_deleted=module.is_deleted,
+        created_at=module.created_at,
+        updated_at=module.updated_at,
+        created_by=module.created_by,
+        updated_by=module.updated_by,
         versions_count=0,
         sites_count=0,
         latest_version=None,

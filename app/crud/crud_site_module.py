@@ -84,7 +84,7 @@ async def get_site_modules(
     
     # Execute queries
     result = await db.execute(query)
-    site_modules = result.scalars().all()
+    site_modules = result.unique().scalars().all()
     
     count_result = await db.execute(count_query)
     total = count_result.scalar()
@@ -125,7 +125,7 @@ async def get_module_sites(
     
     # Execute queries
     result = await db.execute(query)
-    site_modules = result.scalars().all()
+    site_modules = result.unique().scalars().all()
     
     count_result = await db.execute(count_query)
     total = count_result.scalar()
@@ -276,7 +276,7 @@ async def get_sites_needing_updates(
     query = query.offset(skip).limit(limit)
     
     result = await db.execute(query)
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 
 async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:

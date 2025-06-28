@@ -152,7 +152,7 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", follow_redirects=True) as client:
         yield client
 
 @pytest.fixture
@@ -199,6 +199,25 @@ async def test_organization(db_session: AsyncSession, test_user: User) -> Organi
     await db_session.commit()
     await db_session.refresh(org)
     return org
+
+@pytest_asyncio.fixture
+async def test_site(db_session: AsyncSession, test_organization: Organization, test_user: User):
+    """Create a test site."""
+    from app.models.site import Site
+    site = Site(
+        name="Test Site",
+        url="https://test.example.com",
+        description="Test site description",
+        organization_id=test_organization.id,
+        created_by=test_user.id,
+        updated_by=test_user.id,
+        is_active=True,
+        is_deleted=False
+    )
+    db_session.add(site)
+    await db_session.commit()
+    await db_session.refresh(site)
+    return site
 
 @pytest.fixture
 def user_token_headers(test_user: User) -> dict:

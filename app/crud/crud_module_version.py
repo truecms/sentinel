@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, desc
+from sqlalchemy import select, and_, desc, func
 from sqlalchemy.orm import joinedload
 
 from app.models.module_version import ModuleVersion
@@ -29,7 +29,7 @@ async def get_module_version_with_module(db: AsyncSession, version_id: int) -> O
             ModuleVersion.is_deleted == False
         )
     )
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
 
 
 async def get_module_versions(
@@ -48,7 +48,7 @@ async def get_module_versions(
         ModuleVersion.is_deleted == False
     )
     
-    count_query = select(ModuleVersion).filter(
+    count_query = select(func.count(ModuleVersion.id)).filter(
         ModuleVersion.module_id == module_id,
         ModuleVersion.is_deleted == False
     )
@@ -60,13 +60,11 @@ async def get_module_versions(
     
     # Apply Drupal core compatibility filter
     if drupal_core:
-        # Check if drupal_core is in the JSON array
-        query = query.filter(
-            ModuleVersion.drupal_core_compatibility.contains([drupal_core])
-        )
-        count_query = count_query.filter(
-            ModuleVersion.drupal_core_compatibility.contains([drupal_core])
-        )
+        # Use PostgreSQL's JSONB ? operator for JSON array containment
+        from sqlalchemy import text
+        json_filter = text(f"drupal_core_compatibility::jsonb ? '{drupal_core}'")
+        query = query.filter(json_filter)
+        count_query = count_query.filter(json_filter)
     
     # Order by release date descending (newest first)
     query = query.order_by(desc(ModuleVersion.release_date)).offset(skip).limit(limit)
@@ -76,7 +74,7 @@ async def get_module_versions(
     versions = result.scalars().all()
     
     count_result = await db.execute(count_query)
-    total = len(count_result.scalars().all())
+    total = count_result.scalar()
     
     return versions, total
 
@@ -206,7 +204,7 @@ async def get_security_versions(
         .offset(skip)
         .limit(limit)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 
 async def get_versions_by_drupal_core(
@@ -216,18 +214,26 @@ async def get_versions_by_drupal_core(
     limit: int = 100
 ) -> List[ModuleVersion]:
     """Get versions compatible with specific Drupal core version."""
+    from sqlalchemy import text
+    
+    # Use raw SQL with PostgreSQL JSON operators for more reliable querying
+    # This approach handles JSON arrays of any length
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
         .filter(
-            ModuleVersion.drupal_core_compatibility.contains([drupal_core]),
-            ModuleVersion.is_deleted == False
+            and_(
+                # Check if the JSON array contains the drupal_core version
+                # Using PostgreSQL's ? operator which works with JSON type
+                text(f"drupal_core_compatibility::jsonb ? '{drupal_core}'"),
+                ModuleVersion.is_deleted == False
+            )
         )
         .order_by(desc(ModuleVersion.release_date))
         .offset(skip)
         .limit(limit)
     )
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 
 async def check_version_exists(
