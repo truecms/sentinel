@@ -5,7 +5,8 @@
       "mcp__github__create_issue",
       "Bash(gh issue view:*)",
       "mcp__mcp-obsidian__obsidian_simple_search",
-      "Bash(gh pr list:*)"
+      "Bash(gh pr list:*)",
+      "mcp__mcp-obsidian__obsidian_append_content"
     ],
     "deny": []
   }
