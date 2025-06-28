@@ -7,7 +7,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Create environment file
+        run: |
+          echo "POSTGRES_SERVER=db" > .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "POSTGRES_USER=appuser832jdsf" >> .env
+          echo "POSTGRES_PASSWORD=app.password832jdsf" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
+          echo "JWT_SECRET_KEY=vka6tYama.FYAMUqjQYNzXtqCs7ZeibGHN_nxEqNtEkwQ*aPnvcRT_oowuuKw-zjXdHWqbZVd4A_hGXukU6DgztzZcjZ9FwydZ-4" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+          echo "BACKEND_CORS_ORIGINS=[\"*\"]" >> .env
+          echo "VERSION=1.0.0" >> .env
+          echo "SUPERUSER_EMAIL=admin@example.com" >> .env
+          echo "SUPERUSER_PASSWORD=admin123" >> .env
+
+      - name: Start services
+        run: docker-compose up -d
+
+      - name: Wait for database to be ready
+        run: |
+          timeout 60 bash -c 'until docker-compose exec -T db pg_isready -U appuser832jdsf; do echo "Waiting for database..."; sleep 2; done'
+
+      - name: Run database migrations
+        run: docker-compose exec -T api alembic upgrade head
+
+      - name: Wait for API to be healthy
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:8000/health; do echo "Waiting for API..."; sleep 2; done'
+
       - name: Install Newman
         run: npm install -g newman
+        
       - name: Run Postman Collection
         run: newman run "postman/FastAPI Monitoring Platform.postman_collection.json" -e postman/environment.json
