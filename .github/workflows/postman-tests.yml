@@ -10,4 +10,4 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
       - name: Run Postman Collection
-        run: newman run postman/collections/FastAPI_Testing_Collection.json -e postman/environments/FastAPI_Environment.json
+        run: newman run "postman/FastAPI Monitoring Platform.postman_collection.json" -e postman/environment.json
