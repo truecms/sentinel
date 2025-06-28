@@ -9,7 +9,7 @@ from alembic import context
 
 from app.core.config import settings
 from app.models.base import Base
-from app.models import User, Organization, Site  # Import your models
+from app.models import User, Organization, Site, Module, ModuleVersion, SiteModule  # Import your models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
