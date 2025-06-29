@@ -1,0 +1,1368 @@
+{
+	"info": {
+		"_postman_id": "97af25fe-2031-4073-bcb8-3cde79c56aff",
+		"name": "FastAPI Monitoring Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39443241"
+	},
+	"item": [
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"testpassword123\",\n    \"organization_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/add",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/get/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"get",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"newpassword123\",\n    \"organization_id\": 1,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/update/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"update",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/delete/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"delete",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"access_token\", jsonData.access_token);",
+									"    pm.test(\"Login successful\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"    pm.test(\"Access token received\", function () {",
+									"        pm.expect(jsonData.access_token).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "test@example.com"
+								},
+								{
+									"key": "password",
+									"value": "testpassword123"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/access-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"access-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Organizations",
+			"item": [
+				{
+					"name": "Create Organization",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Organization\",\n    \"created_by\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/organizations/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"organizations",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organizations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/organizations/get",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"organizations",
+								"get"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/organizations/get/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"organizations",
+								"get",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Organization",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Organization Name\",\n    \"updated_by\": 1,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/organizations/update/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"organizations",
+								"update",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Organization",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/organizations/delete/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"organizations",
+								"delete",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sites",
+			"item": [
+				{
+					"name": "Create Site",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Site\",\n    \"organization_id\": 1,\n    \"url\": \"https://test.com\",\n    \"description\": \"Test site\",\n    \"created_by\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/add",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization Sites",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/get/organisation/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"get",
+								"organisation",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Site Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/get/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"get",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Site",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Site Name\",\n    \"url\": \"https://updated-test.com\",\n    \"description\": \"Updated test site\",\n    \"updated_by\": 1,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/update/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"update",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Site",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/delete/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"delete",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Module Management",
+			"item": [
+				{
+					"name": "Get Modules",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('data');",
+									"    pm.expect(jsonData).to.have.property('total');",
+									"    pm.expect(jsonData).to.have.property('page');",
+									"    pm.expect(jsonData).to.have.property('per_page');",
+									"    pm.expect(jsonData).to.have.property('pages');",
+									"});",
+									"",
+									"pm.test(\"Data is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules?skip=0&limit=10&search=&module_type=&has_security_update=&sort_by=display_name&sort_order=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of records to return"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search in name and description"
+								},
+								{
+									"key": "module_type",
+									"value": "",
+									"description": "Filter by module type (contrib|custom|core)"
+								},
+								{
+									"key": "has_security_update",
+									"value": "",
+									"description": "Filter modules with security updates"
+								},
+								{
+									"key": "sort_by",
+									"value": "display_name",
+									"description": "Field to sort by"
+								},
+								{
+									"key": "sort_order",
+									"value": "asc",
+									"description": "Sort direction (asc|desc)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Module",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Module created successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('machine_name');",
+									"    pm.expect(jsonData).to.have.property('display_name');",
+									"    pm.expect(jsonData.machine_name).to.eql('test_module');",
+									"    // Store module ID for other tests",
+									"    pm.environment.set('module_id', jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"machine_name\": \"test_module\",\n    \"display_name\": \"Test Module\",\n    \"drupal_org_link\": \"https://drupal.org/project/test_module\",\n    \"module_type\": \"contrib\",\n    \"description\": \"A test module for demonstration\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Module Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/{{module_id}}?include_versions=false&include_sites=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"{{module_id}}"
+							],
+							"query": [
+								{
+									"key": "include_versions",
+									"value": "false",
+									"description": "Include version information"
+								},
+								{
+									"key": "include_sites",
+									"value": "false",
+									"description": "Include site usage information"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Module",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"display_name\": \"Updated Test Module\",\n    \"description\": \"An updated description for the test module\",\n    \"drupal_org_link\": \"https://drupal.org/project/test_module\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/{{module_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"{{module_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Module",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/{{module_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"{{module_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Create/Update Modules",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"machine_name\": \"bulk_module_1\",\n        \"display_name\": \"Bulk Module 1\",\n        \"module_type\": \"contrib\",\n        \"description\": \"First bulk module\"\n    },\n    {\n        \"machine_name\": \"bulk_module_2\",\n        \"display_name\": \"Bulk Module 2\",\n        \"module_type\": \"custom\",\n        \"description\": \"Second bulk module\"\n    }\n]"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/bulk",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"bulk"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Module Versions",
+			"item": [
+				{
+					"name": "Get Module Versions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/{{module_id}}/versions?skip=0&limit=10&only_security=false&drupal_core=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"{{module_id}}",
+								"versions"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of records to return"
+								},
+								{
+									"key": "only_security",
+									"value": "false",
+									"description": "Show only security updates"
+								},
+								{
+									"key": "drupal_core",
+									"value": "",
+									"description": "Filter by Drupal core compatibility (e.g., 10.x)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Latest Module Version",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/modules/{{module_id}}/latest-version?security_only=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"modules",
+								"{{module_id}}",
+								"latest-version"
+							],
+							"query": [
+								{
+									"key": "security_only",
+									"value": "false",
+									"description": "Get latest security version only"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Module Version",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"module_id\": {{module_id}},\n    \"version_string\": \"1.0.0\",\n    \"semantic_version\": \"1.0.0\",\n    \"release_date\": \"2024-01-01T00:00:00Z\",\n    \"is_security_update\": false,\n    \"release_notes_link\": \"https://drupal.org/project/test_module/releases/1.0.0\",\n    \"drupal_core_compatibility\": [\"10.x\", \"11.x\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/module-versions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"module-versions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Module Version Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/module-versions/{{version_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"module-versions",
+								"{{version_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Module Version",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"semantic_version\": \"1.0.1\",\n    \"is_security_update\": true,\n    \"release_notes_link\": \"https://drupal.org/project/test_module/releases/1.0.1\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/module-versions/{{version_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"module-versions",
+								"{{version_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Module Version",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/module-versions/{{version_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"module-versions",
+								"{{version_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Security Versions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/security-versions?skip=0&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"security-versions"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Maximum number of records to return"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Versions by Drupal Core",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/drupal-core/{{drupal_version}}/versions?skip=0&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"drupal-core",
+								"{{drupal_version}}",
+								"versions"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Maximum number of records to return"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Site Modules",
+			"item": [
+				{
+					"name": "Get Site Modules",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules?skip=0&limit=10&enabled=&has_update=&has_security_update=&module_type=&search=&sort_by=module_name&sort_order=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Number of records to skip"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of records to return"
+								},
+								{
+									"key": "enabled",
+									"value": "",
+									"description": "Filter by enabled status"
+								},
+								{
+									"key": "has_update",
+									"value": "",
+									"description": "Filter modules with updates available"
+								},
+								{
+									"key": "has_security_update",
+									"value": "",
+									"description": "Filter modules with security updates"
+								},
+								{
+									"key": "module_type",
+									"value": "",
+									"description": "Filter by module type"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search in module name"
+								},
+								{
+									"key": "sort_by",
+									"value": "module_name",
+									"description": "Field to sort by"
+								},
+								{
+									"key": "sort_order",
+									"value": "asc",
+									"description": "Sort direction"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Module to Site",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"module_id\": {{module_id}},\n    \"current_version_id\": {{version_id}},\n    \"enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Site Module Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules/{{module_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules",
+								"{{module_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Site Module",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_version_id\": {{new_version_id}},\n    \"enabled\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules/{{module_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules",
+								"{{module_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Module from Site",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules/{{module_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules",
+								"{{module_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Update Site Modules",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"module_id\": {{module_id_1}},\n        \"current_version_id\": {{version_id_1}},\n        \"enabled\": true\n    },\n    {\n        \"module_id\": {{module_id_2}},\n        \"current_version_id\": {{version_id_2}},\n        \"enabled\": false\n    }\n]"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules/bulk",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sites",
+								"{{site_id}}",
+								"modules",
+								"bulk"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "module_id",
+			"value": "1",
+			"description": "ID of a module for testing"
+		},
+		{
+			"key": "version_id", 
+			"value": "1",
+			"description": "ID of a module version for testing"
+		},
+		{
+			"key": "site_id",
+			"value": "1", 
+			"description": "ID of a site for testing"
+		},
+		{
+			"key": "drupal_version",
+			"value": "10.x",
+			"description": "Drupal core version for filtering"
+		},
+		{
+			"key": "new_version_id",
+			"value": "2",
+			"description": "ID of a new module version for updates"
+		},
+		{
+			"key": "module_id_1",
+			"value": "1",
+			"description": "First module ID for bulk operations"
+		},
+		{
+			"key": "module_id_2", 
+			"value": "2",
+			"description": "Second module ID for bulk operations"
+		},
+		{
+			"key": "version_id_1",
+			"value": "1",
+			"description": "First version ID for bulk operations"
+		},
+		{
+			"key": "version_id_2",
+			"value": "2", 
+			"description": "Second version ID for bulk operations"
+		}
+	]
+}

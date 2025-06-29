@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "Module Sync Collection",
+    "description": "Collection for syncing Drupal site modules using mock data",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "if (response.access_token) {",
+                  "    pm.environment.set(\"authToken\", response.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{adminEmail}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPassword}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/access-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "access-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Module Sync",
+      "item": [
+        {
+          "name": "Sync Site Modules",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// If using iteration data from Newman, the data will be available",
+                  "// Otherwise, use example data for manual testing",
+                  "if (!pm.iterationData.has('site')) {",
+                  "    // Default example data for manual testing",
+                  "    const exampleData = {",
+                  "        \"site\": {",
+                  "            \"url\": \"https://example.drupal.com\",",
+                  "            \"name\": \"Example Drupal Site\",",
+                  "            \"token\": \"site-auth-token-123\"",
+                  "        },",
+                  "        \"drupal_info\": {",
+                  "            \"core_version\": \"10.3.8\",",
+                  "            \"php_version\": \"8.3.2\",",
+                  "            \"ip_address\": \"192.168.1.100\"",
+                  "        },",
+                  "        \"modules\": [",
+                  "            {",
+                  "                \"machine_name\": \"node\",",
+                  "                \"display_name\": \"Node\",",
+                  "                \"module_type\": \"core\",",
+                  "                \"enabled\": true,",
+                  "                \"version\": \"10.3.8\"",
+                  "            },",
+                  "            {",
+                  "                \"machine_name\": \"views\",",
+                  "                \"display_name\": \"Views\",",
+                  "                \"module_type\": \"core\",",
+                  "                \"enabled\": true,",
+                  "                \"version\": \"10.3.8\"",
+                  "            },",
+                  "            {",
+                  "                \"machine_name\": \"admin_toolbar\",",
+                  "                \"display_name\": \"Admin Toolbar\",",
+                  "                \"module_type\": \"contrib\",",
+                  "                \"enabled\": true,",
+                  "                \"version\": \"3.5.0\"",
+                  "            }",
+                  "        ]",
+                  "    };",
+                  "    ",
+                  "    // Set variables for use in the request",
+                  "    pm.variables.set(\"siteData\", JSON.stringify(exampleData));",
+                  "    pm.variables.set(\"siteUrl\", exampleData.site.url);",
+                  "    pm.variables.set(\"siteToken\", exampleData.site.token);",
+                  "} else {",
+                  "    // Using iteration data from Newman",
+                  "    const iterationData = pm.iterationData.toObject();",
+                  "    pm.variables.set(\"siteData\", JSON.stringify(iterationData));",
+                  "    pm.variables.set(\"siteUrl\", iterationData.site.url);",
+                  "    pm.variables.set(\"siteToken\", iterationData.site.token);",
+                  "}",
+                  "",
+                  "// For this example, we'll use site_id 1",
+                  "// In production, this would be determined by the site token",
+                  "pm.variables.set(\"site_id\", \"1\");"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Module sync successful\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 2000ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const siteData = JSON.parse(pm.variables.get(\"siteData\"));",
+                  "    ",
+                  "    pm.test(\"Processed expected number of modules\", function () {",
+                  "        const response = pm.response.json();",
+                  "        console.log(\"Submitted modules:\", siteData.modules.length);",
+                  "        console.log(\"Response:\", response);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Site-Token",
+                "value": "{{siteToken}}",
+                "description": "Site authentication token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{siteData}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sites/{{site_id}}/modules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sites", "{{site_id}}", "modules"]
+            },
+            "description": "Sync all modules for a Drupal site. This endpoint accepts the complete module list and updates the site's module inventory."
+          }
+        },
+        {
+          "name": "Get Site Modules After Sync",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sites/{{site_id}}/modules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sites", "{{site_id}}", "modules"],
+              "query": [
+                {
+                  "key": "enabled_only",
+                  "value": "false",
+                  "description": "Show all modules including disabled ones"
+                }
+              ]
+            },
+            "description": "Verify the modules were synced correctly"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@example.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "admin123",
+      "type": "string"
+    }
+  ]
+}
