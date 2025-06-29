@@ -111,10 +111,12 @@ class TestVersionComparator:
             "8.x-1.2",
             "8.x-2.0",
             "7.x-3.0",  # Different core
+            "9.x-1.0",  # Different core
         ]
         
+        # When we have mixed Drupal core versions, the highest core version wins
         latest = comparator.get_latest_version(versions)
-        assert latest == "8.x-2.0"
+        assert latest == "9.x-1.0"
     
     def test_is_update_available(self, comparator):
         """Test update availability detection."""

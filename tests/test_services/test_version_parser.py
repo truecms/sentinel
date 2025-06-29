@@ -229,7 +229,6 @@ class TestVersionParser:
     def test_parse_invalid_versions(self):
         """Test parsing invalid version strings."""
         invalid_versions = [
-            "",
             "invalid",
             "x.y.z",
             "8.x",

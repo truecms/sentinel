@@ -42,6 +42,12 @@ class VersionComparator:
                 core1 = int(parsed1.drupal_core.replace('.x', ''))
                 core2 = int(parsed2.drupal_core.replace('.x', ''))
                 return -1 if core1 < core2 else 1
+        elif parsed1.drupal_core and not parsed2.drupal_core:
+            # Drupal contrib versions are considered newer than semantic versions
+            return 1
+        elif not parsed1.drupal_core and parsed2.drupal_core:
+            # Semantic versions are considered older than Drupal contrib versions
+            return -1
         
         # Compare version tuples
         tuple1 = parsed1.to_tuple()
@@ -82,8 +88,17 @@ class VersionComparator:
         if not valid_versions:
             return None
         
-        # Sort versions using our comparison function
-        return max(valid_versions, key=lambda v: self.parser.parse(v).to_tuple())
+        # Sort versions using custom key that includes drupal core
+        def version_sort_key(version_str):
+            parsed = self.parser.parse(version_str)
+            # Include drupal core in the sorting key
+            core_value = 0
+            if parsed.drupal_core:
+                core_value = int(parsed.drupal_core.replace('.x', ''))
+            return (core_value, parsed.major, parsed.minor, parsed.patch, 
+                   parsed.release_type.precedence, parsed.release_number or 0)
+        
+        return max(valid_versions, key=version_sort_key)
     
     def is_update_available(self, current: str, available: List[str]) -> Tuple[bool, Optional[str]]:
         """
@@ -177,8 +192,12 @@ class VersionComparator:
                 continue
         
         # Sort versions within each branch
+        def version_sort_key(version_str):
+            parsed = self.parser.parse(version_str)
+            return parsed.to_tuple()
+            
         for branch in branches:
-            branches[branch].sort(key=lambda v: self.parser.parse(v).to_tuple())
+            branches[branch].sort(key=version_sort_key)
         
         return branches
     
@@ -206,7 +225,10 @@ class VersionComparator:
                 parsed = self.parser.parse(version)
                 
                 # Check Drupal core compatibility
-                if drupal_core and parsed.drupal_core:
+                if drupal_core:
+                    # If filtering by drupal_core, only include versions that have drupal_core
+                    if not parsed.drupal_core:
+                        continue
                     if parsed.drupal_core != drupal_core:
                         continue
                 
