@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, desc, func
 from sqlalchemy.orm import joinedload
@@ -6,6 +6,8 @@ from sqlalchemy.orm import joinedload
 from app.models.module_version import ModuleVersion
 from app.models.module import Module
 from app.schemas.module_version import ModuleVersionCreate, ModuleVersionUpdate
+from app.services.version_comparator import VersionComparator
+from app.services.version_parser import DrupalVersionParser
 
 
 async def get_module_version(db: AsyncSession, version_id: int) -> Optional[ModuleVersion]:
@@ -250,3 +252,169 @@ async def check_version_exists(
         )
     )
     return result.scalar_one_or_none() is not None
+
+
+async def get_latest_version_using_comparator(
+    db: AsyncSession, 
+    module_id: int,
+    stable_only: bool = True
+) -> Optional[ModuleVersion]:
+    """
+    Get the latest version for a module using version comparison logic.
+    
+    Args:
+        db: Database session
+        module_id: Module ID
+        stable_only: If True, only consider stable and security releases
+        
+    Returns:
+        Latest ModuleVersion or None
+    """
+    # Get all versions for the module
+    result = await db.execute(
+        select(ModuleVersion).filter(
+            ModuleVersion.module_id == module_id,
+            ModuleVersion.is_deleted == False
+        )
+    )
+    versions = result.scalars().all()
+    
+    if not versions:
+        return None
+    
+    # Use comparator to find latest
+    comparator = VersionComparator()
+    version_strings = [v.version_string for v in versions]
+    latest_string = comparator.get_latest_version(version_strings, stable_only=stable_only)
+    
+    if not latest_string:
+        return None
+    
+    # Find and return the matching version object
+    for version in versions:
+        if version.version_string == latest_string:
+            return version
+    
+    return None
+
+
+async def compare_versions(
+    db: AsyncSession,
+    version1_id: int,
+    version2_id: int
+) -> int:
+    """
+    Compare two versions.
+    
+    Args:
+        db: Database session
+        version1_id: First version ID
+        version2_id: Second version ID
+        
+    Returns:
+        -1 if version1 < version2
+        0 if version1 == version2
+        1 if version1 > version2
+        
+    Raises:
+        ValueError: If either version not found
+    """
+    version1 = await get_module_version(db, version1_id)
+    version2 = await get_module_version(db, version2_id)
+    
+    if not version1 or not version2:
+        raise ValueError("Version not found")
+    
+    comparator = VersionComparator()
+    return comparator.compare(version1.version_string, version2.version_string)
+
+
+async def get_versions_for_comparison(
+    db: AsyncSession,
+    module_id: int,
+    drupal_core: Optional[str] = None,
+    major_version: Optional[int] = None
+) -> List[ModuleVersion]:
+    """
+    Get versions filtered by compatibility criteria.
+    
+    Args:
+        db: Database session
+        module_id: Module ID
+        drupal_core: Drupal core version to filter by
+        major_version: Major version to filter by
+        
+    Returns:
+        List of compatible ModuleVersion objects
+    """
+    # Get all versions
+    result = await db.execute(
+        select(ModuleVersion).filter(
+            ModuleVersion.module_id == module_id,
+            ModuleVersion.is_deleted == False
+        )
+    )
+    all_versions = result.scalars().all()
+    
+    if not all_versions:
+        return []
+    
+    # Use comparator to filter
+    comparator = VersionComparator()
+    version_strings = [v.version_string for v in all_versions]
+    compatible_strings = comparator.filter_compatible_versions(
+        version_strings,
+        drupal_core=drupal_core,
+        major_version=major_version
+    )
+    
+    # Return matching version objects
+    compatible_versions = []
+    for version in all_versions:
+        if version.version_string in compatible_strings:
+            compatible_versions.append(version)
+    
+    return compatible_versions
+
+
+async def update_version_metadata(
+    db: AsyncSession,
+    version_id: int,
+    updated_by: str
+) -> Optional[ModuleVersion]:
+    """
+    Update version metadata using parser.
+    
+    Updates semantic_version field and drupal_core_compatibility.
+    
+    Args:
+        db: Database session
+        version_id: Version ID
+        updated_by: User making the update
+        
+    Returns:
+        Updated ModuleVersion or None
+    """
+    version = await get_module_version(db, version_id)
+    if not version:
+        return None
+    
+    parser = DrupalVersionParser()
+    try:
+        parsed = parser.parse(version.version_string)
+        
+        # Update semantic version
+        version.semantic_version = parsed.to_semantic()
+        
+        # Update drupal core compatibility if detected
+        if parsed.drupal_core:
+            version.drupal_core_compatibility = [parsed.drupal_core]
+        
+        version.updated_by = updated_by
+        await db.commit()
+        await db.refresh(version)
+        
+        return version
+    except ValueError:
+        # Invalid version string, skip update
+        return version

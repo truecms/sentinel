@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, HttpUrl, Field
 
 
@@ -55,3 +55,30 @@ class ModuleVersionListResponse(BaseModel):
     page: int
     per_page: int
     pages: int
+
+
+# Version checking schemas
+class VersionCheckRequest(BaseModel):
+    """Request for checking a single module version."""
+    machine_name: str = Field(..., description="Machine name of the module")
+    current_version: str = Field(..., description="Current version string")
+
+
+class UpdateCheckResponse(BaseModel):
+    """Response for update availability check."""
+    machine_name: str = Field(..., description="Machine name of the module")
+    current_version: str = Field(..., description="Current version string")
+    latest_version: Optional[str] = Field(None, description="Latest available version")
+    latest_security_version: Optional[str] = Field(None, description="Latest security version")
+    update_available: bool = Field(False, description="Whether an update is available")
+    security_update_available: bool = Field(False, description="Whether a security update is available")
+    version_lag: Dict[str, int] = Field(default_factory=dict, description="Version lag information")
+
+
+class VersionCheckResponse(BaseModel):
+    """Response for version comparison."""
+    comparison: int = Field(..., description="Comparison result: -1, 0, or 1")
+    version1: str = Field(..., description="First version string")
+    version2: str = Field(..., description="Second version string")
+    version1_parsed: Dict[str, Any] = Field(..., description="Parsed components of version1")
+    version2_parsed: Dict[str, Any] = Field(..., description="Parsed components of version2")
