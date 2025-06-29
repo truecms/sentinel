@@ -1,0 +1,959 @@
+{
+  "site": {
+    "url": "https://enterprise.example.com",
+    "name": "Enterprise Drupal Site",
+    "token": "site-auth-token-enterprise-789"
+  },
+  "drupal_info": {
+    "core_version": "10.2.5",
+    "php_version": "8.1.27",
+    "ip_address": "10.0.1.200"
+  },
+  "modules": [
+    {
+      "machine_name": "action",
+      "display_name": "Actions",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "aggregator",
+      "display_name": "Aggregator",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "automated_cron",
+      "display_name": "Automated Cron",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "ban",
+      "display_name": "Ban",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "basic_auth",
+      "display_name": "HTTP Basic Authentication",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "big_pipe",
+      "display_name": "BigPipe",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "block",
+      "display_name": "Block",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "block_content",
+      "display_name": "Block Content",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "book",
+      "display_name": "Book",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "breakpoint",
+      "display_name": "Breakpoint",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "ckeditor5",
+      "display_name": "CKEditor 5",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "color",
+      "display_name": "Color",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "comment",
+      "display_name": "Comment",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "config",
+      "display_name": "Configuration Manager",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "config_translation",
+      "display_name": "Configuration Translation",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "contact",
+      "display_name": "Contact",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "content_moderation",
+      "display_name": "Content Moderation",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "content_translation",
+      "display_name": "Content Translation",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "contextual",
+      "display_name": "Contextual Links",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "datetime",
+      "display_name": "Datetime",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "datetime_range",
+      "display_name": "Datetime Range",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "dblog",
+      "display_name": "Database Logging",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "dynamic_page_cache",
+      "display_name": "Internal Dynamic Page Cache",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "editor",
+      "display_name": "Text Editor",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "entity_reference_revisions",
+      "display_name": "Entity Reference Revisions",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.12.0"
+    },
+    {
+      "machine_name": "field",
+      "display_name": "Field",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "field_group",
+      "display_name": "Field Group",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.6.0"
+    },
+    {
+      "machine_name": "field_ui",
+      "display_name": "Field UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "file",
+      "display_name": "File",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "filter",
+      "display_name": "Filter",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "forum",
+      "display_name": "Forum",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "google_analytics",
+      "display_name": "Google Analytics",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.0.2"
+    },
+    {
+      "machine_name": "hal",
+      "display_name": "HAL",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "help",
+      "display_name": "Help",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "help_topics",
+      "display_name": "Help Topics",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "history",
+      "display_name": "History",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "image",
+      "display_name": "Image",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "inline_form_errors",
+      "display_name": "Inline Form Errors",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "jsonapi",
+      "display_name": "JSON:API",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "language",
+      "display_name": "Language",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "layout_builder",
+      "display_name": "Layout Builder",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "layout_discovery",
+      "display_name": "Layout Discovery",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "link",
+      "display_name": "Link",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "locale",
+      "display_name": "Interface Translation",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "media",
+      "display_name": "Media",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "media_library",
+      "display_name": "Media Library",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "menu_link_content",
+      "display_name": "Menu Link Content",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "menu_ui",
+      "display_name": "Menu UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "migrate",
+      "display_name": "Migrate",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "migrate_drupal",
+      "display_name": "Migrate Drupal",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "migrate_drupal_ui",
+      "display_name": "Migrate Drupal UI",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "mysql",
+      "display_name": "MySQL",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "node",
+      "display_name": "Node",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "olivero",
+      "display_name": "Olivero",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "options",
+      "display_name": "Options",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "page_cache",
+      "display_name": "Internal Page Cache",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "path",
+      "display_name": "Path",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "path_alias",
+      "display_name": "Path Alias",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "pgsql",
+      "display_name": "PostgreSQL",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "quickedit",
+      "display_name": "Quick Edit",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "rdf",
+      "display_name": "RDF",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "responsive_image",
+      "display_name": "Responsive Image",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "rest",
+      "display_name": "RESTful Web Services",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "search",
+      "display_name": "Search",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "search_api",
+      "display_name": "Search API",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.35.0"
+    },
+    {
+      "machine_name": "search_api_solr",
+      "display_name": "Search API Solr",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.3.5"
+    },
+    {
+      "machine_name": "serialization",
+      "display_name": "Serialization",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "settings_tray",
+      "display_name": "Settings Tray",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "shortcut",
+      "display_name": "Shortcut",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "simple_sitemap",
+      "display_name": "Simple XML Sitemap",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.2.1"
+    },
+    {
+      "machine_name": "sqlite",
+      "display_name": "SQLite",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "statistics",
+      "display_name": "Statistics",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "syslog",
+      "display_name": "Syslog",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "system",
+      "display_name": "System",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "taxonomy",
+      "display_name": "Taxonomy",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "telephone",
+      "display_name": "Telephone",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "text",
+      "display_name": "Text",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "toolbar",
+      "display_name": "Toolbar",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "tour",
+      "display_name": "Tour",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "tracker",
+      "display_name": "Activity Tracker",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "update",
+      "display_name": "Update Manager",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "user",
+      "display_name": "User",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "views",
+      "display_name": "Views",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "views_ui",
+      "display_name": "Views UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "workflows",
+      "display_name": "Workflows",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "workspaces",
+      "display_name": "Workspaces",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.2.5"
+    },
+    {
+      "machine_name": "admin_toolbar",
+      "display_name": "Admin Toolbar",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.4.2"
+    },
+    {
+      "machine_name": "admin_toolbar_tools",
+      "display_name": "Admin Toolbar Extra Tools",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.4.2"
+    },
+    {
+      "machine_name": "admin_toolbar_search",
+      "display_name": "Admin Toolbar Search",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.4.2"
+    },
+    {
+      "machine_name": "better_exposed_filters",
+      "display_name": "Better Exposed Filters",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "6.0.6"
+    },
+    {
+      "machine_name": "block_class",
+      "display_name": "Block Class",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.0.0"
+    },
+    {
+      "machine_name": "captcha",
+      "display_name": "CAPTCHA",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.0.5"
+    },
+    {
+      "machine_name": "config_filter",
+      "display_name": "Config Filter",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.6.0"
+    },
+    {
+      "machine_name": "config_ignore",
+      "display_name": "Config Ignore",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.3.0"
+    },
+    {
+      "machine_name": "config_split",
+      "display_name": "Configuration Split",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.0.1"
+    },
+    {
+      "machine_name": "ctools",
+      "display_name": "Chaos Tools",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.1.0"
+    },
+    {
+      "machine_name": "devel",
+      "display_name": "Devel",
+      "module_type": "contrib",
+      "enabled": false,
+      "version": "5.3.0"
+    },
+    {
+      "machine_name": "devel_generate",
+      "display_name": "Devel Generate",
+      "module_type": "contrib",
+      "enabled": false,
+      "version": "5.3.0"
+    },
+    {
+      "machine_name": "environment_indicator",
+      "display_name": "Environment Indicator",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.0.20"
+    },
+    {
+      "machine_name": "facets",
+      "display_name": "Facets",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.0.1"
+    },
+    {
+      "machine_name": "features",
+      "display_name": "Features",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.14.0"
+    },
+    {
+      "machine_name": "field_permissions",
+      "display_name": "Field Permissions",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.3.0"
+    },
+    {
+      "machine_name": "file_mdm",
+      "display_name": "File Metadata Manager",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.0.2"
+    },
+    {
+      "machine_name": "imageapi_optimize",
+      "display_name": "Image Optimize",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.0.5"
+    },
+    {
+      "machine_name": "linkit",
+      "display_name": "Linkit",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "6.1.4"
+    },
+    {
+      "machine_name": "metatag",
+      "display_name": "Metatag",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.0.0"
+    },
+    {
+      "machine_name": "paragraphs",
+      "display_name": "Paragraphs",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.18.0"
+    },
+    {
+      "machine_name": "pathauto",
+      "display_name": "Pathauto",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.13.0"
+    },
+    {
+      "machine_name": "recaptcha",
+      "display_name": "reCAPTCHA",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.2.0"
+    },
+    {
+      "machine_name": "redirect",
+      "display_name": "Redirect",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.10.0"
+    },
+    {
+      "machine_name": "redis",
+      "display_name": "Redis",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.7.0"
+    },
+    {
+      "machine_name": "scheduler",
+      "display_name": "Scheduler",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.1.0"
+    },
+    {
+      "machine_name": "token",
+      "display_name": "Token",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.15.0"
+    },
+    {
+      "machine_name": "twig_tweak",
+      "display_name": "Twig Tweak",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.4.0"
+    },
+    {
+      "machine_name": "views_bulk_operations",
+      "display_name": "Views Bulk Operations",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.2.7"
+    },
+    {
+      "machine_name": "webform",
+      "display_name": "Webform",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "6.2.7"
+    },
+    {
+      "machine_name": "xmlsitemap",
+      "display_name": "XML Sitemap",
+      "module_type": "contrib",
+      "enabled": false,
+      "version": "1.5.0"
+    },
+    {
+      "machine_name": "custom_api",
+      "display_name": "Custom API Integration",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "3.0.0"
+    },
+    {
+      "machine_name": "custom_blocks",
+      "display_name": "Custom Blocks",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.2.0"
+    },
+    {
+      "machine_name": "custom_breadcrumbs",
+      "display_name": "Custom Breadcrumbs",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "custom_cache_tags",
+      "display_name": "Custom Cache Tags",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.1.0"
+    },
+    {
+      "machine_name": "custom_content_types",
+      "display_name": "Custom Content Types",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.5.0"
+    },
+    {
+      "machine_name": "custom_cron",
+      "display_name": "Custom Cron Jobs",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "custom_drush_commands",
+      "display_name": "Custom Drush Commands",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.3.0"
+    },
+    {
+      "machine_name": "custom_forms",
+      "display_name": "Custom Forms",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.0.0"
+    },
+    {
+      "machine_name": "custom_migration",
+      "display_name": "Custom Migration",
+      "module_type": "custom",
+      "enabled": false,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "custom_search",
+      "display_name": "Custom Search",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.5.0"
+    },
+    {
+      "machine_name": "custom_theme_helper",
+      "display_name": "Custom Theme Helper",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.0.0"
+    },
+    {
+      "machine_name": "custom_user_roles",
+      "display_name": "Custom User Roles",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "custom_workflows",
+      "display_name": "Custom Workflows",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.2.0"
+    },
+    {
+      "machine_name": "site_analytics",
+      "display_name": "Site Analytics Integration",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.1.0"
+    },
+    {
+      "machine_name": "site_api",
+      "display_name": "Site API",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "3.5.0"
+    },
+    {
+      "machine_name": "site_configuration",
+      "display_name": "Site Configuration",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "site_performance",
+      "display_name": "Site Performance Optimizations",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.2.0"
+    },
+    {
+      "machine_name": "site_security",
+      "display_name": "Site Security Enhancements",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.0.0"
+    }
+  ]
+}

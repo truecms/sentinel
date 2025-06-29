@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Drupal Module Submission",
+  "description": "Schema for Drupal site module submission to monitoring platform",
+  "type": "object",
+  "required": ["site", "drupal_info", "modules"],
+  "properties": {
+    "site": {
+      "type": "object",
+      "description": "Site identification and authentication information",
+      "required": ["url", "name", "token"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://",
+          "description": "The full URL of the Drupal site"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Human-readable name of the site"
+        },
+        "token": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Authentication token for site verification"
+        }
+      }
+    },
+    "drupal_info": {
+      "type": "object",
+      "description": "Drupal core and environment information",
+      "required": ["core_version", "php_version"],
+      "properties": {
+        "core_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9]+)?$",
+          "description": "Drupal core version (e.g., 10.3.8, 9.5.11)"
+        },
+        "php_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "PHP version (e.g., 8.3.2)"
+        },
+        "ip_address": {
+          "type": "string",
+          "format": "ipv4",
+          "description": "Server IP address (optional)"
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "description": "List of installed modules",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["machine_name", "display_name", "module_type", "enabled", "version"],
+        "properties": {
+          "machine_name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Module machine name (lowercase, underscores)"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Human-readable module name"
+          },
+          "module_type": {
+            "type": "string",
+            "enum": ["core", "contrib", "custom"],
+            "description": "Type of module"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the module is currently enabled"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9x]+\\.[0-9x]+(-[a-zA-Z0-9\\.]+)?$|^[0-9]+\\.[0-9x]+(-[a-zA-Z0-9\\.]+)?$",
+            "description": "Module version (e.g., 1.0.0, 2.x-dev, 3.0.0-beta1)"
+          }
+        }
+      }
+    }
+  }
+}
