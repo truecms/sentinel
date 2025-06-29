@@ -67,7 +67,7 @@ class UpdateDetector:
             .where(ModuleVersion.module_id == module_id)
             .order_by(ModuleVersion.created_at.desc())
         )
-        available_versions = [row[0] for row in result.fetchall()]
+        available_versions = [row[0] for row in await result.fetchall()]
         
         if not available_versions:
             return UpdateInfo(current_version=current_version)
@@ -175,7 +175,7 @@ class UpdateDetector:
         
         # Group versions by module
         module_version_map: Dict[int, List[str]] = {}
-        for module_id, version_string in result:
+        async for module_id, version_string in result:
             if module_id not in module_version_map:
                 module_version_map[module_id] = []
             module_version_map[module_id].append(version_string)
@@ -283,7 +283,7 @@ class UpdateDetector:
         )
         
         result = await db.execute(stmt)
-        return [(row[0], row[1]) for row in result.fetchall()]
+        return [(row[0], row[1]) for row in await result.fetchall()]
     
     def get_version_branch(self, version: str) -> Optional[str]:
         """
