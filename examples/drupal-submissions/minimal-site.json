@@ -1,7 +1,7 @@
 {
   "site": {
-    "url": "https://minimal.example.com",
-    "name": "Minimal Drupal Site",
+    "url": "https://test.example.com",
+    "name": "Test Site",
     "token": "site-auth-token-minimal-123"
   },
   "drupal_info": {

@@ -88,9 +88,15 @@ async def test_update_site_modules(
     client: AsyncClient,
     user_token_headers: dict,
     test_organization: Organization,
+    test_user: User,
     db_session: AsyncSession
 ):
-    """Test updating site module information."""
+    """Test syncing site module information from Drupal."""
+    # Assign user to organization
+    test_user.organization_id = test_organization.id
+    db_session.add(test_user)
+    await db_session.commit()
+    
     # Create test site
     site = Site(
         name="Module Test Site",
@@ -101,37 +107,58 @@ async def test_update_site_modules(
     await db_session.commit()
     await db_session.refresh(site)
 
-    # Update module information
+    # Sync module information using DrupalSiteSync payload
     response = await client.post(
         f"/api/v1/sites/{site.id}/modules",
         headers=user_token_headers,
         json={
+            "site": {
+                "url": "https://modules.example.com",
+                "name": "Module Test Site",
+                "token": "site-auth-token-123"
+            },
+            "drupal_info": {
+                "core_version": "10.3.8",
+                "php_version": "8.3.2",
+                "ip_address": "192.168.1.100"
+            },
             "modules": [
                 {
-                    "name": "drupal",
-                    "version": "9.5.0",
-                    "type": "core"
+                    "machine_name": "node",
+                    "display_name": "Node",
+                    "module_type": "core",
+                    "enabled": True,
+                    "version": "10.3.8"
                 },
                 {
-                    "name": "views",
-                    "version": "8.x-3.0",
-                    "type": "module"
+                    "machine_name": "views",
+                    "display_name": "Views",
+                    "module_type": "core", 
+                    "enabled": True,
+                    "version": "10.3.8"
                 }
             ]
         }
     )
     assert response.status_code == 200
     data = response.json()
-    assert len(data["modules"]) == 2
-    assert any(m["name"] == "drupal" and m["version"] == "9.5.0" for m in data["modules"])
+    assert data["modules_processed"] == 2
+    assert data["site_id"] == site.id
+    assert "message" in data
 
 async def test_get_site_modules(
     client: AsyncClient,
     user_token_headers: dict,
     test_organization: Organization,
+    test_user: User,
     db_session: AsyncSession
 ):
     """Test retrieving site module information."""
+    # Assign user to organization
+    test_user.organization_id = test_organization.id
+    db_session.add(test_user)
+    await db_session.commit()
+    
     # Create test site with modules
     site = Site(
         name="Module List Site",
@@ -142,16 +169,28 @@ async def test_get_site_modules(
     await db_session.commit()
     await db_session.refresh(site)
 
-    # First update modules
+    # First sync modules using DrupalSiteSync payload
     await client.post(
         f"/api/v1/sites/{site.id}/modules",
         headers=user_token_headers,
         json={
+            "site": {
+                "url": "https://modulelist.example.com",
+                "name": "Module List Site",
+                "token": "site-auth-token-123"
+            },
+            "drupal_info": {
+                "core_version": "10.3.8",
+                "php_version": "8.3.2",
+                "ip_address": "192.168.1.100"
+            },
             "modules": [
                 {
-                    "name": "drupal",
-                    "version": "9.5.0",
-                    "type": "core"
+                    "machine_name": "node",
+                    "display_name": "Node",
+                    "module_type": "core",
+                    "enabled": True,
+                    "version": "10.3.8"
                 }
             ]
         }
@@ -164,9 +203,16 @@ async def test_get_site_modules(
     )
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data["modules"], list)
-    assert len(data["modules"]) > 0
-    assert any(m["name"] == "drupal" for m in data["modules"])
+    assert "data" in data  # SiteModuleListResponse has a 'data' field
+    assert isinstance(data["data"], list)
+    assert len(data["data"]) > 0
+    # Check that module information is present
+    module_found = False
+    for module in data["data"]:
+        if module["module"]["machine_name"] == "node":
+            module_found = True
+            break
+    assert module_found
 
 async def test_delete_site(
     client: AsyncClient,

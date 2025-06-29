@@ -4,6 +4,7 @@ from .site import SiteResponse, SiteCreate, SiteUpdate
 from .module import ModuleCreate, ModuleUpdate, ModuleInDB, ModuleResponse, ModuleListResponse
 from .module_version import ModuleVersionCreate, ModuleVersionUpdate, ModuleVersionInDB, ModuleVersionResponse, ModuleVersionListResponse
 from .site_module import SiteModuleCreate, SiteModuleUpdate, SiteModuleInDB, SiteModuleResponse, SiteModuleSummary, SiteModuleListResponse, SiteModuleStatsResponse
+from .drupal_sync import DrupalSiteSync, DrupalModuleInfo, DrupalInfo, DrupalSiteInfo, ModuleSyncResult
 
 __all__ = [
     "UserCreate",
@@ -33,4 +34,9 @@ __all__ = [
     "SiteModuleSummary",
     "SiteModuleListResponse",
     "SiteModuleStatsResponse",
+    "DrupalSiteSync",
+    "DrupalModuleInfo",
+    "DrupalInfo",
+    "DrupalSiteInfo",
+    "ModuleSyncResult",
 ]

@@ -601,61 +601,6 @@
           "response": []
         },
         {
-          "name": "Create Module",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Module created successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('id');",
-                  "    pm.expect(jsonData).to.have.property('machine_name');",
-                  "    pm.expect(jsonData).to.have.property('display_name');",
-                  "    pm.expect(jsonData.machine_name).to.eql('test_module');",
-                  "    // Store module ID for other tests",
-                  "    pm.environment.set('module_id', jsonData.id);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{access_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"machine_name\": \"test_module\",\n    \"display_name\": \"Test Module\",\n    \"drupal_org_link\": \"https://drupal.org/project/test_module\",\n    \"module_type\": \"contrib\",\n    \"description\": \"A test module for demonstration\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/modules",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "modules"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "Get Module Details",
           "request": {
             "method": "GET",
@@ -1104,7 +1049,7 @@
           "response": []
         },
         {
-          "name": "Add Module to Site",
+          "name": "Sync Site Modules",
           "request": {
             "method": "POST",
             "header": [
@@ -1119,7 +1064,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"module_id\": {{module_id}},\n    \"current_version_id\": {{version_id}},\n    \"enabled\": true\n}"
+              "raw": "{\n  \"site\": {\n    \"url\": \"https://example.com\",\n    \"name\": \"Example Drupal Site\",\n    \"token\": \"site-auth-token-123\"\n  },\n  \"drupal_info\": {\n    \"core_version\": \"10.3.8\",\n    \"php_version\": \"8.3.2\",\n    \"ip_address\": \"192.168.1.100\"\n  },\n  \"modules\": [\n    {\n      \"machine_name\": \"views\",\n      \"display_name\": \"Views\",\n      \"module_type\": \"core\",\n      \"enabled\": true,\n      \"version\": \"10.3.8\"\n    },\n    {\n      \"machine_name\": \"admin_toolbar\",\n      \"display_name\": \"Admin Toolbar\",\n      \"module_type\": \"contrib\",\n      \"enabled\": true,\n      \"version\": \"3.5.0\"\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules",
@@ -1135,7 +1080,8 @@
               ]
             }
           },
-          "response": []
+          "response": [],
+          "description": "Sync all modules for a Drupal site. This endpoint accepts the complete module list from a Drupal site and updates the site's module inventory."
         },
         {
           "name": "Get Site Module Details",
@@ -1223,41 +1169,6 @@
                 "{{module_id}}"
               ]
             }
-          },
-          "response": []
-        },
-        {
-          "name": "Sync Site Modules",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{access_token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"site\": {\n    \"url\": \"https://example.com\",\n    \"name\": \"Example Drupal Site\",\n    \"token\": \"site-auth-token-123\"\n  },\n  \"drupal_info\": {\n    \"core_version\": \"10.3.8\",\n    \"php_version\": \"8.3.2\",\n    \"ip_address\": \"192.168.1.100\"\n  },\n  \"modules\": [\n    {\n      \"machine_name\": \"views\",\n      \"display_name\": \"Views\",\n      \"module_type\": \"core\",\n      \"enabled\": true,\n      \"version\": \"10.3.8\"\n    },\n    {\n      \"machine_name\": \"admin_toolbar\",\n      \"display_name\": \"Admin Toolbar\",\n      \"module_type\": \"contrib\",\n      \"enabled\": true,\n      \"version\": \"3.5.0\"\n    }\n  ]\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/sites/{{site_id}}/modules",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "sites",
-                "{{site_id}}",
-                "modules"
-              ]
-            },
-            "description": "Sync all modules for a Drupal site. This endpoint accepts the complete module list from a Drupal site and updates the site's module inventory."
           },
           "response": []
         }

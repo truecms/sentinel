@@ -1,7 +1,7 @@
 {
   "site": {
-    "url": "https://enterprise.example.com",
-    "name": "Enterprise Drupal Site",
+    "url": "https://test.example.com",
+    "name": "Test Site",
     "token": "site-auth-token-enterprise-789"
   },
   "drupal_info": {

@@ -1,7 +1,7 @@
 {
   "site": {
-    "url": "https://standard.example.com",
-    "name": "Standard Drupal Site",
+    "url": "https://test.example.com",
+    "name": "Test Site",
     "token": "site-auth-token-standard-456"
   },
   "drupal_info": {
