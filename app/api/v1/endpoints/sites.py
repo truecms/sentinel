@@ -19,6 +19,7 @@ from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
 from app.api.v1.dependencies.rate_limit import check_rate_limit
 from app.services.cache import ModuleCacheService
+from app.services.update_detector import UpdateDetector
 from app.tasks.sync_tasks import sync_site_modules_task
 import json
 
@@ -383,10 +384,32 @@ async def sync_site_modules(
                     current_version_id=version.id,
                     enabled=module_info.enabled
                 )
-                await crud_site_module.create_site_module(
+                site_module = await crud_site_module.create_site_module(
                     db, site_module_create, current_user.id
                 )
                 modules_created += 1
+            
+            # Check for available updates using version comparison
+            if site_module and module_info.enabled:
+                try:
+                    detector = UpdateDetector()
+                    update_info = await detector.check_module_updates(
+                        db, module.id, module_info.version
+                    )
+                    
+                    # Update site module with update availability
+                    if (update_info.update_available or 
+                        update_info.security_update_available):
+                        await detector.update_site_module_flags(
+                            db, site_module, update_info
+                        )
+                except Exception as e:
+                    # Log update check error but don't fail the sync
+                    errors.append({
+                        "module": module_info.machine_name,
+                        "error": f"Update check failed: {str(e)}",
+                        "type": "update_check"
+                    })
                 
         except Exception as e:
             errors.append({

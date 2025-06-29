@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.site import Site
 from app.models.organization import Organization
+from app.models.user import User
 
 pytestmark = pytest.mark.asyncio
 
