@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import users, auth, organizations, sites, modules, module_versions, module_versions_standalone, module_versions_global, module_sites
+from app.api.v1.endpoints import users, auth, organizations, sites, modules, module_versions, module_versions_standalone, module_versions_global, module_sites, tasks
 
 api_router = APIRouter()
 
@@ -13,3 +13,4 @@ api_router.include_router(module_versions.router, prefix="/modules", tags=["modu
 api_router.include_router(module_versions_standalone.router, prefix="/module-versions", tags=["module-versions"])
 api_router.include_router(module_versions_global.router, prefix="", tags=["module-versions"])
 api_router.include_router(module_sites.router, prefix="/modules", tags=["module-sites"])
+api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
