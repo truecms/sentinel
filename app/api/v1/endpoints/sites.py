@@ -1,7 +1,7 @@
 from typing import List, Optional
 from math import ceil
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, schemas
@@ -17,6 +17,10 @@ from app.schemas.site_module import (
 )
 from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
+from app.api.v1.dependencies.rate_limit import check_rate_limit
+from app.services.cache import ModuleCacheService
+from app.tasks.sync_tasks import sync_site_modules_task
+import json
 
 router = APIRouter()
 
@@ -229,23 +233,31 @@ async def get_site_modules(
         pages=pages
     )
 
-@router.post("/{site_id}/modules", response_model=ModuleSyncResult)
+@router.post("/{site_id}/modules")
 async def sync_site_modules(
     site_id: int,
     *,
     db: AsyncSession = Depends(deps.get_db),
     payload: DrupalSiteSync,
-    current_user: User = Depends(deps.get_current_user)
-) -> dict:
+    current_user: User = Depends(deps.get_current_user),
+    request: Request
+):
     """
-    Sync module data from a Drupal site.
+    Sync module data from a Drupal site with rate limiting and performance optimizations.
     
-    Accepts the complete module payload from a Drupal site and updates
-    the module information accordingly. This endpoint handles:
+    This endpoint handles:
+    - Rate limiting: 4 requests per hour per site
+    - Caching: Module and version lookups are cached in Redis
+    - Background processing: Large payloads (>500 modules) are processed asynchronously
     - Creating new modules if they don't exist
     - Creating new module versions if they don't exist
     - Updating site-module associations
     - Tracking enabled/disabled status
+    
+    Returns:
+    - 200: Sync completed successfully (for small payloads)
+    - 202: Sync accepted for background processing (for large payloads)
+    - 429: Rate limit exceeded
     """
     # Check if site exists and user has access
     site = await crud.get_site(db, site_id)
@@ -262,6 +274,9 @@ async def sync_site_modules(
             detail="Not enough permissions"
         )
     
+    # Check rate limit
+    await check_rate_limit(site_id, request)
+    
     # Validate site URL matches
     if site.url != payload.site.url:
         raise HTTPException(
@@ -269,7 +284,31 @@ async def sync_site_modules(
             detail=f"Site URL mismatch. Expected {site.url}, got {payload.site.url}"
         )
     
-    # Process modules
+    # Check if we should process in background (>500 modules)
+    if len(payload.modules) > 500:
+        # Serialize payload for background task
+        payload_json = json.dumps({
+            "site": payload.site.dict(),
+            "drupal_info": payload.drupal_info.dict(),
+            "modules": [m.dict() for m in payload.modules]
+        })
+        
+        # Queue background task
+        task = sync_site_modules_task.delay(
+            site_id=site_id,
+            payload_json=payload_json,
+            user_id=current_user.id
+        )
+        
+        # Return 202 Accepted with task ID
+        return {
+            "status": "accepted",
+            "task_id": task.id,
+            "message": f"Sync of {len(payload.modules)} modules queued for processing",
+            "status_url": f"/api/v1/tasks/{task.id}/status"
+        }
+    
+    # Process synchronously for smaller payloads
     modules_processed = 0
     modules_created = 0
     modules_updated = 0
@@ -280,8 +319,10 @@ async def sync_site_modules(
         try:
             modules_processed += 1
             
-            # Check if module exists
-            module = await crud_module.get_module_by_machine_name(db, module_info.machine_name)
+            # Check if module exists (with caching)
+            module = await ModuleCacheService.get_module_by_machine_name(
+                db, module_info.machine_name
+            )
             if not module:
                 # Create new module
                 module_create = schemas.ModuleCreate(
@@ -292,9 +333,12 @@ async def sync_site_modules(
                 )
                 module = await crud_module.create_module(db, module_create, current_user.id)
                 modules_created += 1
+                
+                # Invalidate cache
+                await ModuleCacheService.invalidate_module_cache(module_info.machine_name)
             
-            # Check if version exists
-            version = await crud_module_version.get_version_by_module_and_string(
+            # Check if version exists (with caching)
+            version = await ModuleCacheService.get_version_by_module_and_string(
                 db, module.id, module_info.version
             )
             if not version:
@@ -306,6 +350,11 @@ async def sync_site_modules(
                 )
                 version = await crud_module_version.create_module_version(
                     db, version_create, current_user.id
+                )
+                
+                # Invalidate cache
+                await ModuleCacheService.invalidate_version_cache(
+                    module.id, module_info.version
                 )
             
             # Check if site-module association exists
@@ -344,6 +393,28 @@ async def sync_site_modules(
                 "module": module_info.machine_name,
                 "error": str(e)
             })
+    
+    # Handle full sync - detect removed modules
+    if payload.full_sync:
+        # Get all currently active modules for this site
+        current_modules, _ = await crud_site_module.get_site_modules(
+            db=db,
+            site_id=site_id,
+            skip=0,
+            limit=10000,  # Get all modules
+            enabled_only=False
+        )
+        
+        # Create set of module IDs from payload
+        payload_module_names = {m.machine_name for m in payload.modules}
+        
+        # Find modules that are no longer in the payload
+        for site_module in current_modules:
+            if site_module.module.machine_name not in payload_module_names:
+                # Mark as removed (soft delete)
+                await crud_site_module.delete_site_module(
+                    db, site_id, site_module.module_id, current_user.id
+                )
     
     # Update site's last sync time
     site_update = schemas.SiteUpdate(

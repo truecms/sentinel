@@ -5,7 +5,6 @@ import time
 
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker, AsyncEngine
 from sqlalchemy.orm import sessionmaker
@@ -20,7 +19,6 @@ from app.core.security import create_access_token, get_password_hash
 from app.models.user import User
 from app.models.organization import Organization
 import itertools
-from app.api.v1.api import api_router
 
 # Test database URL
 TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
@@ -148,11 +146,11 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
         finally:
             await db_session.rollback()
 
-    app = FastAPI(title=settings.PROJECT_NAME)
-    app.include_router(api_router, prefix=settings.API_V1_STR)
-    app.dependency_overrides[get_db] = override_get_db
+    # Import the main app with all middleware
+    from app.main import app as main_app
+    main_app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", follow_redirects=True) as client:
+    async with AsyncClient(transport=ASGITransport(app=main_app), base_url="http://test", follow_redirects=True) as client:
         yield client
 
 @pytest.fixture

@@ -5,6 +5,8 @@ from app.core.config import settings
 from app.api.v1.api import api_router
 from app.models import Base
 from app.db.session import engine
+from app.api.v1.dependencies.rate_limit import rate_limit_middleware
+from app.core.redis import close_redis_pool
 
 app = FastAPI(
     title="Monitoring API",
@@ -23,6 +25,9 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
+# Add rate limiting middleware
+app.middleware("http")(rate_limit_middleware)
+
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
@@ -34,3 +39,8 @@ def health_check():
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on shutdown."""
+    await close_redis_pool()

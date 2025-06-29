@@ -251,3 +251,20 @@ async def search_modules(
     
     result = await db.execute(query)
     return result.scalars().all()
+
+
+async def get_modules_by_machine_names(
+    db: AsyncSession,
+    machine_names: List[str]
+) -> List[Module]:
+    """Get multiple modules by their machine names."""
+    if not machine_names:
+        return []
+    
+    query = select(Module).filter(
+        Module.machine_name.in_(machine_names),
+        Module.is_deleted == False
+    )
+    
+    result = await db.execute(query)
+    return result.scalars().all()
