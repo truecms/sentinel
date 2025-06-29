@@ -394,6 +394,28 @@ async def sync_site_modules(
                 "error": str(e)
             })
     
+    # Handle full sync - detect removed modules
+    if payload.full_sync:
+        # Get all currently active modules for this site
+        current_modules, _ = await crud_site_module.get_site_modules(
+            db=db,
+            site_id=site_id,
+            skip=0,
+            limit=10000,  # Get all modules
+            enabled_only=False
+        )
+        
+        # Create set of module IDs from payload
+        payload_module_names = {m.machine_name for m in payload.modules}
+        
+        # Find modules that are no longer in the payload
+        for site_module in current_modules:
+            if site_module.module.machine_name not in payload_module_names:
+                # Mark as removed (soft delete)
+                await crud_site_module.delete_site_module(
+                    db, site_id, site_module.module_id, current_user.id
+                )
+    
     # Update site's last sync time
     site_update = schemas.SiteUpdate(
         name=payload.site.name  # Update site name if changed

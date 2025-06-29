@@ -111,8 +111,12 @@ services:
       - TESTING=1
       - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - app-network
