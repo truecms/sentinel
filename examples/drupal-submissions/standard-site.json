@@ -1,0 +1,378 @@
+{
+  "site": {
+    "url": "https://test.example.com",
+    "name": "Test Site",
+    "token": "site-auth-token-standard-456"
+  },
+  "drupal_info": {
+    "core_version": "10.3.8",
+    "php_version": "8.2.18",
+    "ip_address": "172.16.0.50"
+  },
+  "modules": [
+    {
+      "machine_name": "action",
+      "display_name": "Actions",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "automated_cron",
+      "display_name": "Automated Cron",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "big_pipe",
+      "display_name": "BigPipe",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "block",
+      "display_name": "Block",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "block_content",
+      "display_name": "Block Content",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "breakpoint",
+      "display_name": "Breakpoint",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "ckeditor5",
+      "display_name": "CKEditor 5",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "comment",
+      "display_name": "Comment",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "config",
+      "display_name": "Configuration Manager",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "contact",
+      "display_name": "Contact",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "contextual",
+      "display_name": "Contextual Links",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "datetime",
+      "display_name": "Datetime",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "dblog",
+      "display_name": "Database Logging",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "dynamic_page_cache",
+      "display_name": "Internal Dynamic Page Cache",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "editor",
+      "display_name": "Text Editor",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "field",
+      "display_name": "Field",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "field_ui",
+      "display_name": "Field UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "file",
+      "display_name": "File",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "filter",
+      "display_name": "Filter",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "help",
+      "display_name": "Help",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "history",
+      "display_name": "History",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "image",
+      "display_name": "Image",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "link",
+      "display_name": "Link",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "menu_link_content",
+      "display_name": "Menu Link Content",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "menu_ui",
+      "display_name": "Menu UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "node",
+      "display_name": "Node",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "options",
+      "display_name": "Options",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "page_cache",
+      "display_name": "Internal Page Cache",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "path",
+      "display_name": "Path",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "path_alias",
+      "display_name": "Path Alias",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "responsive_image",
+      "display_name": "Responsive Image",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "search",
+      "display_name": "Search",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "shortcut",
+      "display_name": "Shortcut",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "system",
+      "display_name": "System",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "taxonomy",
+      "display_name": "Taxonomy",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "text",
+      "display_name": "Text",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "toolbar",
+      "display_name": "Toolbar",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "tour",
+      "display_name": "Tour",
+      "module_type": "core",
+      "enabled": false,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "update",
+      "display_name": "Update Manager",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "user",
+      "display_name": "User",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "views",
+      "display_name": "Views",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "views_ui",
+      "display_name": "Views UI",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "admin_toolbar",
+      "display_name": "Admin Toolbar",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.5.0"
+    },
+    {
+      "machine_name": "admin_toolbar_tools",
+      "display_name": "Admin Toolbar Extra Tools",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.5.0"
+    },
+    {
+      "machine_name": "pathauto",
+      "display_name": "Pathauto",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.13.0"
+    },
+    {
+      "machine_name": "token",
+      "display_name": "Token",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.15.0"
+    },
+    {
+      "machine_name": "metatag",
+      "display_name": "Metatag",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "2.0.2"
+    },
+    {
+      "machine_name": "redirect",
+      "display_name": "Redirect",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.10.0"
+    },
+    {
+      "machine_name": "ctools",
+      "display_name": "Chaos Tools",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "4.1.0"
+    },
+    {
+      "machine_name": "paragraphs",
+      "display_name": "Paragraphs",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.18.0"
+    },
+    {
+      "machine_name": "custom_theme_helper",
+      "display_name": "Custom Theme Helper",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "1.0.0"
+    },
+    {
+      "machine_name": "site_api",
+      "display_name": "Site API",
+      "module_type": "custom",
+      "enabled": true,
+      "version": "2.1.0"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "site": {
+    "url": "https://test.example.com",
+    "name": "Test Site",
+    "token": "site-auth-token-minimal-123"
+  },
+  "drupal_info": {
+    "core_version": "10.3.8",
+    "php_version": "8.3.2",
+    "ip_address": "192.168.1.100"
+  },
+  "modules": [
+    {
+      "machine_name": "node",
+      "display_name": "Node",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "user",
+      "display_name": "User",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "system",
+      "display_name": "System",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "field",
+      "display_name": "Field",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "views",
+      "display_name": "Views",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    },
+    {
+      "machine_name": "admin_toolbar",
+      "display_name": "Admin Toolbar",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "3.5.0"
+    },
+    {
+      "machine_name": "pathauto",
+      "display_name": "Pathauto",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.13.0"
+    },
+    {
+      "machine_name": "token",
+      "display_name": "Token",
+      "module_type": "contrib",
+      "enabled": true,
+      "version": "1.15.0"
+    }
+  ]
+}

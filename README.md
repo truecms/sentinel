@@ -623,3 +623,75 @@ The API implements rate limiting to prevent abuse. Clients should handle 429 Too
 ## Pagination
 
 List endpoints support pagination through `skip` and `limit` query parameters. Clients should use these parameters to handle large datasets efficiently.
+
+## Mock Data for Testing
+
+The repository includes standardized mock JSON data that represents what Drupal modules will be sending to the monitoring platform. This data is used for:
+
+- API testing with realistic payloads
+- Development and debugging
+- Documentation and reference for Drupal module developers
+- Newman data-driven testing
+
+### Mock Data Structure
+
+Mock data files are located in `examples/drupal-submissions/` and follow this structure:
+
+```json
+{
+  "site": {
+    "url": "https://example.com",
+    "name": "Example Drupal Site",
+    "token": "site-auth-token-123"
+  },
+  "drupal_info": {
+    "core_version": "10.3.8",
+    "php_version": "8.3.2",
+    "ip_address": "192.168.1.100"
+  },
+  "modules": [
+    {
+      "machine_name": "views",
+      "display_name": "Views",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    }
+  ]
+}
+```
+
+### Available Mock Data Files
+
+- **minimal-site.json**: Basic Drupal site with 5-10 essential modules
+- **standard-site.json**: Typical Drupal site with ~50 modules (mix of core, contrib, and custom)
+- **large-site.json**: Enterprise Drupal site with 100+ modules
+- **schema.json**: JSON Schema for validating the submission structure
+
+### Using Mock Data with Newman
+
+You can use these mock data files for data-driven testing with Newman:
+
+```bash
+# Test with minimal dataset
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --iteration-data examples/drupal-submissions/minimal-site.json
+
+# Test with standard dataset
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --iteration-data examples/drupal-submissions/standard-site.json
+```
+
+### Module Types
+
+The platform recognizes three types of modules:
+
+- **core**: Drupal core modules (e.g., node, user, views)
+- **contrib**: Community contributed modules from drupal.org
+- **custom**: Site-specific custom modules
+
+### Integration with Drupal
+
+Drupal sites can submit their module information to this monitoring platform using the provided JSON structure. The `token` field in the site object will be used to authenticate and authorize submissions.

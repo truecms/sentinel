@@ -214,6 +214,83 @@ The collection is automatically tested in GitHub Actions:
 - Newman CLI executes the collection
 - Results are reported in CI logs
 
+### Data-Driven Testing with Mock JSON
+
+Newman supports data-driven testing using external JSON files. This is particularly useful for testing bulk operations with realistic data sets.
+
+#### Running Tests with Mock Data
+
+```bash
+# Test with minimal dataset
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --iteration-data examples/drupal-submissions/minimal-site.json
+
+# Test with standard dataset (~50 modules)
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --iteration-data examples/drupal-submissions/standard-site.json
+
+# Test with large dataset (100+ modules)
+newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
+  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
+  --iteration-data examples/drupal-submissions/large-site.json
+```
+
+#### Mock Data Structure
+
+Mock JSON files are located in `examples/drupal-submissions/` and follow this structure:
+
+```json
+{
+  "site": {
+    "url": "https://example.com",
+    "name": "Example Drupal Site",
+    "token": "site-auth-token-123"
+  },
+  "drupal_info": {
+    "core_version": "10.3.8",
+    "php_version": "8.3.2",
+    "ip_address": "192.168.1.100"
+  },
+  "modules": [
+    {
+      "machine_name": "views",
+      "display_name": "Views",
+      "module_type": "core",
+      "enabled": true,
+      "version": "10.3.8"
+    }
+  ]
+}
+```
+
+#### Available Mock Data Files
+
+- **minimal-site.json**: Basic Drupal site with 5-10 essential modules
+- **standard-site.json**: Typical Drupal site with ~50 modules (core + contrib)
+- **large-site.json**: Enterprise Drupal site with 100+ modules
+- **schema.json**: JSON Schema for validating submission structure
+
+#### Using Mock Data in Postman Scripts
+
+In your Postman collection, you can access the iteration data using:
+
+```javascript
+// Pre-request Script
+const siteData = pm.iterationData.toObject();
+pm.variables.set("siteUrl", siteData.site.url);
+pm.variables.set("siteToken", siteData.site.token);
+pm.variables.set("moduleCount", siteData.modules.length);
+
+// Request Body (for bulk endpoints)
+{
+  "site": "{{siteData.site}}",
+  "drupal_info": "{{siteData.drupal_info}}",
+  "modules": "{{siteData.modules}}"
+}
+```
+
 ### Updating Collections Process
 
 1. **Make API changes** in the FastAPI application
@@ -221,5 +298,6 @@ The collection is automatically tested in GitHub Actions:
 3. **Export updated collection** from Postman GUI
 4. **Replace the collection file** in `postman/` directory
 5. **Update environment variables** if needed
-6. **Test with Newman CLI** to ensure automated tests pass
-7. **Commit and push** changes to trigger CI validation
+6. **Update mock data files** in `examples/` if schema changes
+7. **Test with Newman CLI** using mock data files
+8. **Commit and push** changes to trigger CI validation

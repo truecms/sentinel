@@ -101,52 +101,9 @@ async def get_modules(
     )
 
 
-@router.post("/", response_model=ModuleResponse, status_code=201)
-async def create_module(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    module: ModuleCreate,
-    current_user: User = Depends(deps.get_current_user)
-) -> Any:
-    """
-    Create a new module (superuser only).
-    
-    Module machine names must be unique across the system.
-    """
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
-    
-    # Check if module with machine name already exists
-    existing_module = await crud_module.get_module_by_machine_name(db, module.machine_name)
-    if existing_module:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Module with this machine name already exists"
-        )
-    
-    db_module = await crud_module.create_module(db, module, current_user.id)
-    
-    return ModuleResponse(
-        id=db_module.id,
-        machine_name=db_module.machine_name,
-        display_name=db_module.display_name,
-        drupal_org_link=db_module.drupal_org_link,
-        module_type=db_module.module_type,
-        description=db_module.description,
-        is_active=db_module.is_active,
-        is_deleted=db_module.is_deleted,
-        created_at=db_module.created_at,
-        updated_at=db_module.updated_at,
-        created_by=db_module.created_by,
-        updated_by=db_module.updated_by,
-        versions_count=0,
-        sites_count=0,
-        latest_version=None,
-        has_security_update=False
-    )
+# Note: Module creation is handled automatically via the Drupal site sync endpoint
+# POST /api/v1/sites/{site_id}/modules
+# There is no use case for manually creating modules through this API
 
 
 @router.get("/{module_id}", response_model=ModuleResponse)
@@ -301,39 +258,6 @@ async def delete_module(
     )
 
 
-@router.post("/bulk")
-async def bulk_upsert_modules(
-    *,
-    db: AsyncSession = Depends(deps.get_db),
-    modules: List[ModuleCreate],
-    current_user: User = Depends(deps.get_current_user)
-) -> Any:
-    """
-    Bulk create or update modules (superuser only).
-    
-    Maximum 1000 modules per request.
-    """
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
-    
-    if len(modules) > 1000:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Maximum 1000 modules allowed per request"
-        )
-    
-    # Convert to dict format for bulk operation
-    modules_data = [module.model_dump() for module in modules]
-    
-    result = await crud_module.bulk_upsert_modules(db, modules_data, current_user.id)
-    
-    return {
-        "created": result["created"],
-        "updated": result["updated"],
-        "failed": result["failed"],
-        "errors": result["errors"],
-        "total_processed": len(modules)
-    }
+# Note: Bulk module operations are handled via the Drupal site sync endpoint
+# POST /api/v1/sites/{site_id}/modules
+# The bulk endpoint has been removed as per requirements
