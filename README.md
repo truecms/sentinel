@@ -78,6 +78,10 @@ docker-compose up -d
 docker-compose exec api alembic upgrade head
 ```
 
+8. The default superuser will be created automatically with:
+   - Email: admin@example.com
+   - Password: admin123
+
 ## Running the Application
 
 1. The API will be available at:
