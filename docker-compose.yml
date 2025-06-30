@@ -5,7 +5,6 @@ services:
       dockerfile: .docker/Dockerfile.db
     volumes:
       - postgres_data:/var/lib/postgresql/data:rw
-    user: postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

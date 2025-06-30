@@ -1,7 +1,3 @@
 FROM postgres:15-alpine
 
-# Add any custom database initialization scripts
-COPY scripts/sql/*.sql /docker-entrypoint-initdb.d/
-
-# Set proper permissions
-RUN chmod 644 /docker-entrypoint-initdb.d/*.sql 2>/dev/null || true
+# We'll use Alembic for database migrations instead of SQL scripts
