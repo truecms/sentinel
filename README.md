@@ -762,4 +762,3 @@ These can be configured in:
 - `frontend/.env.development` for development
 - `frontend/.env.production` for production
 - Docker Compose environment section
-EOF < /dev/null

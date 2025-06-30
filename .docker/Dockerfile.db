@@ -5,4 +5,3 @@ COPY scripts/sql/*.sql /docker-entrypoint-initdb.d/
 
 # Set proper permissions
 RUN chmod 644 /docker-entrypoint-initdb.d/*.sql 2>/dev/null || true
-EOF < /dev/null

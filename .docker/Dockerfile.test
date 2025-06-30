@@ -25,4 +25,3 @@ ENV PYTHONPATH=/app
 
 # Default command
 CMD ["pytest"]
-EOF < /dev/null
