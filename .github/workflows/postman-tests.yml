@@ -31,21 +31,56 @@ jobs:
           echo "SUPERUSER_PASSWORD=admin123" >> .env
 
       - name: Start services
-        run: docker compose up -d
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+      - name: Show Docker resource usage
+        run: docker stats --no-stream
 
       - name: Wait for database to be ready
         run: |
-          timeout 60 bash -c 'until docker compose exec -T db pg_isready -U appuser832jdsf; do echo "Waiting for database..."; sleep 2; done'
+          timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db pg_isready -U appuser832jdsf; do echo "Waiting for database..."; sleep 2; done'
+
+      - name: Create application database
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db psql -U appuser832jdsf -d postgres -c "DROP DATABASE IF EXISTS application_db;"
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db psql -U appuser832jdsf -d postgres -c "CREATE DATABASE application_db;"
 
       - name: Run database migrations
-        run: docker compose exec -T api alembic upgrade head
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api alembic upgrade head
 
-      - name: Setup superuser password
+      - name: Create superuser
         run: |
-          # Wait for the API to create the superuser first
-          sleep 10
-          HASH=$(docker compose exec -T api python -c "from app.core.security import get_password_hash; print(get_password_hash('admin123'))")
-          docker compose exec -T db psql -U appuser832jdsf -d postgres -c "UPDATE users SET hashed_password = '$HASH' WHERE email = 'admin@example.com';"
+          # Create superuser account if it doesn't exist
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api python -c "
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import async_session
+from app.models.user import User
+from app.core.security import get_password_hash
+from sqlalchemy import select
+
+async def create_superuser():
+    async with async_session() as session:
+        query = select(User).where(User.email == 'admin@example.com')
+        result = await session.execute(query)
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            user = User(
+                email='admin@example.com',
+                hashed_password=get_password_hash('admin123'),
+                is_active=True,
+                is_superuser=True,
+                role='superuser'
+            )
+            session.add(user)
+            await session.commit()
+            print('Superuser created')
+        else:
+            print('Superuser already exists')
+
+asyncio.run(create_superuser())
+"
 
       - name: Wait for API to be healthy
         run: |
@@ -55,4 +90,4 @@ jobs:
         run: npm install -g newman
         
       - name: Run Postman Collection
-        run: newman run "postman/FastAPI_Monitoring_Updated.postman_collection.json" -e postman/environment.json
+        run: newman run "postman/FastAPI_Monitoring_Updated.postman_collection.json" -e postman/FastAPI_Testing_Environment.postman_environment.json

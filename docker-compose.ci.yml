@@ -1,0 +1,29 @@
+# CI-specific overrides to reduce memory usage
+services:
+  db:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    command: postgres -c shared_buffers=128MB -c max_connections=50
+
+  redis:
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  api:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    deploy:
+      resources:
+        limits:
+          memory: 512M

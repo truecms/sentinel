@@ -127,6 +127,37 @@ Key environment variables:
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
 - `SUPERUSER_EMAIL/PASSWORD`: Initial admin account
 
+## Authentication Pattern for Drupal Sites
+
+### How Drupal Sites Authenticate
+Drupal sites authenticate using a combination of:
+1. **Site UUID**: A unique identifier for the site (generated when site is created in the system)
+2. **API Token**: A secure token specific to that site
+
+### Authentication Flow
+1. Site administrator creates/updates a site in the monitoring system
+2. System generates a Site UUID and API Token for that site
+3. Administrator copies both values to their Drupal site configuration
+4. Drupal module uses these credentials to authenticate when sending data
+
+### Important Authentication Notes
+- **No superuser override**: Module creation is ONLY done through authenticated site submissions
+- **No manual module entry**: Modules cannot be created manually by users, only through Drupal site payloads
+- **Site-specific tokens**: Each site has its own unique authentication credentials
+- **Module endpoint authentication**: The `/api/v1/modules/` POST endpoint uses the same site UUID + API token authentication
+
+### Module Data Flow
+```
+Drupal Site (with UUID + Token) 
+    → POST /api/v1/modules/ (with array of modules)
+    → System validates site credentials
+    → Creates/updates modules and versions
+```
+
+**Important**: The `/api/v1/modules/` endpoint ALWAYS accepts an array of modules, never a single module. No Drupal site exists with only one module.
+
+This ensures all module data comes from authenticated Drupal sites only.
+
 ## API Versioning
 - Current version: v1
 - URL pattern: `/api/v1/[resource]`

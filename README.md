@@ -78,6 +78,10 @@ docker-compose up -d
 docker-compose exec api alembic upgrade head
 ```
 
+8. The default superuser will be created automatically with:
+   - Email: admin@example.com
+   - Password: admin123
+
 ## Running the Application
 
 1. The API will be available at:
@@ -695,3 +699,70 @@ The platform recognizes three types of modules:
 ### Integration with Drupal
 
 Drupal sites can submit their module information to this monitoring platform using the provided JSON structure. The `token` field in the site object will be used to authenticate and authorize submissions.
+
+## Frontend Development
+
+### Prerequisites
+- Node.js 18+ (for local development without Docker)
+- Docker and Docker Compose (for containerized development)
+
+### Running Frontend with Docker
+
+1. Start all services including frontend:
+```bash
+docker-compose up -d
+```
+
+2. Access the applications:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+3. View frontend logs:
+```bash
+docker-compose logs -f frontend
+```
+
+4. Rebuild frontend after changes:
+```bash
+docker-compose build frontend
+docker-compose up -d frontend
+```
+
+### Production Build
+
+Build the frontend for production:
+```bash
+docker-compose build --build-arg target=production frontend
+```
+
+### Development Commands
+
+- Start only backend services (without frontend):
+```bash
+docker-compose up -d api db redis celery
+```
+
+- Access frontend container shell:
+```bash
+docker-compose exec frontend sh
+```
+
+- Install new frontend dependencies:
+```bash
+docker-compose exec frontend npm install <package-name>
+docker-compose restart frontend
+```
+
+### Frontend Environment Variables
+
+The frontend uses the following environment variables:
+- `VITE_API_URL`: Backend API URL (default: http://localhost:8000/api/v1)
+- `VITE_WS_URL`: WebSocket URL (default: ws://localhost:8000/ws)
+- `VITE_APP_NAME`: Application name
+- `VITE_APP_VERSION`: Application version
+
+These can be configured in:
+- `frontend/.env.development` for development
+- `frontend/.env.production` for production
+- Docker Compose environment section

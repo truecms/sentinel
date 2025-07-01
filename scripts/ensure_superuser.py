@@ -1,6 +1,6 @@
 from app.core.security import get_password_hash
 from app.models.user import User
-from app.db.session import SessionLocal
+from app.db.session import async_session_maker
 import asyncio
 from sqlalchemy import select
 import logging
@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def ensure_superuser():
-    async with SessionLocal() as db:
+    async with async_session_maker() as db:
         # Check if superuser exists
         query = select(User).where(User.email == 'admin@example.com')
         result = await db.execute(query)

@@ -20,20 +20,17 @@ from app.models.user import User
 from app.models.organization import Organization
 import itertools
 
-# Test database URL
-TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+# Test database URL - use test database from environment, fallback to postgres DB
+TEST_DATABASE = os.getenv("POSTGRES_DB", "test_db") if os.getenv("TESTING") else "test_db"
+TEST_USER = os.getenv("POSTGRES_USER", "test_user") if os.getenv("TESTING") else "test_user"
+TEST_PASSWORD = os.getenv("POSTGRES_PASSWORD", "test_password") if os.getenv("TESTING") else "test_password"
+TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
 
-# Create async engine for tests
-engine = create_async_engine(
-    TEST_SQLALCHEMY_DATABASE_URL,
-    echo=True,
-    future=True
-)
+# Create async engine for tests - moved to test_engine fixture to ensure proper URL is used
+# Global engine is not needed as we use the fixture
 
-# Create async session factory
-TestingSessionLocal = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+# Create async session factory - will be created in fixtures using test engine
+TestingSessionLocal = None  # Defined in fixtures
 
 @pytest.fixture(scope="function")
 def event_loop():
