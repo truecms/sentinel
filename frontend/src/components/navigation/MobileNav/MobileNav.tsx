@@ -19,7 +19,7 @@ const mobileNavItems: MobileNavItem[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
-    path: '/',
+    path: '/dashboard',
   },
   {
     label: 'Sites',
@@ -27,9 +27,9 @@ const mobileNavItems: MobileNavItem[] = [
     path: '/sites',
   },
   {
-    label: 'Security',
+    label: 'Modules',
     icon: Shield,
-    path: '/security',
+    path: '/modules',
   },
   {
     label: 'Reports',

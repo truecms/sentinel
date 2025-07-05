@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { clsx } from 'clsx'
 import type { RiskHeatmapProps, RiskData } from '../../../../types/dashboard'
+import { Skeleton } from '../../../common'
 
 export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
   data,
@@ -16,6 +17,14 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
   
   // Default color scale based on severity
   const defaultColorScale = {
+    critical: 'bg-danger-700 dark:bg-danger-600',
+    high: 'bg-danger-500 dark:bg-danger-400',
+    medium: 'bg-warning-500 dark:bg-warning-400',
+    low: 'bg-warning-300 dark:bg-warning-300',
+    info: 'bg-info-500 dark:bg-info-400',
+  }
+  
+  const defaultColorValues = {
     critical: '#991b1b',
     high: '#dc2626',
     medium: '#f59e0b',
@@ -23,7 +32,14 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
     info: '#3b82f6',
   }
   
-  const getColorForCell = (cell: RiskData | undefined) => {
+  const getColorClassForCell = (cell: RiskData | undefined) => {
+    if (!cell) return 'bg-neutral-100 dark:bg-neutral-800' // empty cell color
+    
+    // Use severity-based colors
+    return defaultColorScale[cell.severity] || 'bg-neutral-200 dark:bg-neutral-700'
+  }
+  
+  const getColorValueForCell = (cell: RiskData | undefined) => {
     if (!cell) return '#f3f4f6' // empty cell color
     
     if (colorScale && cell.value !== undefined) {
@@ -42,7 +58,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
     }
     
     // Use severity-based colors
-    return defaultColorScale[cell.severity] || '#e5e7eb'
+    return defaultColorValues[cell.severity] || '#e5e7eb'
   }
   
   const cellSize = useMemo(() => {
@@ -58,31 +74,30 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
   if (loading) {
     return (
       <div className="p-4">
-        <div className="animate-pulse">
-          <div className="grid gap-1" style={{
-            gridTemplateColumns: `auto repeat(${xAxis.length}, ${cellSize}px)`,
-            gridTemplateRows: `auto repeat(${yAxis.length}, ${cellSize}px)`,
-          }}>
-            {/* Header row */}
-            <div /> {/* Empty corner cell */}
-            {xAxis.map((_, index) => (
-              <div key={index} className="h-8 bg-gray-200 rounded" />
-            ))}
-            
-            {/* Data rows */}
-            {yAxis.map((_, yIndex) => (
-              <React.Fragment key={yIndex}>
-                <div className="w-20 h-full bg-gray-200 rounded" />
-                {xAxis.map((_, xIndex) => (
-                  <div
-                    key={`${xIndex}-${yIndex}`}
-                    className="bg-gray-200 rounded"
-                    style={{ width: cellSize, height: cellSize }}
-                  />
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
+        <div className="grid gap-1" style={{
+          gridTemplateColumns: `auto repeat(${xAxis.length}, ${cellSize}px)`,
+          gridTemplateRows: `auto repeat(${yAxis.length}, ${cellSize}px)`,
+        }}>
+          {/* Header row */}
+          <div /> {/* Empty corner cell */}
+          {xAxis.map((_, index) => (
+            <Skeleton key={index} width={cellSize} height="2rem" />
+          ))}
+          
+          {/* Data rows */}
+          {yAxis.map((_, yIndex) => (
+            <React.Fragment key={yIndex}>
+              <Skeleton width="5rem" height={cellSize} />
+              {xAxis.map((_, xIndex) => (
+                <Skeleton
+                  key={`${xIndex}-${yIndex}`}
+                  width={cellSize}
+                  height={cellSize}
+                  className="rounded"
+                />
+              ))}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     )
@@ -106,7 +121,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
             <div
               key={label}
               className={clsx(
-                'flex items-center justify-center text-gray-700 font-medium',
+                'flex items-center justify-center text-neutral-700 dark:text-neutral-300 font-medium',
                 fontSize
               )}
               style={{ writingMode: cellSize < 30 ? 'vertical-rl' : 'horizontal-tb' }}
@@ -121,7 +136,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
               {/* Y-axis header */}
               <div
                 className={clsx(
-                  'flex items-center px-2 text-gray-700 font-medium truncate',
+                  'flex items-center px-2 text-neutral-700 dark:text-neutral-300 font-medium truncate',
                   fontSize
                 )}
               >
@@ -139,10 +154,11 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
                     className={clsx(
                       'relative rounded cursor-pointer transition-all duration-200',
                       cell && 'hover:shadow-lg hover:z-10',
-                      isHovered && 'ring-2 ring-gray-900 ring-opacity-50'
+                      isHovered && 'ring-2 ring-neutral-900 dark:ring-neutral-100 ring-opacity-50',
+                      colorScale ? '' : getColorClassForCell(cell)
                     )}
                     style={{
-                      backgroundColor: getColorForCell(cell),
+                      backgroundColor: colorScale ? getColorValueForCell(cell) : undefined,
                       width: cellSize,
                       height: cellSize,
                     }}
@@ -162,7 +178,7 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
                       <div className={clsx(
                         'absolute inset-0 flex items-center justify-center font-medium',
                         cell.severity === 'low' || cell.severity === 'info' 
-                          ? 'text-gray-800' 
+                          ? 'text-neutral-800 dark:text-neutral-900' 
                           : 'text-white',
                         fontSize
                       )}>
@@ -176,10 +192,10 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="bg-gray-900 text-white p-2 rounded-lg shadow-lg whitespace-nowrap"
+                          className="bg-neutral-900 dark:bg-neutral-800 text-white p-2 rounded-lg shadow-lg dark:shadow-dark-lg whitespace-nowrap"
                         >
                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
-                            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
+                            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-800" />
                           </div>
                           {tooltip(cell)}
                         </motion.div>
@@ -194,15 +210,14 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
         
         {/* Legend */}
         <div className="mt-6 flex items-center justify-center gap-6">
-          <span className="text-sm text-gray-600">Risk Level:</span>
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">Risk Level:</span>
           <div className="flex items-center gap-4">
-            {Object.entries(defaultColorScale).map(([level, color]) => (
+            {Object.entries(defaultColorScale).map(([level, colorClass]) => (
               <div key={level} className="flex items-center gap-2">
                 <div
-                  className="w-4 h-4 rounded"
-                  style={{ backgroundColor: color }}
+                  className={clsx('w-4 h-4 rounded', colorClass)}
                 />
-                <span className="text-sm text-gray-600 capitalize">{level}</span>
+                <span className="text-sm text-neutral-600 dark:text-neutral-400 capitalize">{level}</span>
               </div>
             ))}
           </div>

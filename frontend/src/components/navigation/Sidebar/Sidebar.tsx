@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
-    path: '/',
+    path: '/dashboard',
   },
   {
     label: 'Sites',
@@ -49,28 +49,9 @@ const navItems: NavItem[] = [
     badgeType: 'warning',
   },
   {
-    label: 'Security',
-    icon: Shield,
-    path: '/security',
-    badge: '!',
-    badgeType: 'danger',
-  },
-  {
     label: 'Reports',
     icon: FileText,
     path: '/reports',
-  },
-  {
-    label: 'Analytics',
-    icon: BarChart3,
-    path: '/analytics',
-  },
-  {
-    label: 'Alerts',
-    icon: AlertTriangle,
-    path: '/alerts',
-    badge: '5',
-    badgeType: 'warning',
   },
   {
     label: 'Settings',
