@@ -202,7 +202,6 @@ async def test_site(db_session: AsyncSession, test_organization: Organization, t
     site = Site(
         name="Test Site",
         url="https://test.example.com",
-        description="Test site description",
         organization_id=test_organization.id,
         created_by=test_user.id,
         updated_by=test_user.id,
@@ -252,3 +251,309 @@ def regular_user_token_headers(test_regular_user: User) -> dict:
         data={"sub": test_regular_user.email}
     )
     return {"Authorization": f"Bearer {access_token}"}
+
+
+# Enhanced fixtures for comprehensive test data population (Issue #30)
+
+@pytest_asyncio.fixture
+async def sample_drupal_modules() -> list[dict]:
+    """Sample module data from a typical Drupal site."""
+    from tests.factories.data_factory import create_sample_drupal_modules
+    
+    # Create a temporary user for generating sample data
+    temp_user = User(id=1, email="temp@example.com")
+    return await create_sample_drupal_modules(temp_user)
+
+
+@pytest_asyncio.fixture
+async def security_update_modules() -> list[dict]:
+    """Modules with security updates available for testing security scenarios."""
+    return [
+        {
+            "machine_name": "views",
+            "current_version": "10.2.0",
+            "secure_version": "10.3.8",
+            "severity": "critical",
+            "advisory_id": "SA-CORE-2024-001",
+            "description": "Views module security update for critical vulnerability"
+        },
+        {
+            "machine_name": "webform",
+            "current_version": "6.2.5",
+            "secure_version": "6.2.8",
+            "severity": "high",
+            "advisory_id": "SA-CONTRIB-2024-015",
+            "description": "Webform module security update for high-severity issue"
+        },
+        {
+            "machine_name": "paragraphs",
+            "current_version": "1.15.0",
+            "secure_version": "1.18.0",
+            "severity": "medium",
+            "advisory_id": "SA-CONTRIB-2024-023",
+            "description": "Paragraphs module security update for medium-severity issue"
+        }
+    ]
+
+
+@pytest_asyncio.fixture
+async def populated_database(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """
+    Database populated with comprehensive test data for integration testing.
+    
+    Creates:
+    - Standard Drupal site with ~25 modules
+    - Minimal site with core modules only
+    - Security scenarios with vulnerable modules
+    - Realistic module relationships and versions
+    """
+    from tests.factories.data_factory import create_populated_database
+    
+    return await create_populated_database(db_session, test_organization, test_user)
+
+
+@pytest_asyncio.fixture
+async def standard_drupal_site(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """Create a standard Drupal site with realistic module inventory."""
+    from tests.factories.data_factory import TestDataFactory
+    
+    factory = TestDataFactory(db_session)
+    return await factory.create_standard_drupal_site(
+        organization=test_organization,
+        user=test_user,
+        site_name="Standard Test Site",
+        site_url="https://standard-test.example.com"
+    )
+
+
+@pytest_asyncio.fixture
+async def enterprise_drupal_site(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """Create an enterprise Drupal site with 200+ modules."""
+    from tests.factories.data_factory import TestDataFactory
+    
+    factory = TestDataFactory(db_session)
+    return await factory.create_large_enterprise_site(
+        organization=test_organization,
+        user=test_user,
+        site_name="Enterprise Test Site",
+        site_url="https://enterprise-test.example.com"
+    )
+
+
+@pytest_asyncio.fixture
+async def minimal_drupal_site(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """Create a minimal Drupal site with only core modules."""
+    from tests.factories.data_factory import TestDataFactory
+    
+    factory = TestDataFactory(db_session)
+    return await factory.create_minimal_site(
+        organization=test_organization,
+        user=test_user,
+        site_name="Minimal Test Site",
+        site_url="https://minimal-test.example.com"
+    )
+
+
+@pytest_asyncio.fixture
+async def security_test_data(
+    db_session: AsyncSession,
+    test_user: User
+) -> dict:
+    """Create modules with security vulnerabilities and updates for security testing."""
+    from tests.factories.data_factory import TestDataFactory
+    
+    factory = TestDataFactory(db_session)
+    return await factory.populate_security_scenarios(test_user)
+
+
+@pytest_asyncio.fixture
+async def bulk_test_data(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """Create bulk test data for performance testing (10 sites with modules)."""
+    from tests.factories.data_factory import TestDataFactory
+    
+    factory = TestDataFactory(db_session)
+    return await factory.create_bulk_test_data(
+        organization=test_organization,
+        user=test_user,
+        num_sites=10,
+        modules_per_site=50
+    )
+
+
+@pytest_asyncio.fixture 
+async def site_with_outdated_modules(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User
+) -> dict:
+    """Create a site with modules that have available updates for update testing."""
+    from tests.factories.data_factory import TestDataFactory
+    from app.models.site import Site
+    from app.models.module import Module
+    from app.models.module_version import ModuleVersion
+    from app.models.site_module import SiteModule
+    from datetime import datetime, timedelta
+    
+    factory = TestDataFactory(db_session)
+    
+    # Create site
+    site = Site(
+        name="Site with Outdated Modules",
+        url="https://outdated.example.com",
+        organization_id=test_organization.id,
+        api_token="outdated_token_123",
+        created_by=test_user.id,
+        updated_by=test_user.id
+    )
+    db_session.add(site)
+    await db_session.commit()
+    await db_session.refresh(site)
+    
+    # Create modules with old and new versions
+    modules_data = [
+        {
+            "machine_name": "webform",
+            "display_name": "Webform",
+            "module_type": "contrib",
+            "old_version": "6.2.5",
+            "new_version": "6.2.8"
+        },
+        {
+            "machine_name": "paragraphs", 
+            "display_name": "Paragraphs",
+            "module_type": "contrib",
+            "old_version": "1.15.0",
+            "new_version": "1.18.0"
+        }
+    ]
+    
+    site_modules = []
+    for module_data in modules_data:
+        # Create module
+        module = await factory._get_or_create_module(module_data, test_user)
+        
+        # Create old version (currently installed)
+        old_version = ModuleVersion(
+            module_id=module.id,
+            version_string=module_data["old_version"],
+            release_date=datetime.utcnow() - timedelta(days=120),
+            is_security_update=False,
+            created_by=test_user.id,
+            updated_by=test_user.id
+        )
+        db_session.add(old_version)
+        
+        # Create new version (available update)
+        new_version = ModuleVersion(
+            module_id=module.id,
+            version_string=module_data["new_version"],
+            release_date=datetime.utcnow() - timedelta(days=30),
+            is_security_update=False,
+            created_by=test_user.id,
+            updated_by=test_user.id
+        )
+        db_session.add(new_version)
+        
+        await db_session.commit()
+        await db_session.refresh(old_version)
+        await db_session.refresh(new_version)
+        
+        # Create site-module association with old version
+        site_module = SiteModule(
+            site_id=site.id,
+            module_id=module.id,
+            current_version_id=old_version.id,
+            enabled=True,
+            update_available=True,  # Mark as having update available
+            security_update_available=False,
+            created_by=test_user.id,
+            updated_by=test_user.id
+        )
+        db_session.add(site_module)
+        site_modules.append(site_module)
+    
+    await db_session.commit()
+    
+    return {
+        "site": site,
+        "site_modules": site_modules,
+        "updates_available": len(modules_data)
+    }
+
+
+@pytest_asyncio.fixture
+async def site_with_security_issues(
+    db_session: AsyncSession,
+    test_organization: Organization,
+    test_user: User,
+    security_test_data: dict
+) -> dict:
+    """Create a site with security vulnerabilities for security testing."""
+    from app.models.site import Site
+    from app.models.site_module import SiteModule
+    
+    # Create site
+    site = Site(
+        name="Site with Security Issues",
+        url="https://vulnerable.example.com",
+        organization_id=test_organization.id,
+        api_token="vulnerable_token_123",
+        created_by=test_user.id,
+        updated_by=test_user.id
+    )
+    db_session.add(site)
+    await db_session.commit()
+    await db_session.refresh(site)
+    
+    # Associate vulnerable modules with site
+    site_modules = []
+    for module in security_test_data["security_modules"]:
+        # Find the vulnerable version for this module
+        vulnerable_version = None
+        for version in security_test_data["security_versions"]:
+            if version.module_id == module.id and not version.is_security_update:
+                vulnerable_version = version
+                break
+        
+        if vulnerable_version:
+            site_module = SiteModule(
+                site_id=site.id,
+                module_id=module.id,
+                current_version_id=vulnerable_version.id,
+                enabled=True,
+                update_available=True,
+                security_update_available=True,  # Mark as having security update
+                created_by=test_user.id,
+                updated_by=test_user.id
+            )
+            db_session.add(site_module)
+            site_modules.append(site_module)
+    
+    await db_session.commit()
+    
+    return {
+        "site": site,
+        "site_modules": site_modules,
+        "security_modules": security_test_data["security_modules"],
+        "advisory_data": security_test_data["advisory_data"]
+    }

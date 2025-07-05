@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, JSON, UniqueConstraint, Index
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -18,11 +18,10 @@ class ModuleVersion(Base):
     id = Column(Integer, primary_key=True, index=True)
     module_id = Column(Integer, ForeignKey("modules.id"), nullable=False, index=True)
     version_string = Column(String(50), nullable=False)
-    semantic_version = Column(String(50), nullable=True)  # Normalized version for comparison
     release_date = Column(DateTime, nullable=True)
     is_security_update = Column(Boolean, default=False, nullable=False)
-    release_notes_link = Column(String(500), nullable=True)
-    drupal_core_compatibility = Column(JSON, nullable=True)  # ["9.x", "10.x"]
+    release_notes = Column(String, nullable=True)  # Text field in database
+    drupal_core_compatibility = Column(String(100), nullable=True)
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
     

@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -19,7 +19,7 @@ class Module(Base):
     display_name = Column(String(255), nullable=False)
     drupal_org_link = Column(String(500), nullable=True)
     module_type = Column(String(50), nullable=False, default="contrib")  # contrib, custom, core
-    description = Column(Text, nullable=True)
+    is_covered = Column(Boolean(), default=False)
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
     
