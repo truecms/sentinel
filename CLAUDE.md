@@ -10,13 +10,26 @@ This is a FastAPI-based monitoring and reporting platform providing REST API end
 
 - Github repository for this project: https://github.com/truecms/sentinel
 
-## Key Commands
+## 📚 Documentation Index
 
-### Development Setup
+### Development
+- **Setup Guide**: `docs/claude/development/DEVELOPMENT_SETUP.md` - Environment setup, Docker configuration
+- **Testing Guide**: `docs/claude/development/TESTING.md` - Unit tests, integration tests, coverage
+- **Database Management**: `docs/claude/development/DATABASE_MANAGEMENT.md` - Migrations, PostgreSQL operations
+
+### Architecture
+- **API Design**: `docs/claude/architecture/API_DESIGN.md` - Design patterns, structure, best practices
+- **Authentication**: `docs/claude/api/AUTHENTICATION.md` - JWT, Drupal site auth, RBAC
+
+### Tools
+- **Postman Testing**: `docs/claude/tools/POSTMAN_TESTING.md` - Newman, collections, CI/CD integration
+
+### Troubleshooting
+- **Common Issues**: `docs/claude/troubleshooting/COMMON_ISSUES.md` - Solutions to frequent problems
+
+## Quick Start
+
 ```bash
-# Create database (required first time)
-docker-compose exec -u postgres db psql -c "CREATE DATABASE application_db;"
-
 # Start services
 docker-compose up -d
 
@@ -27,308 +40,33 @@ docker-compose exec api alembic upgrade head
 # http://localhost:8000/docs
 ```
 
+## Key Points
+
+### Database
+- Uses `postgres` database (NOT `application_db`)
+- Alembic handles all migrations
+- No manual table creation
+
+### Authentication
+- JWT tokens for users
+- Site UUID + API Token for Drupal sites
+- Module data only from authenticated sites
+
 ### Testing
-```bash
-# Run all tests
-docker-compose exec test pytest
-
-# Run specific test file
-docker-compose exec test pytest tests/test_api/test_auth.py
-
-# Run specific test function
-docker-compose exec test pytest tests/test_api/test_auth.py -k test_login
-
-# Run with coverage report
-docker-compose exec test pytest --cov=app --cov-report=term-missing
-
-# Tests require 80% minimum coverage
-```
-
-### Database Management
-```bash
-# Create new migration
-docker-compose exec api alembic revision --autogenerate -m "description"
-
-# Apply migrations
-docker-compose exec api alembic upgrade head
-
-# Rollback migration
-docker-compose exec api alembic downgrade -1
-
-# Connect to database
-docker-compose exec -u postgres db psql -d application_db
-```
-
-### Common Development Tasks
-```bash
-# View logs
-docker-compose logs -f api
-
-# Restart services
-docker-compose restart api
-
-# Rebuild services
-docker-compose up -d --build
-```
-
-## Architecture
-
-### Core Structure
-- **FastAPI Application**: Async REST API with automatic OpenAPI documentation
-- **SQLAlchemy + Alembic**: Async ORM with PostgreSQL and migrations
-- **JWT Authentication**: Token-based auth with role-based permissions
-- **Docker Compose**: Multi-container setup with separate test environment
-
-### Key Components
-
-#### API Layer (`app/api/`)
-- **v1/endpoints/**: REST endpoints organized by resource (users, organizations, sites)
-- **deps.py**: Common dependencies (auth, database sessions)
-- **v1/dependencies/**: Shared dependency injection functions
-
-#### Business Logic (`app/`)
-- **crud/**: Database operations with async SQLAlchemy
-- **models/**: SQLAlchemy ORM models with audit fields
-- **schemas/**: Pydantic models for request/response validation
-- **core/**: Configuration and security utilities
-
-#### Database Models
-All models inherit from `BaseModel` providing:
-- `id`: Primary key
-- `created_at`, `created_by`: Creation audit
-- `updated_at`, `updated_by`: Update audit
-- `is_active`: Soft delete support
-
-#### Authentication & Authorization
-- JWT tokens with configurable expiration
-- Role-based permissions (superuser, org admin, regular user)
-- Organization-scoped access control
-- Automatic user context injection via dependencies
-
-### Testing Architecture
-- **Dedicated test container**: Isolated environment with test database
-- **Async test support**: Full async/await testing capability
-- **Fixture-based**: Shared test data and authentication
-- **Coverage requirements**: 80% minimum with reports
-
-### Key Design Patterns
-
-1. **Repository Pattern**: CRUD classes handle all database operations
-2. **Dependency Injection**: FastAPI's dependency system for auth, db sessions
-3. **Response Envelopes**: Standardized API responses with data/meta/links
-4. **Soft Deletes**: Records marked inactive instead of deleted
-5. **Audit Trail**: Automatic tracking of who created/updated records
-
-## Environment Configuration
-
-Key environment variables:
-- `POSTGRES_*`: Database connection settings
-- `JWT_SECRET_KEY`: Secret for token generation
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
-- `SUPERUSER_EMAIL/PASSWORD`: Initial admin account
-
-## Authentication Pattern for Drupal Sites
-
-### How Drupal Sites Authenticate
-Drupal sites authenticate using a combination of:
-1. **Site UUID**: A unique identifier for the site (generated when site is created in the system)
-2. **API Token**: A secure token specific to that site
-
-### Authentication Flow
-1. Site administrator creates/updates a site in the monitoring system
-2. System generates a Site UUID and API Token for that site
-3. Administrator copies both values to their Drupal site configuration
-4. Drupal module uses these credentials to authenticate when sending data
-
-### Important Authentication Notes
-- **No superuser override**: Module creation is ONLY done through authenticated site submissions
-- **No manual module entry**: Modules cannot be created manually by users, only through Drupal site payloads
-- **Site-specific tokens**: Each site has its own unique authentication credentials
-- **Module endpoint authentication**: The `/api/v1/modules/` POST endpoint uses the same site UUID + API token authentication
-
-### Module Data Flow
-```
-Drupal Site (with UUID + Token) 
-    → POST /api/v1/modules/ (with array of modules)
-    → System validates site credentials
-    → Creates/updates modules and versions
-```
-
-**Important**: The `/api/v1/modules/` endpoint ALWAYS accepts an array of modules, never a single module. No Drupal site exists with only one module.
-
-This ensures all module data comes from authenticated Drupal sites only.
-
-## API Versioning
-- Current version: v1
-- URL pattern: `/api/v1/[resource]`
-- Version can be specified via header: `X-API-Version`
+- 80% minimum coverage required
+- Dedicated test container
+- Postman collection for API testing
 
 ## Common Pitfalls
 
-1. **Database initialization**: Must manually create database before first run
-2. **Test isolation**: Tests use separate database and should not affect development data
-3. **Async context**: All database operations must use async/await
-4. **Permission checks**: Always verify user has access to organization resources
-5. **Audit fields**: Let the system handle created_by/updated_by automatically
+1. **Database initialization**: The app uses the default `postgres` database
+2. **Circular dependencies**: Comment out circular FKs in migrations
+3. **Table creation conflicts**: Don't use `Base.metadata.create_all()`
+4. **Module creation**: Only via authenticated Drupal site submissions
 
-## Postman Testing
+## Environment Variables
 
-### Running Postman Tests Locally
-
-```bash
-# Install Newman CLI (if not already installed)
-npm install -g newman
-
-# Run the main API testing collection
-newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
-  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
-  --reporters cli,json \
-  --reporter-json-export postman-results.json
-
-# Alternative: Run with Docker (if Newman is not installed locally)
-docker run --rm -v $(pwd)/postman:/etc/newman \
-  postman/newman run "FastAPI Monitoring Platform.postman_collection.json" \
-  --environment FastAPI_Testing_Environment.postman_environment.json
-```
-
-### Current Collection Status
-
-- **Main Collection**: `postman/FastAPI Monitoring Platform.postman_collection.json`
-- **Environment File**: `postman/FastAPI_Testing_Environment.postman_environment.json`
-- **Legacy Collection**: `postman/FastAPI_Testing_Collection.json` (deprecated)
-
-The main collection includes:
-- Authentication workflow (login, token management)
-- User management endpoints (CRUD operations)
-- Organization management endpoints
-- Site management endpoints
-- Comprehensive error handling tests
-
-### When to Update Postman Collections
-
-Update the Postman collection when:
-
-1. **New API endpoints are added**: Add corresponding requests to test new functionality
-2. **Request/response schemas change**: Update request bodies and assertions
-3. **Authentication flow changes**: Modify token management or login procedures
-4. **Environment variables change**: Update the environment file with new variables
-5. **API versioning updates**: Ensure version headers and URLs are current
-
-### Token Management
-
-The collection uses automatic token management:
-- Login request stores JWT token in `{{authToken}}` environment variable
-- Subsequent requests automatically include: `Authorization: Bearer {{authToken}}`
-- Token expiration is handled by re-authentication when needed
-
-### Environment Configuration
-
-Key environment variables in `FastAPI_Testing_Environment.postman_environment.json`:
-- `baseUrl`: API base URL (default: http://localhost:8000)
-- `adminEmail`: Default admin user email (admin@example.com)
-- `adminPassword`: Default admin password (admin123)
-- `authToken`: JWT token (auto-populated by login request)
-
-### Troubleshooting Common Issues
-
-1. **Connection Refused**: Ensure Docker services are running (`docker-compose up -d`)
-2. **Authentication Failed**: Check admin credentials in environment file
-3. **404 Errors**: Verify API endpoints match current FastAPI routes
-4. **Token Expired**: Re-run login request to refresh token
-5. **Schema Validation**: Update request bodies to match current Pydantic schemas
-
-### CI/CD Integration
-
-The collection is automatically tested in GitHub Actions:
-- Tests run on every PR and push to main
-- Uses Docker Compose to start services
-- Newman CLI executes the collection
-- Results are reported in CI logs
-
-### Data-Driven Testing with Mock JSON
-
-Newman supports data-driven testing using external JSON files. This is particularly useful for testing bulk operations with realistic data sets.
-
-#### Running Tests with Mock Data
-
-```bash
-# Test with minimal dataset
-newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
-  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
-  --iteration-data examples/drupal-submissions/minimal-site.json
-
-# Test with standard dataset (~50 modules)
-newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
-  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
-  --iteration-data examples/drupal-submissions/standard-site.json
-
-# Test with large dataset (100+ modules)
-newman run "postman/FastAPI Monitoring Platform.postman_collection.json" \
-  --environment postman/FastAPI_Testing_Environment.postman_environment.json \
-  --iteration-data examples/drupal-submissions/large-site.json
-```
-
-#### Mock Data Structure
-
-Mock JSON files are located in `examples/drupal-submissions/` and follow this structure:
-
-```json
-{
-  "site": {
-    "url": "https://example.com",
-    "name": "Example Drupal Site",
-    "token": "site-auth-token-123"
-  },
-  "drupal_info": {
-    "core_version": "10.3.8",
-    "php_version": "8.3.2",
-    "ip_address": "192.168.1.100"
-  },
-  "modules": [
-    {
-      "machine_name": "views",
-      "display_name": "Views",
-      "module_type": "core",
-      "enabled": true,
-      "version": "10.3.8"
-    }
-  ]
-}
-```
-
-#### Available Mock Data Files
-
-- **minimal-site.json**: Basic Drupal site with 5-10 essential modules
-- **standard-site.json**: Typical Drupal site with ~50 modules (core + contrib)
-- **large-site.json**: Enterprise Drupal site with 100+ modules
-- **schema.json**: JSON Schema for validating submission structure
-
-#### Using Mock Data in Postman Scripts
-
-In your Postman collection, you can access the iteration data using:
-
-```javascript
-// Pre-request Script
-const siteData = pm.iterationData.toObject();
-pm.variables.set("siteUrl", siteData.site.url);
-pm.variables.set("siteToken", siteData.site.token);
-pm.variables.set("moduleCount", siteData.modules.length);
-
-// Request Body (for bulk endpoints)
-{
-  "site": "{{siteData.site}}",
-  "drupal_info": "{{siteData.drupal_info}}",
-  "modules": "{{siteData.modules}}"
-}
-```
-
-### Updating Collections Process
-
-1. **Make API changes** in the FastAPI application
-2. **Test locally** with Postman GUI to verify new functionality
-3. **Export updated collection** from Postman GUI
-4. **Replace the collection file** in `postman/` directory
-5. **Update environment variables** if needed
-6. **Update mock data files** in `examples/` if schema changes
-7. **Test with Newman CLI** using mock data files
-8. **Commit and push** changes to trigger CI validation
+Key variables (see `.env.example`):
+- `POSTGRES_DB=postgres` (default database)
+- `JWT_SECRET_KEY` (generate secure key)
+- `SUPERUSER_EMAIL/PASSWORD` (initial admin)
