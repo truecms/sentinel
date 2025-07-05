@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -10,13 +10,16 @@ class Site(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     url = Column(String, unique=True, nullable=False)
-    description = Column(String, nullable=True)
+    site_uuid = Column(String(36), nullable=True)
+    api_token = Column(String(255), nullable=True)
+    drupal_core_version = Column(String(50), nullable=True)
+    php_version = Column(String(50), nullable=True)
+    database_type = Column(String(50), nullable=True)
+    database_version = Column(String(50), nullable=True)
+    server_info = Column(JSON, nullable=True)
+    last_check = Column(DateTime, nullable=True)
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
-    
-    # Access credentials
-    access_token = Column(String, nullable=True)
-    access_secret = Column(String, nullable=True)
     
     # Ownership and timestamps
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)

@@ -159,8 +159,9 @@ def upgrade() -> None:
     op.create_index(op.f('ix_site_modules_site_id'), 'site_modules', ['site_id'], unique=False)
     
     # Now add all the foreign key constraints
-    op.create_foreign_key(None, 'organizations', 'users', ['created_by'], ['id'])
-    op.create_foreign_key(None, 'organizations', 'users', ['updated_by'], ['id'])
+    # Skip foreign keys for organizations table to avoid circular dependency
+    # op.create_foreign_key(None, 'organizations', 'users', ['created_by'], ['id'])
+    # op.create_foreign_key(None, 'organizations', 'users', ['updated_by'], ['id'])
     
     op.create_foreign_key(None, 'users', 'organizations', ['organization_id'], ['id'])
     

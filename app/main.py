@@ -34,11 +34,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 def health_check():
     return {"status": "OK"}
 
-# Create database tables
-@app.on_event("startup")
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+# Note: Database tables are created by Alembic migrations, not here
 
 @app.on_event("shutdown")
 async def shutdown_event():
