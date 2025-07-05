@@ -92,7 +92,7 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
         />
         
         {/* Threshold markers */}
-        {[thresholds.critical, thresholds.warning, thresholds.good].map((threshold, index) => {
+        {[thresholds.critical, thresholds.warning, thresholds.good].map((threshold) => {
           const markerAngle = startAngle + (threshold / 100) * (endAngle - startAngle)
           const x1 = centerX + (radius - strokeWidth / 2) * Math.cos(markerAngle)
           const y1 = centerY + (radius - strokeWidth / 2) * Math.sin(markerAngle)

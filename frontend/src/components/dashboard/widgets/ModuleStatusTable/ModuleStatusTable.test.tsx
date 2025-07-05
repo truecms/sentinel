@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ModuleStatusTable } from './ModuleStatusTable'
 import type { ModuleStatus } from '../../../../types/dashboard'
@@ -44,11 +44,9 @@ describe('ModuleStatusTable', () => {
   })
 
   it('shows loading state', () => {
-    render(<ModuleStatusTable modules={[]} loading={true} />)
+    const { container } = render(<ModuleStatusTable modules={[]} loading={true} />)
     
-    const skeletons = screen.getAllByTestId((content, element) => {
-      return element?.classList.contains('animate-pulse') || false
-    })
+    const skeletons = container.querySelectorAll('.animate-pulse')
     expect(skeletons.length).toBeGreaterThan(0)
   })
 
@@ -174,24 +172,38 @@ describe('ModuleStatusTable', () => {
   })
 
   it('disables pagination buttons appropriately', () => {
-    render(
+    // Create more modules to ensure pagination is displayed
+    const manyModules = Array.from({ length: 25 }, (_, i) => ({
+      id: String(i),
+      name: `module-${i}`,
+      currentVersion: '1.0.0',
+      lastUpdated: new Date(),
+      sites: 1,
+      securityUpdate: false,
+    }))
+    
+    const { container } = render(
       <ModuleStatusTable
-        modules={mockModules}
+        modules={manyModules}
         pagination={{
           page: 1,
           pageSize: 10,
-          total: 3,
+          total: 25,
           onPageChange: vi.fn(),
         }}
       />
     )
     
-    const [prevButton, nextButton] = screen.getAllByRole('button').filter(btn =>
-      btn.querySelector('svg')
-    )
+    // Find pagination buttons by their classes
+    const buttons = container.querySelectorAll('button')
+    expect(buttons.length).toBe(2) // Previous and Next buttons
     
-    expect(prevButton).toBeDisabled()
-    expect(nextButton).toBeDisabled()
+    // First page - previous button should be disabled
+    const prevButton = buttons[0]
+    const nextButton = buttons[1]
+    
+    expect(prevButton).toHaveClass('cursor-not-allowed')
+    expect(nextButton).not.toHaveClass('cursor-not-allowed')
   })
 
   it('displays correct status badges', () => {

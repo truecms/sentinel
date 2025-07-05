@@ -157,7 +157,7 @@ describe('SecurityGauge', () => {
   })
 
   it('applies correct text size classes for different sizes', () => {
-    const { container } = render(
+    render(
       <SecurityGauge
         score={75}
         label="Large Text"
