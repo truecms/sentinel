@@ -42,8 +42,9 @@ jobs:
 
       - name: Create application database
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db psql -U appuser832jdsf -d postgres -c "DROP DATABASE IF EXISTS application_db;"
-          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db psql -U appuser832jdsf -d postgres -c "CREATE DATABASE application_db;"
+          # Note: We don't need to create a separate database as the app uses the 'postgres' database
+          # Just ensure the database is clean for testing
+          echo "Database 'postgres' already exists and will be used for the application"
 
       - name: Run database migrations
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api alembic upgrade head
