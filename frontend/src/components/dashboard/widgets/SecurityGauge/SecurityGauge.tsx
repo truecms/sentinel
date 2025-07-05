@@ -51,12 +51,6 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
   }, [centerX, centerY, radius, startAngle, endAngle])
   
   // Determine color based on thresholds
-  const getColor = () => {
-    if (normalizedScore >= thresholds.good) return 'stroke-success-500 dark:stroke-success-400'
-    if (normalizedScore >= thresholds.warning) return 'stroke-warning-500 dark:stroke-warning-400'
-    return 'stroke-danger-500 dark:stroke-danger-400'
-  }
-  
   const getColorValue = () => {
     if (normalizedScore >= thresholds.good) return '#10b981'
     if (normalizedScore >= thresholds.warning) return '#f59e0b'

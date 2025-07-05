@@ -1,14 +1,10 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Activity, 
   Shield, 
-  AlertTriangle, 
-  TrendingUp,
+  AlertTriangle,
   Package,
-  Server,
-  Globe,
-  BarChart3
+  Globe
 } from 'lucide-react'
 import { 
   MetricCard, 

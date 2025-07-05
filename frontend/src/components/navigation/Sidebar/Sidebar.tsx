@@ -7,8 +7,6 @@ import {
   Package,
   FileText,
   Settings,
-  Shield,
-  AlertTriangle,
   BarChart3,
   X,
 } from 'lucide-react';
