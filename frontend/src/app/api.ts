@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import TokenStorageService from '../services/tokenStorage';
 // import type { RootState } from './store'; // Will be used when auth state is implemented
 
 // Define a service using a base URL and expected endpoints
@@ -11,7 +12,7 @@ export const api = createApi({
       // TODO: Get token from auth state once auth slice is implemented
       // const state = getState() as RootState;
       // const token = state.auth?.token;
-      const token = localStorage.getItem('authToken');
+      const token = TokenStorageService.getToken();
       
       if (token) {
         headers.set('authorization', `Bearer ${token}`);
