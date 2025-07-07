@@ -102,18 +102,20 @@ const FeaturesPage: React.FC = () => {
   ];
 
   const comparisonData = [
-    { feature: 'Real-time Security Monitoring', starter: true, pro: true, enterprise: true },
-    { feature: 'Module Update Tracking', starter: true, pro: true, enterprise: true },
-    { feature: 'Email Alerts', starter: true, pro: true, enterprise: true },
-    { feature: 'Number of Sites', starter: 'Up to 5', pro: 'Up to 50', enterprise: 'Unlimited' },
-    { feature: 'API Access', starter: false, pro: true, enterprise: true },
-    { feature: 'Slack/Teams Integration', starter: false, pro: true, enterprise: true },
-    { feature: 'Custom Webhooks', starter: false, pro: true, enterprise: true },
-    { feature: 'Priority Support', starter: false, pro: true, enterprise: true },
-    { feature: 'Custom Security Rules', starter: false, pro: false, enterprise: true },
-    { feature: 'White-label Reports', starter: false, pro: false, enterprise: true },
-    { feature: 'SLA Guarantee', starter: false, pro: false, enterprise: true },
-    { feature: 'Dedicated Account Manager', starter: false, pro: false, enterprise: true }
+    { feature: 'Number of Sites', free: '1', starter: 'Up to 5', pro: 'Up to 50', enterprise: 'Unlimited' },
+    { feature: 'Security Check Frequency', free: 'Monthly', starter: 'Daily', pro: 'Daily', enterprise: 'Hourly' },
+    { feature: 'Module Update Tracking', free: true, starter: true, pro: true, enterprise: true },
+    { feature: 'Email Alerts', free: '5/month', starter: 'Unlimited', pro: 'Unlimited', enterprise: 'Unlimited' },
+    { feature: 'Security Reports', free: false, starter: 'Weekly', pro: 'Daily', enterprise: 'Real-time' },
+    { feature: 'API Access', free: false, starter: '1K calls/mo', pro: '10K calls/mo', enterprise: 'Unlimited' },
+    { feature: 'Slack/Teams Integration', free: false, starter: false, pro: true, enterprise: true },
+    { feature: 'Custom Webhooks', free: false, starter: false, pro: true, enterprise: true },
+    { feature: 'Priority Support', free: false, starter: false, pro: true, enterprise: true },
+    { feature: 'Team Members', free: '1', starter: '1', pro: 'Up to 5', enterprise: 'Unlimited' },
+    { feature: 'Custom Security Rules', free: false, starter: false, pro: false, enterprise: true },
+    { feature: 'White-label Reports', free: false, starter: false, pro: false, enterprise: true },
+    { feature: 'SLA Guarantee', free: false, starter: false, pro: false, enterprise: true },
+    { feature: 'Dedicated Account Manager', free: false, starter: false, pro: false, enterprise: true }
   ];
 
   return (
@@ -217,6 +219,9 @@ const FeaturesPage: React.FC = () => {
                     Features
                   </th>
                   <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">
+                    Free
+                  </th>
+                  <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">
                     Starter
                   </th>
                   <th className="text-center py-4 px-4 text-gray-900 dark:text-white font-semibold">
@@ -235,6 +240,17 @@ const FeaturesPage: React.FC = () => {
                   >
                     <td className="py-4 px-4 text-gray-700 dark:text-gray-300">
                       {row.feature}
+                    </td>
+                    <td className="text-center py-4 px-4">
+                      {typeof row.free === 'boolean' ? (
+                        row.free ? (
+                          <CheckCircle className="w-5 h-5 text-green-500 mx-auto" />
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )
+                      ) : (
+                        <span className="text-gray-700 dark:text-gray-300">{row.free}</span>
+                      )}
                     </td>
                     <td className="text-center py-4 px-4">
                       {typeof row.starter === 'boolean' ? (

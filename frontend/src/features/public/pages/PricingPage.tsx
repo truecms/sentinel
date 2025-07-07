@@ -53,8 +53,8 @@ const PricingPage: React.FC = () => {
       description: 'Perfect for freelancers and small agencies',
       features: [
         'Up to 5 Drupal sites',
-        'Real-time security monitoring',
-        'Daily module update checks',
+        'Daily security checks',
+        'Real-time vulnerability alerts',
         'Unlimited email alerts',
         'Weekly security reports',
         'API access (1,000 calls/month)',
@@ -75,7 +75,7 @@ const PricingPage: React.FC = () => {
       description: 'Ideal for growing agencies and teams',
       features: [
         'Up to 50 Drupal sites',
-        'Real-time monitoring (5-min checks)',
+        'Daily security checks',
         'Everything in Starter',
         'API access (10,000 calls/month)',
         'Slack & Teams integration',
@@ -96,7 +96,7 @@ const PricingPage: React.FC = () => {
       description: 'For large organizations with custom needs',
       features: [
         'Unlimited Drupal sites',
-        'Real-time monitoring (1-min checks)',
+        'Hourly security checks',
         'Everything in Professional',
         'Unlimited API access',
         'Custom security rules',
