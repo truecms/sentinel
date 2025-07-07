@@ -21,6 +21,30 @@ const PricingPage: React.FC = () => {
 
   const plans: PricingPlan[] = [
     {
+      name: 'Free',
+      price: {
+        monthly: 0,
+        annual: 0
+      },
+      description: 'Try Sentinel with your first site',
+      features: [
+        '1 Drupal site',
+        'Monthly update checks',
+        'Basic security monitoring',
+        'Email alerts (max 5/month)',
+        'Community support',
+        'Basic dashboard'
+      ],
+      limitations: [
+        'Monthly update frequency only',
+        'No API access',
+        'No integrations',
+        'No custom reports',
+        'No priority support'
+      ],
+      cta: 'Get Started Free'
+    },
+    {
       name: 'Starter',
       price: {
         monthly: 29,
@@ -30,13 +54,13 @@ const PricingPage: React.FC = () => {
       features: [
         'Up to 5 Drupal sites',
         'Real-time security monitoring',
-        'Module update tracking',
-        'Email alerts',
-        'Basic security reports',
-        'Community support'
+        'Daily module update checks',
+        'Unlimited email alerts',
+        'Weekly security reports',
+        'API access (1,000 calls/month)',
+        'Email support'
       ],
       limitations: [
-        'No API access',
         'No custom integrations',
         'No priority support'
       ],
@@ -51,13 +75,14 @@ const PricingPage: React.FC = () => {
       description: 'Ideal for growing agencies and teams',
       features: [
         'Up to 50 Drupal sites',
+        'Real-time monitoring (5-min checks)',
         'Everything in Starter',
-        'API access',
+        'API access (10,000 calls/month)',
         'Slack & Teams integration',
         'Custom webhooks',
-        'Advanced reporting',
+        'Advanced reporting & analytics',
         'Priority email support',
-        'Team collaboration tools'
+        'Team collaboration (up to 5 users)'
       ],
       recommended: true,
       cta: 'Start Free Trial'
@@ -71,14 +96,17 @@ const PricingPage: React.FC = () => {
       description: 'For large organizations with custom needs',
       features: [
         'Unlimited Drupal sites',
+        'Real-time monitoring (1-min checks)',
         'Everything in Professional',
+        'Unlimited API access',
         'Custom security rules',
         'White-label reports',
-        'SLA guarantee',
+        'SLA guarantee (99.9% uptime)',
         'Dedicated account manager',
         'Custom integrations',
         'On-premise deployment option',
-        'Priority phone support'
+        'Priority phone support',
+        'Unlimited team members'
       ],
       cta: 'Contact Sales'
     }
@@ -112,7 +140,8 @@ const PricingPage: React.FC = () => {
   ];
 
   const calculatePrice = (plan: PricingPlan) => {
-    if (plan.price.monthly === 0) return 'Custom';
+    if (plan.name === 'Enterprise') return 'Custom';
+    if (plan.price.monthly === 0) return 'Free';
     const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.annual;
     return `$${price}`;
   };

@@ -74,7 +74,7 @@ const LandingPage: React.FC = () => {
                 to="/register"
                 className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
-                Start Free Trial
+                Start Free - No Credit Card
               </Link>
               <Link
                 to="/features"
@@ -218,27 +218,67 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Free Tier Highlight Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Start Free with 1 Website
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+              Monitor your first Drupal site completely free. Get monthly security updates, 
+              basic monitoring, and email alerts - forever free, no credit card required.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-8">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div className="text-3xl font-bold text-blue-600 mb-2">Free Forever</div>
+                <div className="text-gray-600 dark:text-gray-400">1 website included</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div className="text-3xl font-bold text-blue-600 mb-2">Monthly Updates</div>
+                <div className="text-gray-600 dark:text-gray-400">Security check frequency</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                <div className="text-3xl font-bold text-blue-600 mb-2">5 Alerts</div>
+                <div className="text-gray-600 dark:text-gray-400">Email alerts per month</div>
+              </div>
+            </div>
+            <Link
+              to="/register"
+              className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Get Started Free - No Credit Card Required
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-blue-600 dark:bg-blue-700">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Secure Your Drupal Sites?
+            Need More Than 1 Site?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of developers and agencies who trust Sentinel to keep their Drupal sites secure.
+            Upgrade anytime to monitor more sites with real-time updates and advanced features.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/register"
+              to="/pricing"
               className="px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors font-medium"
             >
-              Start Free Trial
+              View All Plans
             </Link>
             <Link
-              to="/pricing"
+              to="/features"
               className="px-8 py-3 bg-blue-700 dark:bg-blue-800 text-white rounded-lg hover:bg-blue-800 dark:hover:bg-blue-900 transition-colors font-medium"
             >
-              View Pricing
+              Explore Features
             </Link>
           </div>
         </div>
