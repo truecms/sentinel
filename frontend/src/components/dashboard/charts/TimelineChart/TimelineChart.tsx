@@ -12,8 +12,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  TooltipProps,
 } from 'recharts'
+import type { TooltipProps } from 'recharts'
 import { motion } from 'framer-motion'
 import type { TimelineChartProps } from '../../../../types/dashboard'
 import { Skeleton } from '../../../common'

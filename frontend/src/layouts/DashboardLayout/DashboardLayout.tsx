@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TopBar, Sidebar, MobileNav, Breadcrumbs, BreadcrumbItem } from '../../components/navigation';
+import { TopBar, Sidebar, MobileNav, Breadcrumbs } from '../../components/navigation';
+import type { BreadcrumbItem } from '../../components/navigation/Breadcrumbs/Breadcrumbs';
 
 interface DashboardLayoutProps {
   breadcrumbs?: BreadcrumbItem[];

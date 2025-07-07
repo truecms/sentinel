@@ -1,0 +1,43 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" fill="#f3f4f6"/>
+  <rect x="0" y="0" width="1200" height="60" fill="#1f2937"/>
+  <text x="600" y="40" text-anchor="middle" fill="white" font-size="24" font-weight="bold">Sentinel Dashboard</text>
+  
+  <!-- Stats Cards -->
+  <rect x="50" y="100" width="260" height="120" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="180" y="140" text-anchor="middle" fill="#6b7280" font-size="14">Total Sites</text>
+  <text x="180" y="180" text-anchor="middle" fill="#1f2937" font-size="32" font-weight="bold">247</text>
+  
+  <rect x="340" y="100" width="260" height="120" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="470" y="140" text-anchor="middle" fill="#6b7280" font-size="14">Security Issues</text>
+  <text x="470" y="180" text-anchor="middle" fill="#ef4444" font-size="32" font-weight="bold">12</text>
+  
+  <rect x="630" y="100" width="260" height="120" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="760" y="140" text-anchor="middle" fill="#6b7280" font-size="14">Updates Available</text>
+  <text x="760" y="180" text-anchor="middle" fill="#f59e0b" font-size="32" font-weight="bold">34</text>
+  
+  <rect x="920" y="100" width="260" height="120" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="1050" y="140" text-anchor="middle" fill="#6b7280" font-size="14">Uptime</text>
+  <text x="1050" y="180" text-anchor="middle" fill="#10b981" font-size="32" font-weight="bold">99.9%</text>
+  
+  <!-- Chart -->
+  <rect x="50" y="250" width="840" height="400" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="470" y="290" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="bold">Security Status Timeline</text>
+  
+  <!-- Chart lines -->
+  <path d="M 100 500 L 200 480 L 300 450 L 400 460 L 500 440 L 600 430 L 700 420 L 800 400" stroke="#3b82f6" stroke-width="3" fill="none"/>
+  <path d="M 100 550 L 200 540 L 300 530 L 400 535 L 500 525 L 600 520 L 700 515 L 800 510" stroke="#10b981" stroke-width="3" fill="none"/>
+  
+  <!-- Side panel -->
+  <rect x="920" y="250" width="260" height="400" fill="white" stroke="#e5e7eb" rx="8"/>
+  <text x="1050" y="290" text-anchor="middle" fill="#1f2937" font-size="18" font-weight="bold">Recent Activity</text>
+  
+  <circle cx="950" cy="330" r="4" fill="#ef4444"/>
+  <text x="970" y="335" fill="#6b7280" font-size="12">Critical update: Views 7.x-3.24</text>
+  
+  <circle cx="950" cy="370" r="4" fill="#f59e0b"/>
+  <text x="970" y="375" fill="#6b7280" font-size="12">New release: Webform 8.x-5.30</text>
+  
+  <circle cx="950" cy="410" r="4" fill="#10b981"/>
+  <text x="970" y="415" fill="#6b7280" font-size="12">Site added: client-site.com</text>
+</svg>
