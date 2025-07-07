@@ -5,6 +5,7 @@ import {
   Zap, Users, Code, Database, Globe, Clock,
   CheckCircle, ArrowRight
 } from 'lucide-react';
+import SEO from '../../../components/common/SEO';
 
 interface FeatureCategory {
   title: string;
@@ -116,7 +117,13 @@ const FeaturesPage: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900">
+    <>
+      <SEO
+        title="Features - Sentinel Drupal Security Monitoring"
+        description="Explore Sentinel's comprehensive features: real-time security monitoring, vulnerability detection, module management, and detailed reporting for Drupal sites."
+        canonicalUrl="/features"
+      />
+      <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
       <section className="py-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4">
@@ -299,6 +306,7 @@ const FeaturesPage: React.FC = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

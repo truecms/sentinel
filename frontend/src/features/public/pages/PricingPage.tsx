@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X, HelpCircle, ArrowRight } from 'lucide-react';
+import SEO from '../../../components/common/SEO';
 
 interface PricingPlan {
   name: string;
@@ -125,7 +126,13 @@ const PricingPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900">
+    <>
+      <SEO
+        title="Pricing - Sentinel Drupal Security Monitoring"
+        description="Simple, transparent pricing for Drupal security monitoring. Choose from Starter, Professional, or Enterprise plans. 14-day free trial on all plans."
+        canonicalUrl="/pricing"
+      />
+      <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
       <section className="py-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4">
@@ -334,6 +341,7 @@ const PricingPage: React.FC = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 

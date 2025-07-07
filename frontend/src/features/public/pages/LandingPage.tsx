@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Activity, Bell, BarChart3, ArrowRight } from 'lucide-react';
+import SEO from '../../../components/common/SEO';
 
 const LandingPage: React.FC = () => {
   const features = [
@@ -35,7 +36,13 @@ const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900">
+    <>
+      <SEO
+        title="Sentinel - Drupal Security Monitoring Platform"
+        description="Monitor your Drupal sites' security with real-time vulnerability detection, automated module updates tracking, and comprehensive security reporting."
+        canonicalUrl="/"
+      />
+      <div className="bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="container mx-auto px-4 py-20 lg:py-32">
@@ -237,6 +244,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
     </div>
+    </>
   );
 };
 
