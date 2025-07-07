@@ -19,6 +19,7 @@
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "^5.81.5",
+    "@testing-library/dom": "^10.4.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.10.0",
     "clsx": "^2.1.1",
