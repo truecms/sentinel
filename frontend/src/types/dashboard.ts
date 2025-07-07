@@ -26,6 +26,7 @@ export interface SecurityGaugeProps {
   }
   size?: 'small' | 'medium' | 'large'
   animated?: boolean
+  loading?: boolean
 }
 
 // ModuleStatusTable Types

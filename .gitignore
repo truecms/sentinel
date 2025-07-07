@@ -8,12 +8,28 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-*.egg-info/
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
 
 # Database files
 *.db
@@ -21,7 +37,7 @@ build/
 *.sqlite3
 data/standards.db
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
@@ -32,7 +48,15 @@ data/standards.db
 .DS_Store
 Thumbs.db
 
-# Environment
+# Testing
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+htmlcov/
+
+# Environment variables
 .env
 .env.local
 .env.*.local
@@ -41,16 +65,14 @@ Thumbs.db
 *.log
 logs/
 
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.pytest_cache/
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
 # pyenv
 .python-version
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/

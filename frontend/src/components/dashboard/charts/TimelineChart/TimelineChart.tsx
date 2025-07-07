@@ -16,16 +16,17 @@ import {
 } from 'recharts'
 import { motion } from 'framer-motion'
 import type { TimelineChartProps } from '../../../../types/dashboard'
+import { Skeleton } from '../../../common'
 
 const CHART_COLORS = [
-  '#3b82f6', // primary blue
-  '#8b5cf6', // purple
-  '#10b981', // green
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#06b6d4', // cyan
-  '#ec4899', // pink
-  '#f97316', // orange
+  '#3B82F6', // primary-500
+  '#8B5CF6', // purple-500
+  '#10B981', // success-500
+  '#F59E0B', // warning-500
+  '#EF4444', // danger-500
+  '#06B6D4', // info-500
+  '#EC4899', // pink-500
+  '#F97316', // orange-500
 ]
 
 export const TimelineChart: React.FC<TimelineChartProps> = ({
@@ -97,16 +98,16 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
     if (!active || !payload) return null
     
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lg border">
-        <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
+      <div className="bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg dark:shadow-dark-lg border border-neutral-200 dark:border-neutral-700">
+        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-1">{label}</p>
         {payload.map((entry, index) => (
           <div key={index} className="flex items-center gap-2 text-sm">
             <div 
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-gray-600">{entry.name}:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-neutral-600 dark:text-neutral-400">{entry.name}:</span>
+            <span className="font-medium text-neutral-900 dark:text-neutral-100">
               {typeof entry.value === 'number' ? entry.value.toFixed(2) : entry.value}
             </span>
           </div>
@@ -122,13 +123,13 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
     }
     
     const commonAxisProps = {
-      stroke: '#9ca3af',
+      stroke: '#737373', // neutral-500
       fontSize: 12,
     }
     
     const gridProps = {
       strokeDasharray: '3 3',
-      stroke: '#e5e7eb',
+      stroke: '#E5E7EB', // neutral-200
     }
     
     switch (type) {
@@ -143,7 +144,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
               <ReferenceLine
                 key={index}
                 x={formatTimestamp(annotation.timestamp, period)}
-                stroke={annotation.color || '#6b7280'}
+                stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{
                   value: annotation.label,
@@ -179,7 +180,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
               <ReferenceLine
                 key={index}
                 x={formatTimestamp(annotation.timestamp, period)}
-                stroke={annotation.color || '#6b7280'}
+                stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{
                   value: annotation.label,
@@ -212,7 +213,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
               <ReferenceLine
                 key={index}
                 x={formatTimestamp(annotation.timestamp, period)}
-                stroke={annotation.color || '#6b7280'}
+                stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{
                   value: annotation.label,
@@ -240,9 +241,9 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
   
   if (loading) {
     return (
-      <div 
-        className="bg-gray-100 rounded-lg animate-pulse"
-        style={{ height }}
+      <Skeleton 
+        height={height} 
+        className="rounded-lg w-full"
       />
     )
   }
@@ -250,7 +251,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
   if (data.length === 0) {
     return (
       <div 
-        className="bg-gray-50 rounded-lg flex items-center justify-center text-gray-500"
+        className="bg-neutral-50 dark:bg-neutral-900 rounded-lg flex items-center justify-center text-neutral-500 dark:text-neutral-400"
         style={{ height }}
       >
         No data available
@@ -278,7 +279,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
               />
-              <span className="text-sm text-gray-600">{metric}</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">{metric}</span>
             </div>
           ))}
         </div>

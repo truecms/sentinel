@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { clsx } from 'clsx'
 import type { SecurityGaugeProps } from '../../../../types/dashboard'
+import { Skeleton } from '../../../common'
 
 export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
   score,
@@ -9,6 +10,7 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
   thresholds,
   size = 'medium',
   animated = true,
+  loading = false,
 }) => {
   const normalizedScore = Math.min(Math.max(score, 0), 100)
   
@@ -49,10 +51,10 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
   }, [centerX, centerY, radius, startAngle, endAngle])
   
   // Determine color based on thresholds
-  const getColor = () => {
-    if (normalizedScore >= thresholds.good) return '#10b981' // success
-    if (normalizedScore >= thresholds.warning) return '#f59e0b' // warning
-    return '#ef4444' // danger
+  const getColorValue = () => {
+    if (normalizedScore >= thresholds.good) return '#10b981'
+    if (normalizedScore >= thresholds.warning) return '#f59e0b'
+    return '#ef4444'
   }
   
   const textSizeClasses = {
@@ -67,6 +69,18 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
     large: 'text-base',
   }
   
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center">
+        <Skeleton width={width} height={height + 10} className="rounded-lg" />
+        <div className="mt-2">
+          <Skeleton width="4rem" height="2rem" className="mb-1" />
+          <Skeleton width="5rem" height="1rem" />
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div className="flex flex-col items-center">
       <svg width={width} height={height + 10} className="overflow-visible">
@@ -74,7 +88,7 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
         <path
           d={backgroundPath}
           fill="none"
-          stroke="#e5e7eb"
+          className="stroke-neutral-200 dark:stroke-neutral-700"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
@@ -83,7 +97,7 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
         <motion.path
           d={pathData}
           fill="none"
-          stroke={getColor()}
+          stroke={getColorValue()}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           initial={animated ? { pathLength: 0 } : { pathLength: 1 }}
@@ -106,7 +120,7 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke="#6b7280"
+              className="stroke-neutral-400 dark:stroke-neutral-600"
               strokeWidth={2}
             />
           )
@@ -116,14 +130,14 @@ export const SecurityGauge: React.FC<SecurityGaugeProps> = ({
       {/* Score text */}
       <div className="text-center -mt-4">
         <motion.div
-          className={clsx('font-bold text-gray-900', textSizeClasses[size])}
+          className={clsx('font-bold text-neutral-900 dark:text-neutral-100', textSizeClasses[size])}
           initial={animated ? { opacity: 0 } : { opacity: 1 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           {normalizedScore}%
         </motion.div>
-        <div className={clsx('text-gray-500 uppercase tracking-wider mt-1', labelSizeClasses[size])}>
+        <div className={clsx('text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mt-1', labelSizeClasses[size])}>
           {label}
         </div>
       </div>
