@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '@app/store';
 import { tokenStorage } from '@services/tokenStorage';
 import { apiClient } from '@utils/api';
 import { toast } from 'react-hot-toast';
@@ -89,10 +88,14 @@ export const logout = createAsyncThunk(
   }
 );
 
-export const refreshToken = createAsyncThunk(
+export const refreshToken = createAsyncThunk<
+  LoginResponse,
+  void,
+  { state: { auth: AuthState } }
+>(
   'auth/refreshToken',
   async (_, { getState }) => {
-    const state = getState() as RootState;
+    const state = getState();
     const currentRefreshToken = state.auth.refreshToken;
     
     if (!currentRefreshToken) {
@@ -258,10 +261,10 @@ const authSlice = createSlice({
 export const { setCredentials, updateAccessToken, clearAuth } = authSlice.actions;
 
 // Selectors
-export const selectAuth = (state: RootState) => state.auth;
-export const selectUser = (state: RootState) => state.auth.user;
-export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
-export const selectAuthLoading = (state: RootState) => state.auth.loading;
-export const selectAuthError = (state: RootState) => state.auth.error;
+export const selectAuth = (state: { auth: AuthState }) => state.auth;
+export const selectUser = (state: { auth: AuthState }) => state.auth.user;
+export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectAuthLoading = (state: { auth: AuthState }) => state.auth.loading;
+export const selectAuthError = (state: { auth: AuthState }) => state.auth.error;
 
 export default authSlice.reducer;

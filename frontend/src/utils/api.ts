@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { setupInterceptors } from '@app/api/interceptors';
 
 // Create axios instance with default config
 export const apiClient = axios.create({
@@ -8,9 +7,6 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// Setup auth interceptors
-setupInterceptors(apiClient);
 
 // API helper functions
 export const handleApiError = (error: unknown): string => {
