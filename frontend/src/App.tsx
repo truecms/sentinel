@@ -8,6 +8,7 @@ import LandingPage from './features/public/pages/LandingPage'
 import FeaturesPage from './features/public/pages/FeaturesPage'
 import PricingPage from './features/public/pages/PricingPage'
 import { LoginPage } from './features/auth/pages/LoginPage'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import './App.css'
 
 function App() {
@@ -27,13 +28,15 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
 
             {/* Protected Routes */}
-            <Route path="/app" element={<DashboardLayout />}>
-              <Route index element={<Navigate to="/app/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="sites" element={<Sites />} />
-              <Route path="modules" element={<Modules />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="settings" element={<Settings />} />
+            <Route path="/app" element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route index element={<Navigate to="/app/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="sites" element={<Sites />} />
+                <Route path="modules" element={<Modules />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
             </Route>
 
             {/* Redirect old dashboard route to new app route */}
