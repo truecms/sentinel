@@ -7,6 +7,7 @@ import { Dashboard, Sites, Modules, Reports, Settings } from './pages'
 import LandingPage from './features/public/pages/LandingPage'
 import FeaturesPage from './features/public/pages/FeaturesPage'
 import PricingPage from './features/public/pages/PricingPage'
+import { LoginPage } from './features/auth/pages/LoginPage'
 import './App.css'
 
 function App() {
@@ -21,6 +22,9 @@ function App() {
               <Route path="features" element={<FeaturesPage />} />
               <Route path="pricing" element={<PricingPage />} />
             </Route>
+
+            {/* Auth Routes */}
+            <Route path="/login" element={<LoginPage />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<DashboardLayout />}>
