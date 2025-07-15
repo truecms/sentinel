@@ -95,7 +95,7 @@ class TokenManager {
       const timeUntilExpiry = expirationTime - currentTime;
       
       return timeUntilExpiry < 5 * 60 * 1000; // Less than 5 minutes
-    } catch (error) {
+    } catch {
       return true; // If we can't parse the token, consider it expired
     }
   }
@@ -110,7 +110,7 @@ class TokenManager {
     if (this.isTokenExpired(token)) {
       try {
         return await this.refreshToken();
-      } catch (error) {
+      } catch {
         return null;
       }
     }

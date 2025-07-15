@@ -42,6 +42,16 @@ export interface VerifyEmailRequest {
   token: string;
 }
 
+export interface RegisterResponse {
+  id: number;
+  email: string;
+  full_name: string;
+  organization_id: number;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     // Login endpoint
@@ -65,7 +75,7 @@ export const authApi = api.injectEndpoints({
     }),
 
     // Register new user
-    register: builder.mutation<any, RegisterRequest>({
+    register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (data) => ({
         url: '/users/',
         method: 'POST',
