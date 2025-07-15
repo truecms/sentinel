@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { LoginForm } from '../components/LoginForm';
-import { LoginFormData } from '../schemas/loginSchema';
+import type { LoginFormData } from '../schemas/loginSchema';
 import PublicLayout from '@components/layout/PublicLayout';
 
 export const LoginPage: React.FC = () => {

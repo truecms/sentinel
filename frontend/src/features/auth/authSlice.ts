@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { tokenStorage } from '@services/tokenStorage';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import TokenStorageService from '@services/tokenStorage';
 import { apiClient } from '@utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -45,7 +46,7 @@ export interface RegisterData {
 
 const initialState: AuthState = {
   user: null,
-  token: tokenStorage.getToken(),
+  token: TokenStorageService.getToken(),
   refreshToken: null,
   isAuthenticated: false,
   loading: false,
@@ -82,7 +83,7 @@ export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
     // Clear tokens
-    tokenStorage.removeToken();
+    TokenStorageService.removeToken();
     // The backend doesn't have a logout endpoint, so we just clear local state
     return null;
   }
@@ -146,11 +147,11 @@ const authSlice = createSlice({
       state.token = action.payload.access_token;
       state.refreshToken = action.payload.refresh_token || null;
       state.isAuthenticated = true;
-      tokenStorage.setToken(action.payload.access_token);
+      TokenStorageService.setToken(action.payload.access_token);
     },
     updateAccessToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
-      tokenStorage.setToken(action.payload);
+      TokenStorageService.setToken(action.payload);
     },
     clearAuth: (state) => {
       state.user = null;
@@ -158,7 +159,7 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.isAuthenticated = false;
       state.error = null;
-      tokenStorage.removeToken();
+      TokenStorageService.removeToken();
     },
   },
   extraReducers: (builder) => {
@@ -175,7 +176,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refresh_token || null;
         state.user = action.payload.user;
         state.error = null;
-        tokenStorage.setToken(action.payload.access_token);
+        TokenStorageService.setToken(action.payload.access_token);
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
@@ -200,7 +201,7 @@ const authSlice = createSlice({
         // If we can't get the current user, the token is likely invalid
         state.isAuthenticated = false;
         state.token = null;
-        tokenStorage.removeToken();
+        TokenStorageService.removeToken();
       });
 
     // Logout
@@ -219,7 +220,7 @@ const authSlice = createSlice({
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.token = action.payload.access_token;
         state.refreshToken = action.payload.refresh_token || state.refreshToken;
-        tokenStorage.setToken(action.payload.access_token);
+        TokenStorageService.setToken(action.payload.access_token);
       })
       .addCase(refreshToken.rejected, (state) => {
         // If refresh fails, clear auth state
@@ -227,7 +228,7 @@ const authSlice = createSlice({
         state.token = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
-        tokenStorage.removeToken();
+        TokenStorageService.removeToken();
       });
 
     // Register

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@app/hooks';
 import { getCurrentUser, selectIsAuthenticated } from '../authSlice';
-import { tokenStorage } from '@services/tokenStorage';
+import TokenStorageService from '@services/tokenStorage';
 
 export const useAuthCheck = () => {
   const dispatch = useAppDispatch();
@@ -9,7 +9,7 @@ export const useAuthCheck = () => {
 
   useEffect(() => {
     // Check if we have a token on app startup
-    const token = tokenStorage.getToken();
+    const token = TokenStorageService.getToken();
     
     if (token && !isAuthenticated) {
       // Try to get current user with the token

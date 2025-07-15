@@ -29,9 +29,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@app/*": ["./src/app/*"],
       "@components/*": ["./src/components/*"],
       "@features/*": ["./src/features/*"],
       "@utils/*": ["./src/utils/*"],
+      "@services/*": ["./src/services/*"],
       "@hooks/*": ["./src/hooks/*"],
       "@types/*": ["./src/types/*"],
       "@assets/*": ["./src/assets/*"]

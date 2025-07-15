@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { tokenManager } from '@utils/auth/tokenManager';
 
 interface RetryableRequest extends InternalAxiosRequestConfig {
