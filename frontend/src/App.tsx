@@ -12,6 +12,7 @@ import { RegisterPage } from './features/auth/pages/RegisterPage'
 import { ForgotPasswordPage } from './features/auth/pages/ForgotPasswordPage'
 import { ResetPasswordPage } from './features/auth/pages/ResetPasswordPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { SessionTimeout } from './components/auth/SessionTimeout'
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
     <HelmetProvider>
       <ThemeProvider>
         <BrowserRouter>
+          <SessionTimeout timeoutMinutes={30} warningMinutes={5} />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicLayout />}>
