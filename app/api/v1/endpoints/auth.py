@@ -1,8 +1,10 @@
-from datetime import timedelta
-from typing import Any
+from datetime import timedelta, datetime
+from typing import Any, Optional
 import logging
+import secrets
+import string
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,7 +15,7 @@ from app.core import security
 from app.core.config import settings
 from app.models.user import User
 from app.schemas.user import UserResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from app.models.organization import Organization
 from app.models.user_organization import user_organization
 
@@ -21,6 +23,9 @@ from app.models.user_organization import user_organization
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# In-memory storage for password reset tokens (in production, use Redis or database)
+password_reset_tokens = {}
 
 class UserRegister(BaseModel):
     email: str
@@ -179,3 +184,96 @@ async def get_current_user(current_user: User = Depends(deps.get_current_user)) 
     """Get current user details."""
     logger.info(f"Getting details for user: {current_user.email}")
     return UserResponse.model_validate(current_user)
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+@router.post("/forgot-password")
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: AsyncSession = Depends(deps.get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+) -> Any:
+    """Send password reset email."""
+    logger.info(f"Password reset requested for: {request.email}")
+    
+    # Find user by email
+    query = select(User).where(User.email == request.email)
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+    
+    if user:
+        # Generate reset token
+        token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
+        
+        # Store token with expiration (30 minutes)
+        password_reset_tokens[token] = {
+            "user_id": user.id,
+            "email": user.email,
+            "expires": datetime.utcnow() + timedelta(minutes=30)
+        }
+        
+        # In production, send email here
+        # background_tasks.add_task(send_reset_email, user.email, token)
+        logger.info(f"Reset token generated for user: {user.email}, token: {token}")
+    
+    # Always return success to prevent email enumeration
+    return {"message": "If an account exists with this email, reset instructions have been sent"}
+
+class VerifyResetTokenRequest(BaseModel):
+    token: str
+
+@router.post("/verify-reset-token")
+async def verify_reset_token(
+    request: VerifyResetTokenRequest
+) -> Any:
+    """Verify if a reset token is valid."""
+    token_data = password_reset_tokens.get(request.token)
+    
+    if not token_data or token_data["expires"] < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token"
+        )
+    
+    return {"valid": True}
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+@router.post("/reset-password")
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(deps.get_db)
+) -> Any:
+    """Reset password using token."""
+    token_data = password_reset_tokens.get(request.token)
+    
+    if not token_data or token_data["expires"] < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token"
+        )
+    
+    # Get user
+    query = select(User).where(User.id == token_data["user_id"])
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Update password
+    user.hashed_password = security.get_password_hash(request.password)
+    db.add(user)
+    await db.commit()
+    
+    # Remove used token
+    del password_reset_tokens[request.token]
+    
+    logger.info(f"Password reset successful for user: {user.email}")
+    return {"message": "Password reset successfully"}

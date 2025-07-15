@@ -9,6 +9,8 @@ import FeaturesPage from './features/public/pages/FeaturesPage'
 import PricingPage from './features/public/pages/PricingPage'
 import { LoginPage } from './features/auth/pages/LoginPage'
 import { RegisterPage } from './features/auth/pages/RegisterPage'
+import { ForgotPasswordPage } from './features/auth/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './features/auth/pages/ResetPasswordPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import './App.css'
 
@@ -28,6 +30,8 @@ function App() {
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<ProtectedRoute />}>

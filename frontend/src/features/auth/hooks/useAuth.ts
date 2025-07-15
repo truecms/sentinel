@@ -32,8 +32,8 @@ export const useAuth = () => {
   }, [dispatch]);
 
   const signUp = useCallback(
-    async (data: { email: string; password: string; full_name: string; organization_name: string }) => {
-      const result = await dispatch(register(data));
+    async (data: { email: string; password: string; full_name: string; organization_name: string; accept_terms?: boolean }) => {
+      const result = await dispatch(register({ ...data, accept_terms: data.accept_terms || true }));
       if (register.fulfilled.match(result)) {
         return result.payload;
       }
