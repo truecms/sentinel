@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from '@app/hooks';
-import { selectAuth, selectUser, selectIsAuthenticated, login, logout, getCurrentUser } from '../authSlice';
+import { selectAuth, selectUser, selectIsAuthenticated, login, logout, getCurrentUser, register } from '../authSlice';
 import { useCallback } from 'react';
 
 export const useAuth = () => {
@@ -31,6 +31,17 @@ export const useAuth = () => {
     throw new Error(result.error?.message || 'Failed to fetch user');
   }, [dispatch]);
 
+  const signUp = useCallback(
+    async (data: { email: string; password: string; full_name: string; organization_name: string }) => {
+      const result = await dispatch(register(data));
+      if (register.fulfilled.match(result)) {
+        return result.payload;
+      }
+      throw new Error(result.error?.message || 'Registration failed');
+    },
+    [dispatch]
+  );
+
   const hasRole = useCallback(
     (requiredRole: string) => {
       if (!user) return false;
@@ -55,6 +66,7 @@ export const useAuth = () => {
     user,
     isAuthenticated,
     signIn,
+    signUp,
     signOut,
     fetchUser,
     hasRole,

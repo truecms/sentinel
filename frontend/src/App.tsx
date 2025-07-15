@@ -8,6 +8,7 @@ import LandingPage from './features/public/pages/LandingPage'
 import FeaturesPage from './features/public/pages/FeaturesPage'
 import PricingPage from './features/public/pages/PricingPage'
 import { LoginPage } from './features/auth/pages/LoginPage'
+import { RegisterPage } from './features/auth/pages/RegisterPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import './App.css'
 
@@ -26,6 +27,7 @@ function App() {
 
             {/* Auth Routes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* Protected Routes */}
             <Route path="/app" element={<ProtectedRoute />}>

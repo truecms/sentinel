@@ -14,11 +14,82 @@ from app.core.config import settings
 from app.models.user import User
 from app.schemas.user import UserResponse
 from pydantic import BaseModel
+from app.models.organization import Organization
+from app.models.user_organization import user_organization
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    organization_name: str
+
+@router.post("/register", response_model=UserResponse)
+async def register(
+    user_data: UserRegister,
+    db: AsyncSession = Depends(deps.get_db)
+) -> Any:
+    """Register a new user with their organization."""
+    logger.info(f"Registration attempt for user: {user_data.email}")
+    
+    # Check if user already exists
+    query = select(User).where(User.email == user_data.email)
+    result = await db.execute(query)
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
+        logger.warning(f"User already exists: {user_data.email}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists"
+        )
+    
+    # Check if organization already exists
+    query = select(Organization).where(Organization.name == user_data.organization_name)
+    result = await db.execute(query)
+    organization = result.scalar_one_or_none()
+    
+    # Create organization if it doesn't exist
+    if not organization:
+        organization = Organization(
+            name=user_data.organization_name,
+            is_active=True
+        )
+        db.add(organization)
+        await db.commit()
+        await db.refresh(organization)
+        logger.info(f"Created new organization: {user_data.organization_name}")
+    
+    # Create user
+    user = User(
+        email=user_data.email,
+        full_name=user_data.full_name,
+        hashed_password=security.get_password_hash(user_data.password),
+        is_active=True,
+        is_superuser=False,
+        organization_id=organization.id,
+        role="viewer"  # Default role for new users
+    )
+    
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    
+    # Add user-organization association
+    await db.execute(
+        user_organization.insert().values(
+            user_id=user.id,
+            organization_id=organization.id
+        )
+    )
+    await db.commit()
+    
+    logger.info(f"User registered successfully: {user_data.email}")
+    return UserResponse.model_validate(user)
 
 @router.post("/access-token")
 async def login_access_token(
@@ -67,6 +138,7 @@ async def login_access_token(
     return {
         "access_token": token,
         "token_type": "bearer",
+        "user": UserResponse.model_validate(user)
     }
 
 @router.post("/test-token", response_model=UserResponse)

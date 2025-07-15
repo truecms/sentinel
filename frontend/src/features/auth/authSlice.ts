@@ -118,12 +118,10 @@ export const register = createAsyncThunk(
       email: data.email,
       password: data.password,
       full_name: data.full_name,
-      organization: {
-        name: data.organization_name,
-      },
+      organization_name: data.organization_name,
     };
 
-    const response = await apiClient.post<User>('/users/', payload);
+    const response = await apiClient.post<User>('/auth/register', payload);
     return response.data;
   }
 );
