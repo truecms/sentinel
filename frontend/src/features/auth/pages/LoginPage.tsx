@@ -4,7 +4,6 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
 import { LoginForm } from '../components/LoginForm';
 import type { LoginFormData } from '../schemas/loginSchema';
-import PublicLayout from '@components/layout/PublicLayout';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,9 +32,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <PublicLayout minimal>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
           <div>
             <h1 className="text-center text-3xl font-extrabold text-gray-900">
               Sign in to your account
@@ -93,8 +91,7 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
       </div>
-    </PublicLayout>
+    </div>
   );
 };
