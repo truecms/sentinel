@@ -3,3 +3,8 @@ export * from './Card';
 export * from './Badge';
 export * from './Skeleton';
 export * from './EmptyState';
+export * from './Alert';
+export * from './Input';
+export * from './Modal';
+export * from './Spinner';
+export * from './ErrorBoundary';

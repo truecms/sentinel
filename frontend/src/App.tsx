@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
+import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { toastConfig } from './components/common/Toast'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import PublicLayout from './components/layout/PublicLayout'
 import { Dashboard, Sites, Modules, Reports, Settings } from './pages'
@@ -20,6 +22,7 @@ function App() {
     <HelmetProvider>
       <ThemeProvider>
         <BrowserRouter>
+          <Toaster {...toastConfig} />
           <SessionTimeout timeoutMinutes={30} warningMinutes={5} />
           <Routes>
             {/* Public Routes */}
