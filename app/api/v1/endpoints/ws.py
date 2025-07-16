@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional
 import jwt
 import json
@@ -26,13 +27,17 @@ async def get_websocket_user(
     """Validate WebSocket connection token and return user."""
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         user_id = payload.get("sub")
         if not user_id:
             return None
         
-        user = await deps.get_user_by_id(db, int(user_id))
+        # Get user by ID from database
+        query = select(User).where(User.id == int(user_id))
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+        
         if not user or not user.is_active:
             return None
         
