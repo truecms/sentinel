@@ -156,7 +156,8 @@ class DashboardAggregator:
             ModuleVersion,
             and_(
                 Module.id == ModuleVersion.module_id,
-                ModuleVersion.version > SiteModule.installed_version
+                SiteModule.latest_version_id == ModuleVersion.id,
+                SiteModule.latest_version_id != SiteModule.current_version_id
             )
         )
         
@@ -213,11 +214,10 @@ class DashboardAggregator:
             func.count(SiteModule.id).label("outdated_count")
         ).select_from(SiteModule).join(
             Module, SiteModule.module_id == Module.id
-        ).join(
-            ModuleVersion,
+        ).where(
             and_(
-                Module.id == ModuleVersion.module_id,
-                ModuleVersion.version > SiteModule.installed_version
+                SiteModule.latest_version_id.is_not(None),
+                SiteModule.latest_version_id != SiteModule.current_version_id
             )
         ).group_by(SiteModule.site_id).subquery()
         
@@ -249,17 +249,17 @@ class DashboardAggregator:
         """Get top security risks."""
         # Get modules with the most outdated installations
         query = select(
-            Module.name,
+            Module.display_name,
             Module.id,
             func.count(SiteModule.id).label("affected_sites"),
-            func.max(ModuleVersion.has_security_update).label("has_security")
+            func.bool_or(ModuleVersion.is_security_update).label("has_security")
         ).select_from(Module).join(
             SiteModule, Module.id == SiteModule.module_id
         ).join(
             ModuleVersion,
             and_(
-                Module.id == ModuleVersion.module_id,
-                ModuleVersion.version > SiteModule.installed_version
+                SiteModule.latest_version_id == ModuleVersion.id,
+                SiteModule.latest_version_id != SiteModule.current_version_id
             )
         ).join(
             Site, SiteModule.site_id == Site.id
@@ -268,8 +268,8 @@ class DashboardAggregator:
         if org_id:
             query = query.where(Site.organization_id == org_id)
         
-        query = query.group_by(Module.id, Module.name)
-        query = query.having(func.max(ModuleVersion.has_security_update) == True)
+        query = query.group_by(Module.id, Module.display_name)
+        query = query.having(func.bool_or(ModuleVersion.is_security_update) == True)
         query = query.order_by(desc("affected_sites"))
         query = query.limit(limit)
         
@@ -393,16 +393,11 @@ class DashboardAggregator:
             func.count(SiteModule.id).label("total"),
             func.sum(
                 case(
-                    (ModuleVersion.version > SiteModule.installed_version, 1),
+                    (SiteModule.latest_version_id != SiteModule.current_version_id, 1),
                     else_=0
                 )
             ).label("outdated")
-        ).select_from(SiteModule).outerjoin(
-            Module, SiteModule.module_id == Module.id
-        ).outerjoin(
-            ModuleVersion,
-            Module.id == ModuleVersion.module_id
-        ).where(
+        ).select_from(SiteModule).where(
             SiteModule.site_id == site_id
         )
         
@@ -439,7 +434,7 @@ class DashboardAggregator:
             func.count(SiteModule.id).label("total"),
             func.sum(
                 case(
-                    (ModuleVersion.version > SiteModule.installed_version, 1),
+                    (SiteModule.latest_version_id != SiteModule.current_version_id, 1),
                     else_=0
                 )
             ).label("needs_update"),
@@ -447,20 +442,15 @@ class DashboardAggregator:
                 case(
                     (
                         and_(
-                            ModuleVersion.version > SiteModule.installed_version,
-                            ModuleVersion.has_security_update == True
+                            SiteModule.latest_version_id != SiteModule.current_version_id,
+                            SiteModule.security_update_available == True
                         ),
                         1
                     ),
                     else_=0
                 )
             ).label("security_updates")
-        ).select_from(SiteModule).outerjoin(
-            Module, SiteModule.module_id == Module.id
-        ).outerjoin(
-            ModuleVersion,
-            Module.id == ModuleVersion.module_id
-        ).where(
+        ).select_from(SiteModule).where(
             SiteModule.site_id == site_id
         )
         
@@ -500,20 +490,17 @@ class DashboardAggregator:
         
         # Check for security updates
         query = select(
-            Module.name,
-            func.count(ModuleVersion.id).label("update_count")
+            Module.display_name,
+            func.count(SiteModule.id).label("update_count")
         ).select_from(SiteModule).join(
             Module, SiteModule.module_id == Module.id
-        ).join(
-            ModuleVersion,
-            and_(
-                Module.id == ModuleVersion.module_id,
-                ModuleVersion.version > SiteModule.installed_version,
-                ModuleVersion.has_security_update == True
-            )
         ).where(
-            SiteModule.site_id == site_id
-        ).group_by(Module.name)
+            and_(
+                SiteModule.site_id == site_id,
+                SiteModule.latest_version_id != SiteModule.current_version_id,
+                SiteModule.security_update_available == True
+            )
+        ).group_by(Module.display_name)
         
         result = await self.db.execute(query)
         

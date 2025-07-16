@@ -57,7 +57,7 @@ async def get_dashboard_overview(
     
     # Cache for 1 minute
     if redis:
-        await redis.setex(cache_key, 60, json.dumps(metrics.dict()))
+        await redis.setex(cache_key, 60, metrics.model_dump_json())
     
     return metrics
 
