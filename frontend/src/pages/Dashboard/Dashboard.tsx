@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Shield, 
   AlertTriangle,
   Package,
-  Globe
+  Globe,
+  Wifi,
+  WifiOff,
+  Loader2
 } from 'lucide-react'
 import { 
   MetricCard, 
@@ -18,8 +21,12 @@ import {
 import type { 
   ModuleStatus, 
   TimeSeriesData, 
-  RiskData 
+  RiskData,
+  DashboardOverview 
 } from '../../types/dashboard'
+import { useWebSocketConnection, useDashboardMetrics, useSecurityAlerts } from '../../hooks/useWebSocket'
+import { dashboardApi } from '../../services/dashboardApi'
+import { toast } from 'react-hot-toast'
 
 // Mock data for demo purposes
 const mockModules: ModuleStatus[] = [
@@ -82,6 +89,69 @@ const mockRiskData: RiskData[][] = [
 
 export const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week')
+  const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // WebSocket connection and real-time data
+  const { isConnected, connectionStatus, error: wsError } = useWebSocketConnection()
+  const { metrics } = useDashboardMetrics()
+  const { alerts, unreadCount } = useSecurityAlerts()
+
+  // Load initial dashboard data
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await dashboardApi.getOverview()
+        setDashboardData(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data')
+        toast.error('Failed to load dashboard data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadDashboardData()
+  }, [])
+
+  // Update dashboard data with real-time metrics
+  useEffect(() => {
+    if (metrics && dashboardData) {
+      setDashboardData(prev => prev ? {
+        ...prev,
+        metrics: { ...prev.metrics, ...metrics }
+      } : null)
+    }
+  }, [metrics, dashboardData])
+
+  // Show WebSocket connection status
+  const getConnectionStatusIcon = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return <Wifi className="h-4 w-4 text-green-500" />
+      case 'connecting':
+      case 'reconnecting':
+        return <Loader2 className="h-4 w-4 text-yellow-500 animate-spin" />
+      default:
+        return <WifiOff className="h-4 w-4 text-red-500" />
+    }
+  }
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'Real-time updates active'
+      case 'connecting':
+        return 'Connecting...'
+      case 'reconnecting':
+        return 'Reconnecting...'
+      default:
+        return 'Offline - Using cached data'
+    }
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -98,16 +168,58 @@ export const Dashboard: React.FC = () => {
     visible: { opacity: 1, y: 0 },
   }
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+          <span className="ml-2 text-neutral-600 dark:text-neutral-400">Loading dashboard...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-600 dark:text-red-400 mb-2">Error loading dashboard</p>
+            <p className="text-neutral-600 dark:text-neutral-400 text-sm">{error}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-          Dashboard
-        </h1>
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-          Monitor your Drupal sites security and performance
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+            Monitor your Drupal sites security and performance
+          </p>
+        </div>
+        
+        {/* Connection Status */}
+        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-800">
+          {getConnectionStatusIcon()}
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">
+            {getConnectionStatusText()}
+          </span>
+          {unreadCount > 0 && (
+            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Metric Cards */}
@@ -120,37 +232,37 @@ export const Dashboard: React.FC = () => {
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Active Sites"
-            value="127"
-            change={{ value: 12, type: 'increase', period: 'from last month' }}
+            value={dashboardData?.metrics?.totalSites || 0}
             icon={Globe}
             color="info"
+            loading={!dashboardData}
           />
         </motion.div>
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Security Updates"
-            value="8"
-            change={{ value: 23, type: 'decrease', period: 'from last week' }}
+            value={dashboardData?.metrics?.criticalUpdates || 0}
             icon={Shield}
-            color="warning"
+            color={dashboardData?.metrics?.criticalUpdates > 0 ? "warning" : "success"}
+            loading={!dashboardData}
           />
         </motion.div>
         <motion.div variants={itemVariants}>
           <MetricCard
-            title="Modules Tracked"
-            value="342"
-            change={{ value: 5, type: 'increase', period: 'from last month' }}
+            title="Compliance Rate"
+            value={dashboardData?.metrics?.complianceRate ? `${dashboardData.metrics.complianceRate}%` : "0%"}
             icon={Package}
-            color="success"
+            color={dashboardData?.metrics?.complianceRate >= 90 ? "success" : "warning"}
+            loading={!dashboardData}
           />
         </motion.div>
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Critical Issues"
-            value="3"
-            change={{ value: 50, type: 'increase', period: 'from yesterday' }}
+            value={dashboardData?.metrics?.vulnerabilities?.critical || 0}
             icon={AlertTriangle}
-            color="danger"
+            color={dashboardData?.metrics?.vulnerabilities?.critical > 0 ? "danger" : "success"}
+            loading={!dashboardData}
           />
         </motion.div>
       </motion.div>
@@ -168,10 +280,11 @@ export const Dashboard: React.FC = () => {
             Overall Security Score
           </h2>
           <SecurityGauge
-            score={87}
+            score={dashboardData?.metrics?.securityScore || 0}
             label="Security Score"
             thresholds={{ critical: 25, warning: 50, good: 75 }}
             size="large"
+            loading={!dashboardData}
           />
         </motion.div>
 
@@ -203,11 +316,12 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <TimelineChart
-            data={mockTimelineData}
+            data={dashboardData?.trends?.security_score || mockTimelineData}
             type="area"
             period={selectedPeriod}
             metrics={['Security Score']}
             height={250}
+            loading={!dashboardData}
           />
         </motion.div>
       </div>
