@@ -54,3 +54,35 @@ class ModuleListResponse(BaseModel):
     page: int
     per_page: int
     pages: int
+
+
+# Dashboard-specific schemas
+class ModuleUpdateInfo(BaseModel):
+    """Information about module updates."""
+    has_security_update: bool = False
+    sites_with_security_updates: int = 0
+    sites_needing_regular_update: int = 0
+
+
+class ModuleStatusItem(BaseModel):
+    """Dashboard module status item."""
+    id: str
+    name: str
+    machine_name: str
+    module_type: str
+    current_version: str
+    latest_version: str
+    security_update: bool
+    sites_affected: int
+    total_sites: int
+    last_updated: datetime
+    update_info: ModuleUpdateInfo
+
+
+class ModuleStatusResponse(BaseModel):
+    """Dashboard module status overview."""
+    total_modules: int
+    modules_with_updates: int
+    modules_with_security_updates: int
+    modules_up_to_date: int
+    last_updated: datetime

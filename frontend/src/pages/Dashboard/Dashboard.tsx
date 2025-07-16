@@ -26,6 +26,8 @@ import type {
 } from '../../types/dashboard'
 import { useWebSocketConnection, useDashboardMetrics, useSecurityAlerts } from '../../hooks/useWebSocket'
 import { dashboardApi } from '../../services/dashboardApi'
+import { modulesApi } from '../../services/modulesApi'
+import type { ModuleStatusItem } from '../../services/modulesApi'
 import { toast } from 'react-hot-toast'
 
 // Mock data for demo purposes
@@ -90,6 +92,8 @@ const mockRiskData: RiskData[][] = [
 export const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week')
   const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null)
+  const [moduleData, setModuleData] = useState<ModuleStatusItem[]>([])
+  const [moduleLoading, setModuleLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -105,8 +109,11 @@ export const Dashboard: React.FC = () => {
         setLoading(true)
         setError(null)
         const data = await dashboardApi.getOverview()
+        console.log('Dashboard data loaded:', data)
+        console.log('Dashboard metrics:', data.metrics)
         setDashboardData(data)
       } catch (err) {
+        console.error('Dashboard data loading error:', err)
         setError(err instanceof Error ? err.message : 'Failed to load dashboard data')
         toast.error('Failed to load dashboard data')
       } finally {
@@ -115,6 +122,25 @@ export const Dashboard: React.FC = () => {
     }
 
     loadDashboardData()
+  }, [])
+
+  // Load module data
+  useEffect(() => {
+    const loadModuleData = async () => {
+      try {
+        setModuleLoading(true)
+        const result = await modulesApi.getDashboardStatus({ page_size: 10 })
+        console.log('Module data loaded:', result)
+        setModuleData(result.items)
+      } catch (err) {
+        console.error('Module data loading error:', err)
+        toast.error('Failed to load module data')
+      } finally {
+        setModuleLoading(false)
+      }
+    }
+
+    loadModuleData()
   }, [])
 
   // Update dashboard data with real-time metrics
@@ -232,7 +258,7 @@ export const Dashboard: React.FC = () => {
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Active Sites"
-            value={dashboardData?.metrics?.totalSites || 0}
+            value={dashboardData?.metrics?.total_sites || 0}
             icon={Globe}
             color="info"
             loading={!dashboardData}
@@ -241,18 +267,18 @@ export const Dashboard: React.FC = () => {
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Security Updates"
-            value={dashboardData?.metrics?.criticalUpdates || 0}
+            value={dashboardData?.metrics?.critical_updates || 0}
             icon={Shield}
-            color={dashboardData?.metrics?.criticalUpdates > 0 ? "warning" : "success"}
+            color={dashboardData?.metrics?.critical_updates > 0 ? "warning" : "success"}
             loading={!dashboardData}
           />
         </motion.div>
         <motion.div variants={itemVariants}>
           <MetricCard
             title="Compliance Rate"
-            value={dashboardData?.metrics?.complianceRate ? `${dashboardData.metrics.complianceRate}%` : "0%"}
+            value={dashboardData?.metrics?.compliance_rate ? `${dashboardData.metrics.compliance_rate}%` : "0%"}
             icon={Package}
-            color={dashboardData?.metrics?.complianceRate >= 90 ? "success" : "warning"}
+            color={dashboardData?.metrics?.compliance_rate >= 90 ? "success" : "warning"}
             loading={!dashboardData}
           />
         </motion.div>
@@ -280,7 +306,7 @@ export const Dashboard: React.FC = () => {
             Overall Security Score
           </h2>
           <SecurityGauge
-            score={dashboardData?.metrics?.securityScore || 0}
+            score={dashboardData?.metrics?.security_score || 0}
             label="Security Score"
             thresholds={{ critical: 25, warning: 50, good: 75 }}
             size="large"
@@ -316,7 +342,10 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <TimelineChart
-            data={dashboardData?.trends?.security_score || mockTimelineData}
+            data={dashboardData?.trends?.security_score?.map((point: any) => ({
+              ...point,
+              label: 'Security Score'
+            })) || mockTimelineData}
             type="area"
             period={selectedPeriod}
             metrics={['Security Score']}
@@ -339,11 +368,19 @@ export const Dashboard: React.FC = () => {
           </h2>
         </div>
         <ModuleStatusTable
-          modules={mockModules}
+          modules={moduleData.map(module => ({
+            id: module.id,
+            name: module.name,
+            currentVersion: module.current_version,
+            latestVersion: module.latest_version,
+            securityUpdate: module.security_update,
+            lastUpdated: new Date(module.last_updated),
+            sites: module.total_sites,
+          }))}
           pagination={{
             page: 1,
             pageSize: 10,
-            total: mockModules.length,
+            total: moduleData.length,
             onPageChange: () => {},
           }}
           sorting={{
