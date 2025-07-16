@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { api } from './api';
+import authReducer from '@features/auth/authSlice';
 
 export const store = configureStore({
   reducer: {
     // Add the RTK Query reducer
     [api.reducerPath]: api.reducer,
-    // Add other reducers here as features are developed
+    // Feature reducers
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -16,6 +18,5 @@ export const store = configureStore({
     }).concat(api.middleware),
 });
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+// Export types from the types file
+export type { RootState, AppDispatch } from './types';

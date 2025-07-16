@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TopBar, Sidebar, MobileNav, Breadcrumbs } from '../../components/navigation';
 import type { BreadcrumbItem } from '../../components/navigation/Breadcrumbs/Breadcrumbs';
+import { useAuth } from '../../features/auth/hooks/useAuth';
 
 interface DashboardLayoutProps {
   breadcrumbs?: BreadcrumbItem[];
@@ -10,6 +11,7 @@ interface DashboardLayoutProps {
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = [] }) => {
   const location = useLocation();
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -61,6 +63,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
         isDarkMode={isDarkMode}
         onThemeToggle={handleThemeToggle}
         notificationCount={3}
+        userName={user?.full_name || user?.email || 'User'}
+        userEmail={user?.email || ''}
       />
 
       <div className="flex h-[calc(100vh-4rem)]">

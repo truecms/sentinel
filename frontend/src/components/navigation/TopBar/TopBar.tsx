@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Search, Bell, Menu, Sun, Moon, User, LogOut, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 
 interface TopBarProps {
   onMenuToggle: () => void;
@@ -19,9 +21,16 @@ export const TopBar: React.FC<TopBarProps> = ({
   userEmail = 'john.doe@example.com',
   notificationCount = 0,
 }) => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800">
@@ -153,7 +162,10 @@ export const TopBar: React.FC<TopBarProps> = ({
                       </span>
                     </button>
                     <hr className="my-2 border-neutral-200 dark:border-neutral-700" />
-                    <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors text-danger-600 dark:text-danger-400">
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors text-danger-600 dark:text-danger-400"
+                    >
                       <LogOut className="w-4 h-4" />
                       <span className="text-sm">Sign out</span>
                     </button>

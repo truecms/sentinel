@@ -30,31 +30,31 @@ const navItems: NavItem[] = [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
-    path: '/dashboard',
+    path: '/app/dashboard',
   },
   {
     label: 'Sites',
     icon: Globe,
-    path: '/sites',
+    path: '/app/sites',
     badge: '12',
     badgeType: 'info',
   },
   {
     label: 'Modules',
     icon: Package,
-    path: '/modules',
+    path: '/app/modules',
     badge: '3',
     badgeType: 'warning',
   },
   {
     label: 'Reports',
     icon: FileText,
-    path: '/reports',
+    path: '/app/reports',
   },
   {
     label: 'Settings',
     icon: Settings,
-    path: '/settings',
+    path: '/app/settings',
   },
 ];
 
