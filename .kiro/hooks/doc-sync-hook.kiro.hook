@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Documentation Sync",
+  "description": "Automatically updates relevant documentation files when code changes are detected in the application",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "app/**/*.py",
+      "frontend/src/**/*.tsx",
+      "frontend/src/**/*.ts",
+      "alembic/versions/*.py",
+      "*.md",
+      "docs/**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Code changes have been detected. Please review the modified files and update any relevant documentation including:\n\n1. API documentation in docs/claude/api/ if backend endpoints changed\n2. Architecture documentation in docs/claude/architecture/ if system design changed  \n3. Development setup guides in docs/claude/development/ if configuration changed\n4. README files if new features or setup steps were added\n5. Frontend documentation if React components or features changed\n6. Database documentation if models or migrations changed\n\nFocus on keeping documentation accurate and up-to-date with the current implementation. Identify which specific documentation files need updates based on the code changes and provide clear, concise updates that reflect the current state of the system."
+  }
+}

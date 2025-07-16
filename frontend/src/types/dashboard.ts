@@ -169,13 +169,13 @@ export interface ModuleStatusTableProps {
 
 // TimelineChart Types
 export interface TimeSeriesData {
-  timestamp: Date
+  timestamp: Date | string
   value: number
   label?: string
 }
 
 export interface ChartAnnotation {
-  timestamp: Date
+  timestamp: Date | string
   label: string
   color?: string
 }
