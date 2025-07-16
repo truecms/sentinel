@@ -4,7 +4,8 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { websocketService, DashboardChannel, SubscriptionCallback } from '@services/websocket';
+import { websocketService, DashboardChannel } from '@services/websocket';
+import type { SubscriptionCallback } from '@services/websocket';
 import { selectIsAuthenticated } from '@features/auth/authSlice';
 
 // Hook to manage WebSocket connection
