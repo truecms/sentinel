@@ -1,17 +1,17 @@
-import toast, { ToastOptions } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 // Success toast
-export const showSuccess = (message: string, options?: ToastOptions) => {
+export const showSuccess = (message: string, options?: any) => {
   return toast.success(message, options);
 };
 
 // Error toast
-export const showError = (message: string, options?: ToastOptions) => {
+export const showError = (message: string, options?: any) => {
   return toast.error(message, options);
 };
 
 // Info toast (using custom)
-export const showInfo = (message: string, options?: ToastOptions) => {
+export const showInfo = (message: string, options?: any) => {
   return toast(message, {
     icon: '📢',
     ...options,
@@ -19,7 +19,7 @@ export const showInfo = (message: string, options?: ToastOptions) => {
 };
 
 // Warning toast
-export const showWarning = (message: string, options?: ToastOptions) => {
+export const showWarning = (message: string, options?: any) => {
   return toast(message, {
     icon: '⚠️',
     style: {
@@ -31,7 +31,7 @@ export const showWarning = (message: string, options?: ToastOptions) => {
 };
 
 // Loading toast
-export const showLoading = (message: string, options?: ToastOptions) => {
+export const showLoading = (message: string, options?: any) => {
   return toast.loading(message, options);
 };
 

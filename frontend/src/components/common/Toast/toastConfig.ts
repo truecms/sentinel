@@ -1,7 +1,5 @@
-import { ToasterProps } from 'react-hot-toast';
-
-export const toastConfig: ToasterProps = {
-  position: 'top-right',
+export const toastConfig = {
+  position: 'top-right' as const,
   toastOptions: {
     duration: 4000,
     style: {
