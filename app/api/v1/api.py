@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import users, auth, organizations, sites, modules, module_versions, module_versions_standalone, module_versions_global, module_sites, tasks, version_check
+from app.api.v1.endpoints import users, auth, organizations, sites, modules, module_versions, module_versions_standalone, module_versions_global, module_sites, tasks, version_check, dashboard, ws
 
 api_router = APIRouter()
 
@@ -15,3 +15,5 @@ api_router.include_router(module_versions_global.router, prefix="", tags=["modul
 api_router.include_router(module_sites.router, prefix="/modules", tags=["module-sites"])
 api_router.include_router(version_check.router, prefix="/version-check", tags=["version-check"])
 api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
+api_router.include_router(dashboard.router, prefix="", tags=["dashboard"])
+api_router.include_router(ws.router, prefix="/ws", tags=["websocket"])

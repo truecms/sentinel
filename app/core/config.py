@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: str = "5432"
+    
+    # Redis Configuration
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+    REDIS_PASSWORD: Optional[str] = None
 
     # Superuser Configuration (required)
     SUPERUSER_EMAIL: str
