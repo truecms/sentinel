@@ -184,3 +184,36 @@ async def test_get_current_user_invalid_token(
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Could not validate credentials"
+
+async def test_logout_success(
+    client: AsyncClient,
+    user_token_headers: dict,
+    test_user: User
+):
+    """Test successful logout with valid token."""
+    response = await client.post(
+        "/api/v1/auth/logout",
+        headers=user_token_headers
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["message"] == "Successfully logged out"
+
+async def test_logout_invalid_token(
+    client: AsyncClient
+):
+    """Test logout with invalid token."""
+    response = await client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": "Bearer invalid_token"}
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Could not validate credentials"
+
+async def test_logout_no_token(
+    client: AsyncClient
+):
+    """Test logout without authentication token."""
+    response = await client.post("/api/v1/auth/logout")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"

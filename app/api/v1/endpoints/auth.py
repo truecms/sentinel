@@ -277,3 +277,27 @@ async def reset_password(
     
     logger.info(f"Password reset successful for user: {user.email}")
     return {"message": "Password reset successfully"}
+
+@router.post("/logout")
+async def logout(
+    current_user: User = Depends(deps.get_current_user)
+) -> Any:
+    """Logout the current user.
+    
+    Since JWT tokens are stateless, this endpoint primarily serves to:
+    - Confirm logout intent to the client
+    - Log the event for audit purposes (when audit logs are implemented)
+    - Provide a consistent API interface
+    
+    The actual token invalidation should be handled client-side.
+    """
+    logger.info(f"User logged out: {current_user.email}")
+    
+    # TODO: Once audit logs table is implemented, record logout event here
+    # await record_audit_log(
+    #     user_id=current_user.id,
+    #     action="logout",
+    #     timestamp=datetime.utcnow()
+    # )
+    
+    return {"message": "Successfully logged out"}
