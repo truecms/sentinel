@@ -144,7 +144,7 @@ class DashboardAggregator:
             func.count(SiteModule.id).label("outdated_modules"),
             func.sum(
                 case(
-                    (ModuleVersion.has_security_update == True, 1),
+                    (ModuleVersion.is_security_update == True, 1),
                     else_=0
                 )
             ).label("security_updates")
