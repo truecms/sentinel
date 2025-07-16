@@ -159,3 +159,25 @@ async def get_metric_trends(
         metric, period, points, current_user, org_id
     )
     return trends
+
+
+@router.get("/risk-matrix", response_model=Dict[str, Any])
+async def get_risk_matrix(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    org_id: Optional[int] = Query(None, description="Filter by organization ID"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of sites to return")
+) -> Any:
+    """Get risk matrix data for sites.
+    
+    Returns risk scores for each site across different categories:
+    - Security: Based on security updates and vulnerabilities
+    - Performance: Based on site performance metrics
+    - Updates: Based on pending updates
+    """
+    
+    aggregator = DashboardAggregator(db)
+    risk_data = await aggregator.get_risk_matrix(
+        current_user, org_id, limit
+    )
+    return risk_data

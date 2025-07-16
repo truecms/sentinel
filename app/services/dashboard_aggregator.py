@@ -596,3 +596,84 @@ class DashboardAggregator:
             return trends[metric_map[metric]]
         
         return []
+    
+    async def get_risk_matrix(
+        self, 
+        user: User, 
+        org_id: Optional[int] = None,
+        limit: int = 10
+    ) -> Dict[str, Any]:
+        """Get risk matrix data for sites."""
+        
+        # Get sites with their metrics
+        sites_query = select(
+            Site.id,
+            Site.name,
+            Site.drupal_core_version,
+            func.count(SiteModule.id).label("total_modules"),
+            func.count(
+                case(
+                    (SiteModule.security_update_available == True, SiteModule.id),
+                    else_=None
+                )
+            ).label("security_updates"),
+            func.count(
+                case(
+                    (SiteModule.update_available == True, SiteModule.id),
+                    else_=None
+                )
+            ).label("regular_updates")
+        ).select_from(Site).join(
+            SiteModule, Site.id == SiteModule.site_id
+        ).group_by(Site.id, Site.name, Site.drupal_core_version)
+        
+        if org_id:
+            sites_query = sites_query.where(Site.organization_id == org_id)
+        
+        sites_query = sites_query.limit(limit)
+        
+        result = await self.db.execute(sites_query)
+        sites_data = result.all()
+        
+        # Calculate risk scores for each site
+        risk_matrix = []
+        site_names = []
+        
+        for site in sites_data:
+            site_names.append(site.name)
+            
+            # Security risk: Based on security updates
+            security_risk = min(100, site.security_updates * 25)  # Each security update adds 25 points
+            
+            # Performance risk: Based on outdated Drupal core version
+            drupal_version = site.drupal_core_version or "10.0.0"
+            major_version = int(drupal_version.split('.')[0])
+            performance_risk = 85 if major_version < 10 else (70 if major_version == 10 else 30)
+            
+            # Updates risk: Based on regular updates available
+            updates_risk = min(100, site.regular_updates * 15)  # Each update adds 15 points
+            
+            risk_matrix.append([
+                {'value': security_risk, 'label': str(security_risk), 'severity': self._get_severity(security_risk)},
+                {'value': performance_risk, 'label': str(performance_risk), 'severity': self._get_severity(performance_risk)},
+                {'value': updates_risk, 'label': str(updates_risk), 'severity': self._get_severity(updates_risk)}
+            ])
+        
+        return {
+            "xAxis": site_names,
+            "yAxis": ["Security", "Performance", "Updates"],
+            "data": risk_matrix
+        }
+    
+    def _get_severity(self, score: int) -> str:
+        """Get severity level based on risk score."""
+        if score >= 75:
+            return 'critical'
+        elif score >= 50:
+            return 'high'
+        elif score >= 30:
+            return 'medium'
+        elif score >= 10:
+            return 'low'
+        else:
+            return 'info'

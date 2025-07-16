@@ -96,6 +96,13 @@ export const Dashboard: React.FC = () => {
   const [moduleLoading, setModuleLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [moduleFilters, setModuleFilters] = useState<{ searchTerm?: string; securityOnly?: boolean }>({ 
+    searchTerm: '', 
+    securityOnly: false 
+  })
+  const [modulePage, setModulePage] = useState(1)
+  const [riskMatrixData, setRiskMatrixData] = useState<any>(null)
+  const [riskMatrixLoading, setRiskMatrixLoading] = useState(true)
 
   // WebSocket connection and real-time data
   const { connectionStatus } = useWebSocketConnection()
@@ -129,7 +136,17 @@ export const Dashboard: React.FC = () => {
     const loadModuleData = async () => {
       try {
         setModuleLoading(true)
-        const result = await modulesApi.getDashboardStatus({ page_size: 10 })
+        const params: any = { 
+          page: modulePage,
+          page_size: 10 
+        }
+        if (moduleFilters.searchTerm) {
+          params.search = moduleFilters.searchTerm
+        }
+        if (moduleFilters.securityOnly) {
+          params.security_only = true
+        }
+        const result = await modulesApi.getDashboardStatus(params)
         console.log('Module data loaded:', result)
         setModuleData(result.items)
       } catch (err) {
@@ -141,6 +158,25 @@ export const Dashboard: React.FC = () => {
     }
 
     loadModuleData()
+  }, [modulePage, moduleFilters])
+
+  // Load risk matrix data
+  useEffect(() => {
+    const loadRiskMatrix = async () => {
+      try {
+        setRiskMatrixLoading(true)
+        const result = await dashboardApi.getRiskMatrix(undefined, 5) // Get top 5 sites
+        console.log('Risk matrix data loaded:', result)
+        setRiskMatrixData(result)
+      } catch (err) {
+        console.error('Risk matrix loading error:', err)
+        toast.error('Failed to load risk matrix data')
+      } finally {
+        setRiskMatrixLoading(false)
+      }
+    }
+
+    loadRiskMatrix()
   }, [])
 
   // Update dashboard data with real-time metrics
@@ -378,10 +414,10 @@ export const Dashboard: React.FC = () => {
             sites: module.total_sites,
           }))}
           pagination={{
-            page: 1,
+            page: modulePage,
             pageSize: 10,
             total: moduleData.length,
-            onPageChange: () => {},
+            onPageChange: setModulePage,
           }}
           sorting={{
             field: 'lastUpdated',
@@ -389,9 +425,11 @@ export const Dashboard: React.FC = () => {
             onSort: () => {},
           }}
           filters={{
-            searchTerm: '',
-            securityOnly: false,
-            onFilterChange: () => {},
+            ...moduleFilters,
+            onFilterChange: (newFilters) => {
+              setModuleFilters(prev => ({ ...prev, ...newFilters }))
+              setModulePage(1) // Reset to first page when filtering
+            },
           }}
         />
       </motion.div>
@@ -406,17 +444,35 @@ export const Dashboard: React.FC = () => {
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
           Risk Matrix by Site
         </h2>
-        <RiskHeatmap
-          data={mockRiskData}
-          xAxis={['Site A', 'Site B', 'Site C']}
-          yAxis={['Security', 'Performance', 'Updates']}
-          tooltip={(data) => (
-            <div>
-              <div className="font-semibold">{data.label}</div>
-              <div className="text-xs">Risk Score: {data.value}</div>
-            </div>
-          )}
-        />
+        {riskMatrixLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+          </div>
+        ) : riskMatrixData ? (
+          <RiskHeatmap
+            data={riskMatrixData.data}
+            xAxis={riskMatrixData.xAxis}
+            yAxis={riskMatrixData.yAxis}
+            tooltip={(data) => (
+              <div>
+                <div className="font-semibold">{data.label}</div>
+                <div className="text-xs">Risk Score: {data.value}</div>
+              </div>
+            )}
+          />
+        ) : (
+          <RiskHeatmap
+            data={mockRiskData}
+            xAxis={['Site A', 'Site B', 'Site C']}
+            yAxis={['Security', 'Performance', 'Updates']}
+            tooltip={(data) => (
+              <div>
+                <div className="font-semibold">{data.label}</div>
+                <div className="text-xs">Risk Score: {data.value}</div>
+              </div>
+            )}
+          />
+        )}
       </motion.div>
     </div>
   )
