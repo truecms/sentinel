@@ -7,6 +7,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Rate limiting constants
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+RATE_LIMIT_MAX_REQUESTS = 100  # Maximum requests per window
+
+# Cache TTL constants
+MODULE_CACHE_TTL = 300  # 5 minutes in seconds
+VERSION_CACHE_TTL = 600  # 10 minutes in seconds
+
 # Global Redis client instance
 _redis_client: Optional[redis.Redis] = None
 
@@ -52,3 +60,8 @@ async def close_redis_client():
 async def get_redis() -> Optional[redis.Redis]:
     """Dependency to get Redis client."""
     return await get_redis_client()
+
+
+async def close_redis_pool():
+    """Close Redis connection pool (alias for compatibility)."""
+    await close_redis_client()

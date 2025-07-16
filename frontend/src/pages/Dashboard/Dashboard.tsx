@@ -94,9 +94,9 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
 
   // WebSocket connection and real-time data
-  const { isConnected, connectionStatus, error: wsError } = useWebSocketConnection()
+  const { connectionStatus } = useWebSocketConnection()
   const { metrics } = useDashboardMetrics()
-  const { alerts, unreadCount } = useSecurityAlerts()
+  const { unreadCount } = useSecurityAlerts()
 
   // Load initial dashboard data
   useEffect(() => {

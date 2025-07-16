@@ -10,7 +10,8 @@ import logging
 from app.models.user import User
 from app.models.site import Site
 from app.models.site_module import SiteModule
-from app.models.module import Module, ModuleVersion
+from app.models.module import Module
+from app.models.module_version import ModuleVersion
 from app.models.organization import Organization
 from app.schemas.dashboard import (
     DashboardOverview,

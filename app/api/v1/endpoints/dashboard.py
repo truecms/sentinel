@@ -11,7 +11,8 @@ from app.api import deps
 from app.models.user import User
 from app.models.site import Site
 from app.models.site_module import SiteModule
-from app.models.module import Module, ModuleVersion
+from app.models.module import Module
+from app.models.module_version import ModuleVersion
 from app.models.organization import Organization
 from app.schemas.dashboard import (
     DashboardOverview,
@@ -33,7 +34,7 @@ router = APIRouter()
 async def get_dashboard_overview(
     org_id: Optional[int] = Query(None, description="Filter by organization ID"),
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
     redis = Depends(get_redis)
 ) -> Any:
     """Get executive dashboard overview data."""
@@ -65,7 +66,7 @@ async def get_dashboard_overview(
 async def get_security_dashboard(
     org_id: Optional[int] = Query(None, description="Filter by organization ID"),
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
     redis = Depends(get_redis)
 ) -> Any:
     """Get security operations dashboard data."""
@@ -91,7 +92,7 @@ async def get_security_dashboard(
 async def get_site_dashboard(
     site_id: int,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user),
+    current_user: User = Depends(deps.get_current_user),
     redis = Depends(get_redis)
 ) -> Any:
     """Get site-specific dashboard data."""
@@ -128,7 +129,7 @@ async def get_recent_activity(
     org_id: Optional[int] = Query(None, description="Filter by organization ID"),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
+    current_user: User = Depends(deps.get_current_user)
 ) -> List[ActivityItem]:
     """Get recent activity feed."""
     aggregator = DashboardAggregator(db)
@@ -143,7 +144,7 @@ async def get_metric_trends(
     points: int = Query(30, ge=1, le=365),
     org_id: Optional[int] = Query(None),
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_user)
+    current_user: User = Depends(deps.get_current_user)
 ) -> List[TimeSeriesData]:
     """Get trend data for a specific metric."""
     valid_metrics = ["security_score", "vulnerabilities", "compliance", "sites"]
