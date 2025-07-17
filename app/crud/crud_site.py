@@ -1,9 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, and_, or_
 
 from app.models.site import Site
+from app.models.user import User
 from app.schemas.site import SiteCreate, SiteUpdate
 
 async def get_site(db: AsyncSession, site_id: int) -> Optional[Site]:
@@ -60,3 +61,59 @@ async def delete_site(db: AsyncSession, site_id: int, updated_by: int) -> Option
         await db.commit()
         await db.refresh(db_site)
     return db_site
+
+async def get_sites_overview(
+    db: AsyncSession,
+    user: User,
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None,
+    sort_by: str = "name",
+    sort_order: str = "asc"
+) -> Tuple[List[Site], int]:
+    """
+    Get sites overview with security metrics and update tracking.
+    
+    Returns sites with calculated overview data, respecting user permissions.
+    Non-superusers only see sites from their organization.
+    """
+    # Base query
+    query = select(Site).filter(
+        and_(
+            Site.is_active == True,
+            Site.is_deleted == False
+        )
+    )
+    
+    # Apply organization filter for non-superusers
+    if not user.is_superuser and user.organization_id:
+        query = query.filter(Site.organization_id == user.organization_id)
+    
+    # Apply search filter
+    if search:
+        search_filter = or_(
+            Site.name.ilike(f"%{search}%"),
+            Site.url.ilike(f"%{search}%")
+        )
+        query = query.filter(search_filter)
+    
+    # Count total results
+    count_query = select(func.count(Site.id)).select_from(query.subquery())
+    count_result = await db.execute(count_query)
+    total = count_result.scalar()
+    
+    # Apply sorting
+    sort_column = getattr(Site, sort_by, Site.name)
+    if sort_order.lower() == "desc":
+        query = query.order_by(sort_column.desc())
+    else:
+        query = query.order_by(sort_column.asc())
+    
+    # Apply pagination
+    query = query.offset(skip).limit(limit)
+    
+    # Execute query
+    result = await db.execute(query)
+    sites = result.scalars().all()
+    
+    return sites, total

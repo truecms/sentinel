@@ -15,6 +15,7 @@ from app.schemas.site_module import (
     SiteModuleListResponse,
     SiteModuleStatsResponse
 )
+from app.schemas.site import SiteOverview, SitesOverviewResponse
 from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
 from app.api.v1.dependencies.rate_limit import check_rate_limit
@@ -628,4 +629,88 @@ async def get_site_module_stats(
     stats = await crud_site_module.get_site_module_stats(db, site_id)
     
     return SiteModuleStatsResponse(**stats)
+
+@router.get("/overview", response_model=SitesOverviewResponse)
+async def get_sites_overview(
+    skip: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
+    search: Optional[str] = Query(None, description="Search by site name"),
+    sort_by: str = Query("name", description="Field to sort by"),
+    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order"),
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user)
+) -> dict:
+    """
+    Get sites overview with security metrics and update tracking.
+    
+    Provides a comprehensive view of all sites with:
+    - Security scores and status
+    - Module counts and update requirements
+    - Data freshness timestamps
+    - Search and sorting capabilities
+    """
+    # Build filters
+    filters = {}
+    if search:
+        filters['search'] = search
+    
+    # Get sites with overview data
+    sites_data, total = await crud.get_sites_overview(
+        db=db,
+        user=current_user,
+        skip=skip,
+        limit=limit,
+        search=search,
+        sort_by=sort_by,
+        sort_order=sort_order
+    )
+    
+    # Convert to response format
+    site_overviews = []
+    for site in sites_data:
+        # Calculate status based on security score and updates
+        status = "healthy"
+        if site.security_updates_count > 0:
+            status = "critical"
+        elif site.security_score < 70 or site.non_security_updates_count > 10:
+            status = "warning"
+        
+        overview = SiteOverview(
+            id=site.id,
+            name=site.name,
+            url=site.url,
+            security_score=site.security_score or 0,
+            total_modules_count=site.total_modules_count or 0,
+            security_updates_count=site.security_updates_count or 0,
+            non_security_updates_count=site.non_security_updates_count or 0,
+            last_data_push=site.last_data_push,
+            last_drupal_org_check=site.last_drupal_org_check,
+            status=status,
+            organization_id=site.organization_id
+        )
+        site_overviews.append(overview)
+    
+    # Calculate pagination
+    pages = ceil(total / limit) if limit > 0 else 1
+    page = (skip // limit) + 1 if limit > 0 else 1
+    
+    pagination = {
+        "page": page,
+        "per_page": limit,
+        "total": total,
+        "total_pages": pages
+    }
+    
+    # Build response filters
+    response_filters = {
+        "search": search,
+        "sort_by": sort_by,
+        "sort_order": sort_order
+    }
+    
+    return SitesOverviewResponse(
+        sites=site_overviews,
+        pagination=pagination,
+        filters=response_filters
+    )
 
