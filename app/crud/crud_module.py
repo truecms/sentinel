@@ -22,7 +22,8 @@ ALLOWED_MODULE_SORT_FIELDS = [
 
 async def get_module(db: AsyncSession, module_id: int) -> Optional[Module]:
     """Get module by ID."""
-    result = await db.execute(not select(Module).filter(Module.id == module_id, Module.is_deleted)
+    result = await db.execute(
+        select(Module).filter(Module.id == module_id, not Module.is_deleted)
     )
     return result.scalar_one_or_none()
 
@@ -32,7 +33,7 @@ async def get_module_by_machine_name(
 ) -> Optional[Module]:
     """Get module by machine name."""
     result = await db.execute(
-        select(Module).filter(not Module.machine_name == machine_name, Module.is_deleted)
+        select(Module).filter(Module.machine_name == machine_name, not Module.is_deleted)
     )
     return result.scalar_one_or_none()
 
@@ -56,8 +57,8 @@ async def get_modules(
         )
 
     # Base query
-    query = select(not Module).filter(Module.is_deleted)
-    count_query = select(not func.count(Module.id)).filter(Module.is_deleted)
+    query = select(Module).filter(not Module.is_deleted)
+    count_query = select(func.count(Module.id)).filter(not Module.is_deleted)
 
     # Apply search filter
     if search:
@@ -120,7 +121,7 @@ async def get_module_with_details(
     include_sites: bool = False,
 ) -> Optional[Module]:
     """Get module with optional nested data."""
-    query = select(not Module).filter(Module.id == module_id, Module.is_deleted)
+    query = select(Module).filter(Module.id == module_id, not Module.is_deleted)
 
     if include_versions:
         query = query.options(joinedload(Module.versions))
@@ -231,13 +232,13 @@ async def get_modules_with_security_updates(
     """Get modules that have security updates available."""
     security_modules_subquery = (
         select(ModuleVersion.module_id)
-        .filter(not ModuleVersion.is_security_update == True, ModuleVersion.is_deleted)
+        .filter(ModuleVersion.is_security_update, not ModuleVersion.is_deleted)
         .distinct()
     )
 
     query = (
         select(Module)
-        .filter(not Module.id.in_(security_modules_subquery), Module.is_deleted)
+        .filter(Module.id.in_(security_modules_subquery), not Module.is_deleted)
         .offset(skip)
         .limit(limit)
     )
@@ -275,7 +276,9 @@ async def get_modules_by_machine_names(
     if not machine_names:
         return []
 
-    query = select(Module).filter(not Module.machine_name.in_(machine_names), Module.is_deleted)
+    query = select(Module).filter(
+        Module.machine_name.in_(machine_names), not Module.is_deleted
+    )
 
     result = await db.execute(query)
     return result.scalars().all()

@@ -139,7 +139,7 @@ class DashboardAggregator:
                 Site.id,
                 func.count(SiteModule.id).label("outdated_modules"),
                 func.sum(
-                    case((ModuleVersion.is_security_update == True, 1), else_=0)
+                    case((ModuleVersion.is_security_update, 1), else_=0)
                 ).label("security_updates"),
             )
             .select_from(Site)
@@ -478,7 +478,7 @@ class DashboardAggregator:
                             and_(
                                 SiteModule.latest_version_id
                                 != SiteModule.current_version_id,
-                                SiteModule.security_update_available == True,
+                                SiteModule.security_update_available,
                             ),
                             1,
                         ),
@@ -525,7 +525,7 @@ class DashboardAggregator:
                 and_(
                     SiteModule.site_id == site_id,
                     SiteModule.latest_version_id != SiteModule.current_version_id,
-                    SiteModule.security_update_available == True,
+                    SiteModule.security_update_available,
                 )
             )
             .group_by(Module.display_name)
@@ -585,13 +585,13 @@ class DashboardAggregator:
                 func.count(SiteModule.id).label("total_modules"),
                 func.count(
                     case(
-                        (SiteModule.security_update_available == True, SiteModule.id),
+                        (SiteModule.security_update_available, SiteModule.id),
                         else_=None,
                     )
                 ).label("security_updates"),
                 func.count(
                     case(
-                        (SiteModule.update_available == True, SiteModule.id), else_=None
+                        (SiteModule.update_available, SiteModule.id), else_=None
                     )
                 ).label("regular_updates"),
             )
@@ -706,19 +706,19 @@ class DashboardAggregator:
         query = (
             select(
                 func.count(SiteModule.id).label("total_modules"),
-                func.sum(case((SiteModule.update_available == True, 1), else_=0)).label(
+                func.sum(case((SiteModule.update_available, 1), else_=0)).label(
                     "modules_needing_updates"
                 ),
                 func.sum(
-                    case((SiteModule.security_update_available == True, 1), else_=0)
+                    case((SiteModule.security_update_available, 1), else_=0)
                 ).label("security_updates_needed"),
             )
             .select_from(SiteModule)
             .where(
                 and_(
                     SiteModule.site_id == site_id,
-                    SiteModule.enabled == True,
-                    SiteModule.is_active == True,
+                    SiteModule.enabled,
+                    SiteModule.is_active,
                 )
             )
         )
@@ -751,14 +751,14 @@ class DashboardAggregator:
             select(
                 func.count(SiteModule.id).label("total"),
                 func.sum(
-                    case((SiteModule.security_update_available == True, 1), else_=0)
+                    case((SiteModule.security_update_available, 1), else_=0)
                 ).label("security_updates"),
                 func.sum(
                     case(
                         (
                             and_(
-                                SiteModule.update_available == True,
-                                SiteModule.security_update_available == False,
+                                SiteModule.update_available,
+                                not SiteModule.security_update_available,
                             ),
                             1,
                         ),
@@ -770,8 +770,8 @@ class DashboardAggregator:
             .where(
                 and_(
                     SiteModule.site_id == site_id,
-                    SiteModule.enabled == True,
-                    SiteModule.is_active == True,
+                    SiteModule.enabled,
+                    SiteModule.is_active,
                 )
             )
         )
@@ -791,7 +791,8 @@ class DashboardAggregator:
         Returns number of sites updated.
         """
         # Get all active sites
-        query = select(Site.id).filter(not and_(Site.is_active == True, Site.is_deleted)
+        query = select(Site.id).filter(
+            and_(Site.is_active, not Site.is_deleted)
         )
 
         if org_id:

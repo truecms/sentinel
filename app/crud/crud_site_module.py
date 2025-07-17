@@ -16,7 +16,7 @@ async def get_site_module(
 ) -> Optional[SiteModule]:
     """Get site module by ID."""
     result = await db.execute(
-        select(SiteModule).filter(not SiteModule.id == site_module_id, SiteModule.is_deleted)
+        select(SiteModule).filter(SiteModule.id == site_module_id, not SiteModule.is_deleted)
     )
     return result.scalar_one_or_none()
 
@@ -29,7 +29,7 @@ async def get_site_module_by_site_and_module(
         select(SiteModule).filter(
             SiteModule.site_id == site_id,
             SiteModule.module_id == module_id,
-            SiteModule.is_deleted == False,
+            not SiteModule.is_deleted,
         )
     )
     return result.scalar_one_or_none()
@@ -55,10 +55,12 @@ async def get_site_modules(
             joinedload(SiteModule.latest_version),
             joinedload(SiteModule.site),
         )
-        .filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
+        .filter(SiteModule.site_id == site_id, not SiteModule.is_deleted)
     )
 
-    count_query = select(func.count(SiteModule.id)).filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
+    count_query = select(func.count(SiteModule.id)).filter(
+        SiteModule.site_id == site_id, not SiteModule.is_deleted
+    )
 
     # Apply enabled filter
     if enabled_only:
@@ -104,10 +106,12 @@ async def get_module_sites(
             joinedload(SiteModule.current_version),
             joinedload(SiteModule.module),
         )
-        .filter(not SiteModule.module_id == module_id, SiteModule.is_deleted)
+        .filter(SiteModule.module_id == module_id, not SiteModule.is_deleted)
     )
 
-    count_query = select(func.count(SiteModule.id)).filter(not SiteModule.module_id == module_id, SiteModule.is_deleted)
+    count_query = select(func.count(SiteModule.id)).filter(
+        SiteModule.module_id == module_id, not SiteModule.is_deleted
+    )
 
     # Filter by specific version if provided
     if version_id:
@@ -204,7 +208,7 @@ async def update_site_module_availability(
         select(ModuleVersion)
         .filter(
             ModuleVersion.module_id == site_module.module_id,
-            ModuleVersion.is_deleted == False,
+            not ModuleVersion.is_deleted,
         )
         .order_by(desc(ModuleVersion.release_date))
         .limit(1)
@@ -216,8 +220,8 @@ async def update_site_module_availability(
         select(ModuleVersion)
         .filter(
             ModuleVersion.module_id == site_module.module_id,
-            ModuleVersion.is_security_update == True,
-            ModuleVersion.is_deleted == False,
+            ModuleVersion.is_security_update,
+            not ModuleVersion.is_deleted,
         )
         .order_by(desc(ModuleVersion.release_date))
         .limit(1)
@@ -275,7 +279,9 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
 
     # Total modules
     total_result = await db.execute(
-        select(func.count(SiteModule.id)).filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
+        select(func.count(SiteModule.id)).filter(
+            SiteModule.site_id == site_id, not SiteModule.is_deleted
+        )
     )
     total_modules = total_result.scalar()
 
@@ -283,8 +289,8 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
     enabled_result = await db.execute(
         select(func.count(SiteModule.id)).filter(
             SiteModule.site_id == site_id,
-            SiteModule.enabled == True,
-            SiteModule.is_deleted == False,
+            SiteModule.enabled,
+            not SiteModule.is_deleted,
         )
     )
     enabled_modules = enabled_result.scalar()
@@ -293,8 +299,8 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
     updates_result = await db.execute(
         select(func.count(SiteModule.id)).filter(
             SiteModule.site_id == site_id,
-            SiteModule.update_available == True,
-            SiteModule.is_deleted == False,
+            SiteModule.update_available,
+            not SiteModule.is_deleted,
         )
     )
     modules_with_updates = updates_result.scalar()
@@ -303,8 +309,8 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
     security_result = await db.execute(
         select(func.count(SiteModule.id)).filter(
             SiteModule.site_id == site_id,
-            SiteModule.security_update_available == True,
-            SiteModule.is_deleted == False,
+            SiteModule.security_update_available,
+            not SiteModule.is_deleted,
         )
     )
     modules_with_security_updates = security_result.scalar()
@@ -314,7 +320,7 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
         select(Module.module_type, func.count(SiteModule.id))
         .select_from(SiteModule)
         .join(Module)
-        .filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
+        .filter(SiteModule.site_id == site_id, not SiteModule.is_deleted)
         .group_by(Module.module_type)
     )
 
@@ -340,7 +346,7 @@ async def check_site_module_exists(
         select(SiteModule.id).filter(
             SiteModule.site_id == site_id,
             SiteModule.module_id == module_id,
-            SiteModule.is_deleted == False,
+            not SiteModule.is_deleted,
         )
     )
     return result.scalar_one_or_none() is not None
