@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, BackgroundTasks
@@ -8,6 +8,7 @@ from app import crud, schemas
 from app.api import deps
 from app.crud import crud_site, crud_site_module, crud_module, crud_module_version
 from app.models.user import User
+from app.models.site import Site
 from app.schemas.site_module import (
     SiteModuleCreate,
     SiteModuleUpdate,
@@ -23,6 +24,7 @@ from app.services.cache import ModuleCacheService
 from app.services.update_detector import UpdateDetector
 from app.tasks.sync_tasks import sync_site_modules_task
 from app.core.config import settings
+from app.core.permissions import require_resource_action_dependency
 import json
 
 router = APIRouter()
@@ -335,11 +337,15 @@ async def sync_site_modules(
     *,
     db: AsyncSession = Depends(deps.get_db),
     payload: DrupalSiteSync,
-    current_user: User = Depends(deps.get_current_user),
+    auth_subject: Union[User, Site] = Depends(require_resource_action_dependency("site", "sync")),
     request: Request
 ):
     """
     Sync module data from a Drupal site with rate limiting and performance optimizations.
+    
+    This endpoint supports both user authentication (JWT) and site authentication (API key):
+    - **User Authentication**: JWT token via Authorization header
+    - **Site Authentication**: API key via X-API-Key or X-Site-Token header
     
     This endpoint handles:
     - Rate limiting: 4 requests per hour per site
@@ -350,12 +356,15 @@ async def sync_site_modules(
     - Updating site-module associations
     - Tracking enabled/disabled status
     
+    Required permissions:
+    - site:sync permission (checked by RBAC system)
+    
     Returns:
     - 200: Sync completed successfully (for small payloads)
     - 202: Sync accepted for background processing (for large payloads)
     - 429: Rate limit exceeded
     """
-    # Check if site exists and user has access
+    # Check if site exists
     site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
@@ -363,11 +372,28 @@ async def sync_site_modules(
             detail="Site not found"
         )
     
-    # Check organization access
-    if not current_user.is_superuser and current_user.organization_id != site.organization_id:
+    # Additional authorization checks based on auth subject type
+    if isinstance(auth_subject, User):
+        # User authentication - check organization access
+        if not auth_subject.is_superuser and auth_subject.organization_id != site.organization_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions - organization access denied"
+            )
+        current_user_id = auth_subject.id
+    elif isinstance(auth_subject, Site):
+        # Site authentication - must match the site in the URL
+        if auth_subject.id != site_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Site authentication mismatch - cannot sync to different site"
+            )
+        # For site authentication, we'll use the site's created_by as the user ID
+        current_user_id = site.created_by
+    else:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication type"
         )
     
     # Check rate limit
@@ -393,7 +419,7 @@ async def sync_site_modules(
         task = sync_site_modules_task.delay(
             site_id=site_id,
             payload_json=payload_json,
-            user_id=current_user.id
+            user_id=current_user_id
         )
         
         # Return 202 Accepted with task ID
@@ -427,7 +453,7 @@ async def sync_site_modules(
                     module_type=module_info.module_type,
                     description=module_info.description
                 )
-                module = await crud_module.create_module(db, module_create, current_user.id)
+                module = await crud_module.create_module(db, module_create, current_user_id)
                 modules_created += 1
                 
                 # Invalidate cache
@@ -445,7 +471,7 @@ async def sync_site_modules(
                     drupal_core_compatibility=[payload.drupal_info.core_version]
                 )
                 version = await crud_module_version.create_module_version(
-                    db, version_create, current_user.id
+                    db, version_create, current_user_id
                 )
                 
                 # Invalidate cache
@@ -466,7 +492,7 @@ async def sync_site_modules(
                         enabled=module_info.enabled
                     )
                     await crud_site_module.update_site_module(
-                        db, site_id, module.id, update_data, current_user.id
+                        db, site_id, module.id, update_data, current_user_id
                     )
                     modules_updated += 1
                 else:
@@ -480,7 +506,7 @@ async def sync_site_modules(
                     enabled=module_info.enabled
                 )
                 site_module = await crud_site_module.create_site_module(
-                    db, site_module_create, current_user.id
+                    db, site_module_create, current_user_id
                 )
                 modules_created += 1
             
@@ -531,14 +557,14 @@ async def sync_site_modules(
             if site_module.module.machine_name not in payload_module_names:
                 # Mark as removed (soft delete)
                 await crud_site_module.delete_site_module(
-                    db, site_id, site_module.module_id, current_user.id
+                    db, site_id, site_module.module_id, current_user_id
                 )
     
     # Update site's last sync time
     site_update = schemas.SiteUpdate(
         name=payload.site.name  # Update site name if changed
     )
-    await crud_site.update_site(db, site_id, site_update, current_user.id)
+    await crud_site.update_site(db, site_id, site_update, current_user_id)
     
     return ModuleSyncResult(
         site_id=site_id,

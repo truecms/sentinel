@@ -74,7 +74,8 @@ class PermissionChecker:
             "module:read",
             "module:write",
             "site:read",
-            "site:write"
+            "site:write",
+            "site:sync"
         ]
         
         return permission in allowed_site_permissions
@@ -89,7 +90,7 @@ class PermissionChecker:
         # Sites can only work with modules and their own site data
         if resource == "module" and action in ["read", "write"]:
             return True
-        elif resource == "site" and action in ["read", "write"]:
+        elif resource == "site" and action in ["read", "write", "sync"]:
             return True
         
         return False
