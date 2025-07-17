@@ -26,18 +26,18 @@ from app.models.organization import Organization
 from app.models.user import User
 
 # Test database URL - use test database from environment, fallback to postgres DB
-TEST_DATABASE = (
-    os.getenv("POSTGRES_DB", "test_db") if os.getenv("TESTING") else "test_db"
-)
-TEST_USER = (
-    os.getenv("POSTGRES_USER", "test_user") if os.getenv("TESTING") else "test_user"
-)
-TEST_PASSWORD = (
-    os.getenv("POSTGRES_PASSWORD", "test_password")
-    if os.getenv("TESTING")
-    else "test_password"
-)
-TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
+if os.getenv("TESTING") == "True":
+    # In CI environment, use the same database settings as the main app
+    TEST_DATABASE = settings.POSTGRES_DB
+    TEST_USER = settings.POSTGRES_USER
+    TEST_PASSWORD = settings.POSTGRES_PASSWORD
+    TEST_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
+else:
+    # Local testing environment
+    TEST_DATABASE = "test_db"
+    TEST_USER = "test_user"
+    TEST_PASSWORD = "test_password"
+    TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
 
 # Create async engine for tests - moved to test_engine fixture to ensure proper URL is used
 # Global engine is not needed as we use the fixture

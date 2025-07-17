@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     SECURITY_SCORE_CRITICAL_THRESHOLD: int = 70
     SECURITY_SCORE_WARNING_THRESHOLD: int = 85
     NON_SECURITY_UPDATES_WARNING_THRESHOLD: int = 10
-    
+
     # Testing Configuration (optional)
     TESTING: bool = False
 
