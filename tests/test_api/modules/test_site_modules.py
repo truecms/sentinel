@@ -29,7 +29,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert "data" in data
         assert "total" in data
         assert "page" in data
@@ -63,7 +63,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         # All returned modules should have updates available
         for module in data["data"]:
             assert module["update_available"] is True
@@ -82,7 +82,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         # All returned modules should have security updates available
         for module in data["data"]:
             assert module["security_update_available"] is True
@@ -101,7 +101,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         # Should include both enabled and disabled modules
 
     async def test_get_site_modules_pagination(
@@ -118,7 +118,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert len(data["data"]) <= 1
         assert data["page"] == 1
         assert data["per_page"] == 1
@@ -204,7 +204,7 @@ class TestSiteModuleCreate:
         )
         assert response.status_code == 201
 
-        _ = response.json()
+        data = response.json()
         assert data["site_id"] == site_module_data["site_id"]
         assert data["module_id"] == site_module_data["module_id"]
         assert data["current_version_id"] == site_module_data["current_version_id"]
@@ -327,7 +327,7 @@ class TestSiteModuleUpdate:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert data["enabled"] == update_data["enabled"]
         assert data["current_version_id"] == update_data["current_version_id"]
 
@@ -448,7 +448,7 @@ class TestSiteModuleStats:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert "total_modules" in data
         assert "enabled_modules" in data
         assert "disabled_modules" in data
@@ -496,7 +496,7 @@ class TestModuleSites:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
 
@@ -523,7 +523,7 @@ class TestModuleSites:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert isinstance(data, list)
 
     async def test_get_module_sites_pagination(
@@ -540,7 +540,7 @@ class TestModuleSites:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert len(data) <= 1
 
     async def test_get_module_sites_not_found(
@@ -577,7 +577,7 @@ class TestModuleSiteModules:
         )
         assert response.status_code == 200
 
-        _ = response.json()
+        data = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
 
