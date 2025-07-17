@@ -6,7 +6,6 @@ Implements comparison logic following Drupal version conventions.
 
 from typing import Dict, List, Optional, Tuple
 
-from app.services.version_parser import DrupalVersionParser, ParsedVersion, ReleaseType
 
 
 class VersionComparator:
@@ -239,7 +238,8 @@ class VersionComparator:
 
                 # Check Drupal core compatibility
                 if drupal_core:
-                    # If filtering by drupal_core, only include versions that have drupal_core
+                    # If filtering by drupal_core, only include versions
+                    # that have drupal_core
                     if not parsed.drupal_core:
                         continue
                     if parsed.drupal_core != drupal_core:

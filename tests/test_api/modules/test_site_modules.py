@@ -2,7 +2,6 @@
 Tests for site module API endpoints.
 """
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,7 +29,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert "data" in data
         assert "total" in data
         assert "page" in data
@@ -64,7 +63,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         # All returned modules should have updates available
         for module in data["data"]:
             assert module["update_available"] is True
@@ -83,7 +82,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         # All returned modules should have security updates available
         for module in data["data"]:
             assert module["security_update_available"] is True
@@ -102,7 +101,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         # Should include both enabled and disabled modules
 
     async def test_get_site_modules_pagination(
@@ -119,7 +118,7 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert len(data["data"]) <= 1
         assert data["page"] == 1
         assert data["per_page"] == 1
@@ -205,7 +204,7 @@ class TestSiteModuleCreate:
         )
         assert response.status_code == 201
 
-        data = response.json()
+        _ = response.json()
         assert data["site_id"] == site_module_data["site_id"]
         assert data["module_id"] == site_module_data["module_id"]
         assert data["current_version_id"] == site_module_data["current_version_id"]
@@ -249,7 +248,8 @@ class TestSiteModuleCreate:
         site_module_data = {
             "site_id": org_test_site.id,
             "module_id": org_test_custom_module.id,  # Different module
-            "current_version_id": org_test_module_version.id,  # Version for different module
+            # Version for different module
+            "current_version_id": org_test_module_version.id,
             "enabled": True,
         }
 
@@ -320,13 +320,14 @@ class TestSiteModuleUpdate:
         }
 
         response = await client.put(
-            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/"
+            f"{org_test_site_module.module_id}",
             json=update_data,
             headers=org_user_token_headers,
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert data["enabled"] == update_data["enabled"]
         assert data["current_version_id"] == update_data["current_version_id"]
 
@@ -357,7 +358,8 @@ class TestSiteModuleUpdate:
         update_data = {"current_version_id": other_version.id}
 
         response = await client.put(
-            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/"
+            f"{org_test_site_module.module_id}",
             json=update_data,
             headers=org_user_token_headers,
         )
@@ -384,7 +386,8 @@ class TestSiteModuleUpdate:
         update_data = {"enabled": False}
 
         response = await client.put(
-            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/"
+            f"{org_test_site_module.module_id}",
             json=update_data,
         )
         assert response.status_code == 401
@@ -402,7 +405,8 @@ class TestSiteModuleDelete:
     ):
         """Test successful site module removal."""
         response = await client.delete(
-            f"/api/v1/sites/{org_test_site.id}/modules/{org_test_site_module.module_id}",
+            f"/api/v1/sites/{org_test_site.id}/modules/"
+            f"{org_test_site_module.module_id}",
             headers=org_user_token_headers,
         )
         assert response.status_code == 204
@@ -444,7 +448,7 @@ class TestSiteModuleStats:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert "total_modules" in data
         assert "enabled_modules" in data
         assert "disabled_modules" in data
@@ -492,7 +496,7 @@ class TestModuleSites:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
 
@@ -513,12 +517,13 @@ class TestModuleSites:
     ):
         """Test filtering module sites by version."""
         response = await client.get(
-            f"/api/v1/modules/{org_test_module.id}/sites?version_id={org_test_module_version.id}",
+            f"/api/v1/modules/{org_test_module.id}/sites?"
+            f"version_id={org_test_module_version.id}",
             headers=org_user_token_headers,
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert isinstance(data, list)
 
     async def test_get_module_sites_pagination(
@@ -535,7 +540,7 @@ class TestModuleSites:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert len(data) <= 1
 
     async def test_get_module_sites_not_found(
@@ -572,7 +577,7 @@ class TestModuleSiteModules:
         )
         assert response.status_code == 200
 
-        data = response.json()
+        _ = response.json()
         assert isinstance(data, list)
         assert len(data) >= 1
 

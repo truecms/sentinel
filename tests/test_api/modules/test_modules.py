@@ -2,12 +2,9 @@
 Tests for module management API endpoints.
 """
 
-import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.module import Module
-from app.models.user import User
 
 
 class TestModulesList:
@@ -301,7 +298,8 @@ class TestModuleDetail:
         self, client: AsyncClient, test_module: Module, user_token_headers: dict
     ):
         """Test successful module detail retrieval."""
-        # Get module ID from response since we can't access test_module.id due to session closure
+        # Get module ID from response since we can't access test_module.id
+        # due to session closure
         # First get the modules list to find the test module ID
         module_response = await client.get(
             "/api/v1/modules", headers=user_token_headers
@@ -338,7 +336,8 @@ class TestModuleDetail:
     ):
         """Test module detail with include options."""
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}?include_versions=true&include_sites=true",
+            f"/api/v1/modules/{test_module.id}?"
+            "include_versions=true&include_sites=true",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -367,7 +366,8 @@ class TestModuleUpdate:
             "description": "Updated description",
         }
 
-        # Get module ID from response since we can't access test_module.id due to session closure
+        # Get module ID from response since we can't access test_module.id
+        # due to session closure
         # First get the modules list to find the test module ID
         module_response = await client.get(
             "/api/v1/modules", headers=superuser_token_headers
@@ -438,7 +438,8 @@ class TestModuleDelete:
         self, client: AsyncClient, test_module: Module, superuser_token_headers: dict
     ):
         """Test successful module deletion (soft delete)."""
-        # Get module ID from response since we can't access test_module.id due to session closure
+        # Get module ID from response since we can't access test_module.id
+        # due to session closure
         # First get the modules list to find the test module ID
         module_response = await client.get(
             "/api/v1/modules", headers=superuser_token_headers

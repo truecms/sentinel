@@ -325,11 +325,11 @@ async def get_dashboard_module_status(
             ModuleVersion.version_string.label("current_version_string"),
             func.count(SiteModule.id).label("total_sites"),
             func.count(
-                case((SiteModule.update_available == True, SiteModule.id), else_=None)
+                case((SiteModule.update_available, SiteModule.id), else_=None)
             ).label("sites_needing_update"),
             func.count(
                 case(
-                    (SiteModule.security_update_available == True, SiteModule.id),
+                    (SiteModule.security_update_available, SiteModule.id),
                     else_=None,
                 )
             ).label("sites_with_security_updates"),
@@ -360,7 +360,7 @@ async def get_dashboard_module_status(
         query = query.having(
             func.count(
                 case(
-                    (SiteModule.security_update_available == True, SiteModule.id),
+                    (SiteModule.security_update_available, SiteModule.id),
                     else_=None,
                 )
             )
@@ -400,7 +400,7 @@ async def get_dashboard_module_status(
     for row in modules_data:
         # Get latest version for this module (highest version number)
         all_versions_query = select(ModuleVersion.version_string).where(
-            and_(ModuleVersion.module_id == row.id, ModuleVersion.is_active == True)
+            and_(ModuleVersion.module_id == row.id, ModuleVersion.is_active)
         )
         all_versions_result = await db.execute(all_versions_query)
         all_versions = [v for (v,) in all_versions_result.all()]
@@ -469,7 +469,7 @@ async def get_dashboard_module_overview(
         .select_from(Module)
         .join(SiteModule, Module.id == SiteModule.module_id)
         .join(Site, SiteModule.site_id == Site.id)
-        .where(SiteModule.update_available == True)
+        .where(SiteModule.update_available)
     )
 
     # Get modules with security updates
@@ -478,7 +478,7 @@ async def get_dashboard_module_overview(
         .select_from(Module)
         .join(SiteModule, Module.id == SiteModule.module_id)
         .join(Site, SiteModule.site_id == Site.id)
-        .where(SiteModule.security_update_available == True)
+        .where(SiteModule.security_update_available)
     )
 
     # Apply organization filter if provided

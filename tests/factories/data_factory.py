@@ -1,7 +1,8 @@
 """
 Test Data Factory for Sentinel Monitoring System
 
-This factory provides comprehensive test data generation for realistic testing scenarios.
+This factory provides comprehensive test data generation for realistic
+testing scenarios.
 It creates Drupal sites with modules, versions, and security scenarios that mirror
 real-world deployments.
 """
@@ -10,7 +11,6 @@ import json
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -332,7 +332,8 @@ class TestDataFactory:
         """
         Create modules with security vulnerabilities and updates.
 
-        Returns security-related test data including vulnerable modules and security versions.
+        Returns security-related test data including vulnerable modules and
+        security versions.
         """
         security_modules = []
         security_versions = []
@@ -487,7 +488,10 @@ class TestDataFactory:
         if module.module_type == "core":
             version_string = "10.3.8"
         elif module.module_type == "contrib":
-            version_string = f"{random.randint(1, 8)}.x-{random.randint(1, 5)}.{random.randint(0, 20)}"
+            version_string = (
+                f"{random.randint(1, 8)}.x-{random.randint(1, 5)}."
+                f"{random.randint(0, 20)}"
+            )
         else:  # custom
             version_string = (
                 f"{random.randint(1, 3)}.{random.randint(0, 10)}.{random.randint(0, 5)}"

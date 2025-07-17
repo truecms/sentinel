@@ -2,13 +2,10 @@
 Tests for module version API endpoints.
 """
 
-import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.module import Module
 from app.models.module_version import ModuleVersion
-from app.models.user import User
 
 
 class TestModuleVersionsList:
@@ -135,7 +132,9 @@ class TestModuleVersionCreate:
             "version_string": "3.0.0",
             "semantic_version": "3.0.0",
             "is_security_update": False,
-            "release_notes_link": "https://drupal.org/project/test_module/releases/3.0.0",
+            "release_notes_link": (
+                "https://drupal.org/project/test_module/releases/3.0.0"
+            ),
             "drupal_core_compatibility": ["10.x", "11.x"],
         }
 
@@ -242,7 +241,8 @@ class TestModuleVersionDetail:
         assert response.status_code == 200
 
         data = response.json()
-        # Verify response structure - can't access fixture attributes due to session closure
+        # Verify response structure - can't access fixture attributes
+        # due to session closure
         assert "id" in data
         assert (
             data["version_string"] == "1.0.0"
@@ -349,7 +349,8 @@ class TestModuleVersionDelete:
         assert response.status_code == 200
 
         data = response.json()
-        # Verify response structure - can't access fixture attributes due to session closure
+        # Verify response structure - can't access fixture attributes
+        # due to session closure
         assert "id" in data
 
     async def test_delete_module_version_not_found(
@@ -395,7 +396,8 @@ class TestModuleLatestVersion:
         user_token_headers: dict,
     ):
         """Test getting latest version for module."""
-        # Get module ID from response since we can't access test_module.id due to session closure
+        # Get module ID from response since we can't access test_module.id
+        # due to session closure
         # First get the module versions to find the module ID
         module_response = await client.get(
             "/api/v1/modules", headers=user_token_headers

@@ -3,11 +3,9 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 
 from app.api.v1.endpoints.ws import can_access_channel, get_websocket_user
 from app.core.websocket import ConnectionManager
-from app.main import app
 from app.models.user import User
 
 

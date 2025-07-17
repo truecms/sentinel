@@ -42,7 +42,7 @@ async def read_organizations(
         query = query.where(Organization.is_active == is_active)
 
     # Always exclude soft-deleted organizations unless explicitly requested
-    query = query.where(Organization.is_deleted == False)
+    query = query.where(not Organization.is_deleted)
 
     # For non-superusers, only show organizations they belong to
     if not current_user.is_superuser:
@@ -77,7 +77,7 @@ async def create_organization(
 
     # Check if organization exists
     query = select(Organization).where(
-        Organization.name == organization_in.name, Organization.is_deleted == False
+        Organization.name == organization_in.name, not Organization.is_deleted
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
@@ -147,8 +147,8 @@ async def read_organization(
         .options(selectinload(Organization.users))
         .where(
             Organization.id == organization_id,
-            Organization.is_active == True,
-            Organization.is_deleted == False,
+            Organization.is_active,
+            not Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -193,8 +193,8 @@ async def update_organization(
         .options(selectinload(Organization.users))
         .where(
             Organization.id == organization_id,
-            Organization.is_active == True,
-            Organization.is_deleted == False,
+            Organization.is_active,
+            not Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -276,8 +276,8 @@ async def delete_organization(
         .options(selectinload(Organization.users))
         .where(
             Organization.id == organization_id,
-            Organization.is_active == True,
-            Organization.is_deleted == False,
+            Organization.is_active,
+            not Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -329,8 +329,8 @@ async def read_organization_sites(
     # Check if organization exists
     query = select(Organization).where(
         Organization.id == organization_id,
-        Organization.is_active == True,
-        Organization.is_deleted == False,
+        Organization.is_active,
+        not Organization.is_deleted,
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
@@ -354,8 +354,8 @@ async def read_organization_sites(
         select(Site)
         .where(
             Site.organization_id == organization_id,
-            Site.is_active == True,
-            Site.is_deleted == False,
+            Site.is_active,
+            not Site.is_deleted,
         )
         .offset(skip)
         .limit(limit)

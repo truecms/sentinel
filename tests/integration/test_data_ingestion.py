@@ -7,12 +7,10 @@ including module synchronization, version management, and update detection.
 
 from datetime import datetime
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.module import Module
 from app.models.module_version import ModuleVersion
 from app.models.site import Site
 from app.models.site_module import SiteModule
@@ -178,7 +176,9 @@ class TestDataIngestionWorkflow:
                         "secure_version"
                     ],  # Updated to secure version
                     "enabled": True,
-                    "description": f"Updated to secure version {security_module['secure_version']}",
+                    "description": (
+                        f"Updated to secure version {security_module['secure_version']}"
+                    ),
                 }
             )
 
@@ -234,7 +234,7 @@ class TestDataIngestionWorkflow:
 
         # In a real implementation, we would measure sync time
         # and ensure it's under performance thresholds
-        expected_max_time_per_site = 5.0  # seconds
+    # expected_max_time_per_site = 5.0  # seconds
         total_modules = sum(len(req["modules"]) for req in bulk_sync_requests)
 
         # Performance assertion (theoretical)
@@ -289,7 +289,7 @@ class TestModuleVersionManagement:
     ):
         """Test detection of available version updates."""
         site = site_with_outdated_modules["site"]
-        site_modules = site_with_outdated_modules["site_modules"]
+    # site_modules = site_with_outdated_modules["site_modules"]
 
         # Query to find modules with updates available
         stmt = (

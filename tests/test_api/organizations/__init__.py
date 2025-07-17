@@ -1,5 +1,6 @@
 """
-Organization tests are split into multiple files for better organization and readability.
+Organization tests are split into multiple files for better organization
+and readability.
 Please see the following files for specific test cases:
 
 1. test_organization_create.py - Creation-related tests
@@ -11,10 +12,10 @@ Please see the following files for specific test cases:
 7. test_organization_permissions.py - Permission and authorization tests
 """
 
-from .test_organization_create import *
-from .test_organization_delete import *
-from .test_organization_filters import *
-from .test_organization_permissions import *
-from .test_organization_read import *
-from .test_organization_update import *
-from .test_organization_users import *
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest
+# Explicit imports handled by pytest

@@ -285,7 +285,7 @@ class TestFactoryDirectUsage:
         # Create security scenarios
         security_data = await factory.populate_security_scenarios(test_user)
 
-        print(f"\nSecurity data created:")
+        print("\nSecurity data created:")
         print(
             f"  Modules with vulnerabilities: {len(security_data['security_modules'])}"
         )

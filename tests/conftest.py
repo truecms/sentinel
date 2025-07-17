@@ -30,7 +30,10 @@ else:
     TEST_DATABASE = "test_db"
     TEST_USER = "test_user"
     TEST_PASSWORD = "test_password"
-    TEST_SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
+    TEST_SQLALCHEMY_DATABASE_URL = (
+        f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@"
+        f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
+    )
 
 # Create async engine for tests - moved to test_engine fixture to ensure proper URL is used
 # Global engine is not needed as we use the fixture
@@ -417,7 +420,6 @@ async def site_with_outdated_modules(
     """Create a site with modules that have available updates for update testing."""
     from datetime import datetime, timedelta
 
-    from app.models.module import Module
     from app.models.module_version import ModuleVersion
     from app.models.site import Site
     from app.models.site_module import SiteModule

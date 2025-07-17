@@ -5,14 +5,11 @@ These tests verify that the comprehensive test data population utilities
 work correctly and can generate realistic test scenarios for the monitoring system.
 """
 
-import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.module import Module
 from app.models.module_version import ModuleVersion
-from app.models.organization import Organization
-from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
 

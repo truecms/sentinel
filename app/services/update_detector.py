@@ -258,7 +258,7 @@ class UpdateDetector:
             select(SiteModule.module_id, SiteModule.current_version)
             .distinct()
             .where(
-                and_(SiteModule.current_version.isnot(None), SiteModule.enabled == True)
+                and_(SiteModule.current_version.isnot(None), SiteModule.enabled)
             )
             .limit(limit)
         )
