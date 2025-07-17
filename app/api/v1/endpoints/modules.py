@@ -3,6 +3,13 @@ from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, and_, desc, case, or_
+from datetime import datetime
+
+from app.models.site import Site
+from app.models.module import Module
+from app.models.site_module import SiteModule
+from app.models.module_version import ModuleVersion
 
 from app.api import deps
 from app.crud import crud_module, crud_module_version, crud_site_module
@@ -11,8 +18,12 @@ from app.schemas.module import (
     ModuleCreate, 
     ModuleUpdate, 
     ModuleResponse, 
-    ModuleListResponse
+    ModuleListResponse,
+    ModuleStatusResponse,
+    ModuleStatusItem,
+    ModuleUpdateInfo
 )
+from app.schemas.base import PaginatedResponse, get_pagination_params
 
 router = APIRouter()
 
@@ -261,3 +272,204 @@ async def delete_module(
 # Note: Bulk module operations are handled via the Drupal site sync endpoint
 # POST /api/v1/sites/{site_id}/modules
 # The bulk endpoint has been removed as per requirements
+
+
+# Dashboard-specific endpoints
+@router.get("/dashboard/status", response_model=PaginatedResponse[ModuleStatusItem])
+async def get_dashboard_module_status(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    pagination = Depends(get_pagination_params),
+    search: Optional[str] = Query(None, description="Search modules by name"),
+    security_only: bool = Query(False, description="Show only modules with security updates"),
+    org_id: Optional[int] = Query(None, description="Filter by organization ID")
+) -> Any:
+    """Get module status overview for dashboard table."""
+    
+    # Base query to get module status with aggregated data
+    # Group by module AND current version to show multiple rows per module
+    query = select(
+        Module.id,
+        Module.machine_name,
+        Module.display_name,
+        Module.module_type,
+        ModuleVersion.version_string.label("current_version_string"),
+        func.count(SiteModule.id).label("total_sites"),
+        func.count(
+            case(
+                (SiteModule.update_available == True, SiteModule.id),
+                else_=None
+            )
+        ).label("sites_needing_update"),
+        func.count(
+            case(
+                (SiteModule.security_update_available == True, SiteModule.id),
+                else_=None
+            )
+        ).label("sites_with_security_updates"),
+        func.max(SiteModule.updated_at).label("last_updated")
+    ).select_from(Module).join(
+        SiteModule, Module.id == SiteModule.module_id
+    ).join(
+        ModuleVersion, SiteModule.current_version_id == ModuleVersion.id
+    ).join(
+        Site, SiteModule.site_id == Site.id
+    )
+    
+    # Apply organization filter if provided
+    if org_id:
+        query = query.where(Site.organization_id == org_id)
+    
+    # Apply search filter
+    if search:
+        search_term = f"%{search}%"
+        query = query.where(
+            or_(
+                Module.display_name.ilike(search_term),
+                Module.machine_name.ilike(search_term)
+            )
+        )
+    
+    # Apply security filter
+    if security_only:
+        query = query.having(
+            func.count(
+                case(
+                    (SiteModule.security_update_available == True, SiteModule.id),
+                    else_=None
+                )
+            ) > 0
+        )
+    
+    # Group by module AND current version to show multiple rows per module
+    query = query.group_by(Module.id, Module.machine_name, Module.display_name, Module.module_type, ModuleVersion.version_string)
+    
+    # Order by security updates first, then by sites needing updates
+    query = query.order_by(
+        desc("sites_with_security_updates"),
+        desc("sites_needing_update"), 
+        Module.display_name
+    )
+    
+    # Get total count for pagination
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    # Apply pagination
+    query = query.offset(pagination.skip).limit(pagination.limit)
+    
+    # Execute query
+    result = await db.execute(query)
+    modules_data = result.all()
+    
+    # Process results - each row now represents a module+version combination
+    modules = []
+    for row in modules_data:
+        # Get latest version for this module (highest version number)
+        all_versions_query = select(ModuleVersion.version_string).where(
+            and_(
+                ModuleVersion.module_id == row.id,
+                ModuleVersion.is_active == True
+            )
+        )
+        all_versions_result = await db.execute(all_versions_query)
+        all_versions = [v for (v,) in all_versions_result.all()]
+        
+        # Sort versions properly and get the highest
+        if all_versions:
+            from app.services.version_comparator import VersionComparator
+            comparator = VersionComparator()
+            latest_version = comparator.get_latest_version(all_versions) or "Unknown"
+        else:
+            latest_version = "Unknown"
+        
+        # Create unique ID for module+version combination
+        unique_id = f"{row.id}_{row.current_version_string.replace('.', '_')}"
+        
+        modules.append(ModuleStatusItem(
+            id=unique_id,
+            name=row.display_name or row.machine_name,
+            machine_name=row.machine_name,
+            module_type=row.module_type,
+            current_version=row.current_version_string,  # Use current version from query
+            latest_version=latest_version,
+            security_update=row.sites_with_security_updates > 0,
+            sites_affected=row.sites_needing_update,
+            total_sites=row.total_sites,
+            last_updated=row.last_updated or datetime.utcnow(),
+            update_info=ModuleUpdateInfo(
+                has_security_update=row.sites_with_security_updates > 0,
+                sites_with_security_updates=row.sites_with_security_updates,
+                sites_needing_regular_update=row.sites_needing_update - row.sites_with_security_updates
+            )
+        ))
+    
+    return PaginatedResponse(
+        items=modules,
+        total=total,
+        page=pagination.page,
+        page_size=pagination.limit,
+        pages=((total - 1) // pagination.limit) + 1 if total > 0 else 0
+    )
+
+
+@router.get("/dashboard/overview", response_model=ModuleStatusResponse)
+async def get_dashboard_module_overview(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+    org_id: Optional[int] = Query(None, description="Filter by organization ID")
+) -> Any:
+    """Get module overview statistics for dashboard."""
+    
+    # Get total modules
+    total_modules_query = select(func.count(func.distinct(Module.id))).select_from(Module).join(
+        SiteModule, Module.id == SiteModule.module_id
+    ).join(
+        Site, SiteModule.site_id == Site.id
+    )
+    
+    # Get modules with updates needed
+    modules_with_updates_query = select(
+        func.count(func.distinct(Module.id))
+    ).select_from(Module).join(
+        SiteModule, Module.id == SiteModule.module_id
+    ).join(
+        Site, SiteModule.site_id == Site.id
+    ).where(
+        SiteModule.update_available == True
+    )
+    
+    # Get modules with security updates
+    modules_with_security_query = select(
+        func.count(func.distinct(Module.id))
+    ).select_from(Module).join(
+        SiteModule, Module.id == SiteModule.module_id
+    ).join(
+        Site, SiteModule.site_id == Site.id
+    ).where(
+        SiteModule.security_update_available == True
+    )
+    
+    # Apply organization filter if provided
+    if org_id:
+        total_modules_query = total_modules_query.where(Site.organization_id == org_id)
+        modules_with_updates_query = modules_with_updates_query.where(Site.organization_id == org_id)
+        modules_with_security_query = modules_with_security_query.where(Site.organization_id == org_id)
+    
+    # Execute queries
+    total_modules_result = await db.execute(total_modules_query)
+    modules_with_updates_result = await db.execute(modules_with_updates_query)
+    modules_with_security_result = await db.execute(modules_with_security_query)
+    
+    total_modules = total_modules_result.scalar() or 0
+    modules_with_updates = modules_with_updates_result.scalar() or 0
+    modules_with_security = modules_with_security_result.scalar() or 0
+    
+    return ModuleStatusResponse(
+        total_modules=total_modules,
+        modules_with_updates=modules_with_updates,
+        modules_with_security_updates=modules_with_security,
+        modules_up_to_date=total_modules - modules_with_updates,
+        last_updated=datetime.utcnow()
+    )

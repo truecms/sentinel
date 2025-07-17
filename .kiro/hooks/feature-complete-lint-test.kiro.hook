@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "name": "Feature Complete Lint & Test",
+  "description": "Automatically runs linting tools and executes tests when a feature implementation is marked as complete (atomic task)",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "app/**/*.py",
+      "frontend/src/**/*.{ts",
+      "tsx",
+      "js",
+      "jsx}",
+      "tests/**/*.py",
+      "frontend/src/**/*.test.{ts",
+      "tsx}"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A feature implementation has been completed. Please:\n\n1. **Backend Linting**: Run Python linting tools (flake8, black, isort) on any modified Python files in the app/ directory\n2. **Frontend Linting**: Run ESLint and Prettier on any modified TypeScript/JavaScript files in frontend/src/\n3. **Backend Testing**: Execute relevant pytest tests for the modified backend components with coverage reporting\n4. **Frontend Testing**: Run Vitest tests for any modified frontend components\n5. **Integration Testing**: If both backend and frontend were modified, run integration tests\n\nFocus on:\n- Code quality and PEP 8 compliance for Python\n- TypeScript/ESLint standards for frontend\n- Ensuring all tests pass with adequate coverage\n- Identifying any linting issues that need to be addressed\n- Providing a summary of test results and coverage metrics\n\nUse the appropriate Docker commands based on the tech stack:\n- `docker-compose exec api` for backend operations\n- `docker-compose exec frontend` for frontend operations\n- `docker-compose exec test` for backend testing"
+  }
+}

@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Ensure WebSocket support is properly installed
+RUN pip install --no-cache-dir websockets httptools uvloop
+
 # Copy application code
 COPY . .
 

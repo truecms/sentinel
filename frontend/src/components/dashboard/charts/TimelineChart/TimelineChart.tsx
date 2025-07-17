@@ -49,15 +49,16 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
     }>()
     
     data.forEach((point) => {
-      const timestamp = point.timestamp.toISOString()
-      if (!groupedData.has(timestamp)) {
-        groupedData.set(timestamp, {
-          timestamp: point.timestamp,
-          formattedTime: formatTimestamp(point.timestamp, period),
+      const timestamp = point.timestamp instanceof Date ? point.timestamp : new Date(point.timestamp)
+      const timestampKey = timestamp.toISOString()
+      if (!groupedData.has(timestampKey)) {
+        groupedData.set(timestampKey, {
+          timestamp: timestamp,
+          formattedTime: formatTimestamp(timestamp, period),
         })
       }
       
-      const dataPoint = groupedData.get(timestamp)
+      const dataPoint = groupedData.get(timestampKey)
       if (dataPoint) {
         dataPoint[point.label || 'value'] = point.value
       }
@@ -143,7 +144,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
             {annotations.map((annotation, index) => (
               <ReferenceLine
                 key={index}
-                x={formatTimestamp(annotation.timestamp, period)}
+                x={formatTimestamp(annotation.timestamp instanceof Date ? annotation.timestamp : new Date(annotation.timestamp), period)}
                 stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{
@@ -179,7 +180,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
             {annotations.map((annotation, index) => (
               <ReferenceLine
                 key={index}
-                x={formatTimestamp(annotation.timestamp, period)}
+                x={formatTimestamp(annotation.timestamp instanceof Date ? annotation.timestamp : new Date(annotation.timestamp), period)}
                 stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{
@@ -212,7 +213,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
             {annotations.map((annotation, index) => (
               <ReferenceLine
                 key={index}
-                x={formatTimestamp(annotation.timestamp, period)}
+                x={formatTimestamp(annotation.timestamp instanceof Date ? annotation.timestamp : new Date(annotation.timestamp), period)}
                 stroke={annotation.color || '#737373'}
                 strokeDasharray="5 5"
                 label={{

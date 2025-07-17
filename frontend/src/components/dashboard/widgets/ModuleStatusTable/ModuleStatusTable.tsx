@@ -7,7 +7,8 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  Shield
+  Shield,
+  Info
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { ModuleStatusTableProps, ModuleStatus } from '../../../../types/dashboard'
@@ -155,6 +156,13 @@ export const ModuleStatusTable: React.FC<ModuleStatusTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Current Version
+                  <div className="relative group">
+                    <Info className="w-3 h-3 text-neutral-400" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 text-xs bg-neutral-900 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Most commonly used version across your sites
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900"></div>
+                    </div>
+                  </div>
                   {getSortIcon('currentVersion')}
                 </div>
               </th>
@@ -164,6 +172,13 @@ export const ModuleStatusTable: React.FC<ModuleStatusTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Latest Version
+                  <div className="relative group">
+                    <Info className="w-3 h-3 text-neutral-400" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 text-xs bg-neutral-900 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Newest available version of this module
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900"></div>
+                    </div>
+                  </div>
                   {getSortIcon('latestVersion')}
                 </div>
               </th>
@@ -176,6 +191,13 @@ export const ModuleStatusTable: React.FC<ModuleStatusTableProps> = ({
               >
                 <div className="flex items-center gap-1">
                   Sites
+                  <div className="relative group">
+                    <Info className="w-3 h-3 text-neutral-400" />
+                    <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2 py-1 text-xs bg-neutral-900 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                      Number of sites with updates available
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900"></div>
+                    </div>
+                  </div>
                   {getSortIcon('sites')}
                 </div>
               </th>
