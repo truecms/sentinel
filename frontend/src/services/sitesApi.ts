@@ -1,5 +1,5 @@
 // API service for sites overview functionality
-import { api } from '../utils/api'
+import { apiClient } from '../utils/api'
 
 export interface SiteOverview {
   id: number
@@ -49,31 +49,31 @@ export const sitesApi = {
     if (params.sort_by) searchParams.set('sort_by', params.sort_by)
     if (params.sort_order) searchParams.set('sort_order', params.sort_order)
     
-    const response = await api.get(`/sites/overview?${searchParams.toString()}`)
+    const response = await apiClient.get(`/sites/overview?${searchParams.toString()}`)
     return response.data
   },
 
   // Get individual site details
   async getSite(siteId: number) {
-    const response = await api.get(`/sites/${siteId}`)
+    const response = await apiClient.get(`/sites/${siteId}`)
     return response.data
   },
 
   // Create new site
   async createSite(siteData: { name: string; url: string; organization_id: number }) {
-    const response = await api.post('/sites', siteData)
+    const response = await apiClient.post('/sites', siteData)
     return response.data
   },
 
   // Update site
   async updateSite(siteId: number, siteData: Partial<{ name: string; url: string; organization_id: number }>) {
-    const response = await api.put(`/sites/${siteId}`, siteData)
+    const response = await apiClient.put(`/sites/${siteId}`, siteData)
     return response.data
   },
 
   // Delete site
   async deleteSite(siteId: number) {
-    const response = await api.delete(`/sites/${siteId}`)
+    const response = await apiClient.delete(`/sites/${siteId}`)
     return response.data
   }
 }
