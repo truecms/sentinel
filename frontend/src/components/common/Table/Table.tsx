@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChevronUpIcon, ChevronDownIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
+import { ChevronUp, ChevronDown, Info } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export interface TableColumn {
@@ -41,13 +41,13 @@ export const Table: React.FC<TableProps> = ({
     
     if (sortBy === column.key) {
       return sortOrder === 'asc' ? (
-        <ChevronUpIcon className="w-4 h-4" />
+        <ChevronUp className="w-4 h-4" />
       ) : (
-        <ChevronDownIcon className="w-4 h-4" />
+        <ChevronDown className="w-4 h-4" />
       )
     }
     
-    return <ChevronUpIcon className="w-4 h-4 opacity-0 group-hover:opacity-50" />
+    return <ChevronUp className="w-4 h-4 opacity-0 group-hover:opacity-50" />
   }
 
   if (loading) {
@@ -102,7 +102,7 @@ export const Table: React.FC<TableProps> = ({
                     <span>{column.label}</span>
                     {column.tooltip && (
                       <div className="relative group/tooltip">
-                        <InformationCircleIcon className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                        <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                           {column.tooltip}
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
