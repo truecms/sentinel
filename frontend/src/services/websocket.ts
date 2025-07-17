@@ -68,9 +68,15 @@ export class WebSocketService {
   private isManualClose = false;
 
   constructor(baseUrl: string = '') {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = baseUrl || window.location.host;
-    this.wsUrl = `${protocol}//${host}/api/v1/ws/dashboard`;
+    // Use environment variable for WebSocket URL
+    const envWsUrl = import.meta.env.VITE_WS_URL;
+    if (envWsUrl) {
+      this.wsUrl = `${envWsUrl}/dashboard`;
+    } else {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = baseUrl || window.location.host;
+      this.wsUrl = `${protocol}//${host}/api/v1/ws/dashboard`;
+    }
   }
 
   /**

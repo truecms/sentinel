@@ -29,12 +29,12 @@ async def get_websocket_user(
         payload = jwt.decode(
             token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
-        user_id = payload.get("sub")
-        if not user_id:
+        user_email = payload.get("sub")
+        if not user_email:
             return None
         
-        # Get user by ID from database
-        query = select(User).where(User.id == int(user_id))
+        # Get user by email from database
+        query = select(User).where(User.email == user_email)
         result = await db.execute(query)
         user = result.scalar_one_or_none()
         
@@ -146,7 +146,7 @@ async def websocket_dashboard_endpoint(
         await manager.disconnect(websocket, str(user.id))
 
 
-@router.get("/ws/status")
+@router.get("/status")
 async def get_websocket_status(
     current_user: User = Depends(deps.get_current_active_superuser),
 ):

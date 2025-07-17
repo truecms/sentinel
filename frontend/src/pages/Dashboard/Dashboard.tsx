@@ -111,28 +111,42 @@ export const Dashboard: React.FC = () => {
 
   // Load initial dashboard data
   useEffect(() => {
+    let isCancelled = false
+    
     const loadDashboardData = async () => {
       try {
         setLoading(true)
         setError(null)
         const data = await dashboardApi.getOverview()
-        console.log('Dashboard data loaded:', data)
-        console.log('Dashboard metrics:', data.metrics)
-        setDashboardData(data)
+        if (!isCancelled) {
+          console.log('Dashboard data loaded:', data)
+          console.log('Dashboard metrics:', data.metrics)
+          setDashboardData(data)
+        }
       } catch (err) {
-        console.error('Dashboard data loading error:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load dashboard data')
-        toast.error('Failed to load dashboard data')
+        if (!isCancelled) {
+          console.error('Dashboard data loading error:', err)
+          setError(err instanceof Error ? err.message : 'Failed to load dashboard data')
+          toast.error('Failed to load dashboard data')
+        }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     loadDashboardData()
+    
+    return () => {
+      isCancelled = true
+    }
   }, [])
 
   // Load module data
   useEffect(() => {
+    let isCancelled = false
+    
     const loadModuleData = async () => {
       try {
         setModuleLoading(true)
@@ -147,36 +161,58 @@ export const Dashboard: React.FC = () => {
           params.security_only = true
         }
         const result = await modulesApi.getDashboardStatus(params)
-        console.log('Module data loaded:', result)
-        setModuleData(result.items)
+        if (!isCancelled) {
+          console.log('Module data loaded:', result)
+          setModuleData(result.items)
+        }
       } catch (err) {
-        console.error('Module data loading error:', err)
-        toast.error('Failed to load module data')
+        if (!isCancelled) {
+          console.error('Module data loading error:', err)
+          toast.error('Failed to load module data')
+        }
       } finally {
-        setModuleLoading(false)
+        if (!isCancelled) {
+          setModuleLoading(false)
+        }
       }
     }
 
     loadModuleData()
+    
+    return () => {
+      isCancelled = true
+    }
   }, [modulePage, moduleFilters])
 
   // Load risk matrix data
   useEffect(() => {
+    let isCancelled = false
+    
     const loadRiskMatrix = async () => {
       try {
         setRiskMatrixLoading(true)
         const result = await dashboardApi.getRiskMatrix(undefined, 5) // Get top 5 sites
-        console.log('Risk matrix data loaded:', result)
-        setRiskMatrixData(result)
+        if (!isCancelled) {
+          console.log('Risk matrix data loaded:', result)
+          setRiskMatrixData(result)
+        }
       } catch (err) {
-        console.error('Risk matrix loading error:', err)
-        toast.error('Failed to load risk matrix data')
+        if (!isCancelled) {
+          console.error('Risk matrix loading error:', err)
+          toast.error('Failed to load risk matrix data')
+        }
       } finally {
-        setRiskMatrixLoading(false)
+        if (!isCancelled) {
+          setRiskMatrixLoading(false)
+        }
       }
     }
 
     loadRiskMatrix()
+    
+    return () => {
+      isCancelled = true
+    }
   }, [])
 
   // Update dashboard data with real-time metrics

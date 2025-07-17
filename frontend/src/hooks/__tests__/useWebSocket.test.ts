@@ -2,6 +2,7 @@
  * Tests for WebSocket hooks
  */
 
+import React from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
@@ -37,8 +38,10 @@ const createMockStore = (isAuthenticated = true) => {
 
 const createWrapper = (isAuthenticated = true) => {
   const store = createMockStore(isAuthenticated)
-  return ({ children }: { children: React.ReactNode }) => (
-    <Provider store={store}>{children}</Provider>
+  return ({ children }: { children: React.ReactNode }) => React.createElement(
+    Provider,
+    { store },
+    children
   )
 }
 

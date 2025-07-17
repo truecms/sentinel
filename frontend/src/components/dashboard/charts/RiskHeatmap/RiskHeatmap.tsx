@@ -4,6 +4,26 @@ import { clsx } from 'clsx'
 import type { RiskHeatmapProps, RiskData } from '../../../../types/dashboard'
 import { Skeleton } from '../../../common'
 
+// Utility function to create abbreviations from site names
+const abbreviateSiteName = (siteName: string): string => {
+  // Split by spaces and common separators
+  const words = siteName.split(/[\s\-_]+/)
+  
+  if (words.length === 1) {
+    // Single word: take first 3 characters
+    return words[0].substring(0, 3).toUpperCase()
+  }
+  
+  // Multiple words: take first letter of each word
+  const abbreviation = words
+    .filter(word => word.length > 0)
+    .map(word => word.charAt(0).toUpperCase())
+    .join('')
+  
+  // If abbreviation is too long, limit to 4 characters
+  return abbreviation.length > 4 ? abbreviation.substring(0, 4) : abbreviation
+}
+
 export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
   data,
   xAxis,
@@ -121,12 +141,17 @@ export const RiskHeatmap: React.FC<RiskHeatmapProps> = ({
             <div
               key={label}
               className={clsx(
-                'flex items-center justify-center text-neutral-700 dark:text-neutral-300 font-medium',
+                'flex items-center justify-center text-neutral-700 dark:text-neutral-300 font-medium relative group cursor-help',
                 fontSize
               )}
               style={{ writingMode: cellSize < 30 ? 'vertical-rl' : 'horizontal-tb' }}
             >
-              {label}
+              {abbreviateSiteName(label)}
+              {/* Tooltip with full site name */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-neutral-900 dark:bg-neutral-700 text-white rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                {label}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-700"></div>
+              </div>
             </div>
           ))}
           

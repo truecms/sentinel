@@ -287,11 +287,13 @@ async def get_dashboard_module_status(
     """Get module status overview for dashboard table."""
     
     # Base query to get module status with aggregated data
+    # Group by module AND current version to show multiple rows per module
     query = select(
         Module.id,
         Module.machine_name,
         Module.display_name,
         Module.module_type,
+        ModuleVersion.version_string.label("current_version_string"),
         func.count(SiteModule.id).label("total_sites"),
         func.count(
             case(
@@ -308,6 +310,8 @@ async def get_dashboard_module_status(
         func.max(SiteModule.updated_at).label("last_updated")
     ).select_from(Module).join(
         SiteModule, Module.id == SiteModule.module_id
+    ).join(
+        ModuleVersion, SiteModule.current_version_id == ModuleVersion.id
     ).join(
         Site, SiteModule.site_id == Site.id
     )
@@ -337,8 +341,8 @@ async def get_dashboard_module_status(
             ) > 0
         )
     
-    # Group by module
-    query = query.group_by(Module.id, Module.machine_name, Module.display_name, Module.module_type)
+    # Group by module AND current version to show multiple rows per module
+    query = query.group_by(Module.id, Module.machine_name, Module.display_name, Module.module_type, ModuleVersion.version_string)
     
     # Order by security updates first, then by sites needing updates
     query = query.order_by(
@@ -359,40 +363,36 @@ async def get_dashboard_module_status(
     result = await db.execute(query)
     modules_data = result.all()
     
-    # Get latest versions for each module
+    # Process results - each row now represents a module+version combination
     modules = []
     for row in modules_data:
-        # Get latest version
-        latest_version_query = select(ModuleVersion.version_string).where(
+        # Get latest version for this module (highest version number)
+        all_versions_query = select(ModuleVersion.version_string).where(
             and_(
                 ModuleVersion.module_id == row.id,
                 ModuleVersion.is_active == True
             )
-        ).order_by(desc(ModuleVersion.created_at)).limit(1)
+        )
+        all_versions_result = await db.execute(all_versions_query)
+        all_versions = [v for (v,) in all_versions_result.all()]
         
-        latest_version_result = await db.execute(latest_version_query)
-        latest_version = latest_version_result.scalar() or "Unknown"
+        # Sort versions properly and get the highest
+        if all_versions:
+            from app.services.version_comparator import VersionComparator
+            comparator = VersionComparator()
+            latest_version = comparator.get_latest_version(all_versions) or "Unknown"
+        else:
+            latest_version = "Unknown"
         
-        # Get most common current version
-        current_version_query = select(
-            ModuleVersion.version_string,
-            func.count(SiteModule.id).label("usage_count")
-        ).select_from(SiteModule).join(
-            ModuleVersion, SiteModule.current_version_id == ModuleVersion.id
-        ).where(
-            SiteModule.module_id == row.id
-        ).group_by(ModuleVersion.version_string).order_by(desc("usage_count")).limit(1)
-        
-        current_version_result = await db.execute(current_version_query)
-        current_version_row = current_version_result.first()
-        current_version = current_version_row.version_string if current_version_row else "Unknown"
+        # Create unique ID for module+version combination
+        unique_id = f"{row.id}_{row.current_version_string.replace('.', '_')}"
         
         modules.append(ModuleStatusItem(
-            id=str(row.id),
+            id=unique_id,
             name=row.display_name or row.machine_name,
             machine_name=row.machine_name,
             module_type=row.module_type,
-            current_version=current_version,
+            current_version=row.current_version_string,  # Use current version from query
             latest_version=latest_version,
             security_update=row.sites_with_security_updates > 0,
             sites_affected=row.sites_needing_update,

@@ -1,5 +1,6 @@
 import { store } from '@app/store';
 import { setCredentials, updateAccessToken, clearAuth } from '@features/auth/authSlice';
+import TokenStorageService from '@services/tokenStorage';
 
 class TokenManager {
   private static TOKEN_KEY = 'auth_token';
@@ -12,9 +13,17 @@ class TokenManager {
       access_token: access, 
       refresh_token: refresh 
     }));
+    // Also store in sessionStorage for interceptor access
+    TokenStorageService.setToken(access);
   }
 
   getAccessToken(): string | null {
+    // First try to get from sessionStorage (primary source)
+    const sessionToken = TokenStorageService.getToken();
+    if (sessionToken) {
+      return sessionToken;
+    }
+    // Fallback to Redux state
     return store.getState().auth.token;
   }
 
@@ -24,6 +33,7 @@ class TokenManager {
 
   clearTokens() {
     store.dispatch(clearAuth());
+    TokenStorageService.removeToken();
   }
 
   async refreshToken(): Promise<string> {
