@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 
@@ -43,3 +44,15 @@ class Site(Base):
     creator = relationship("User", foreign_keys=[created_by])
     updater = relationship("User", foreign_keys=[updated_by])
     modules = relationship("SiteModule", back_populates="site", cascade="all, delete-orphan")
+    api_keys = relationship("ApiKey", back_populates="site")
+    
+    def get_active_api_key(self) -> Optional["ApiKey"]:
+        """Get the active API key for this site."""
+        for api_key in self.api_keys:
+            if api_key.is_valid():
+                return api_key
+        return None
+    
+    def has_valid_api_key(self) -> bool:
+        """Check if site has a valid API key."""
+        return self.get_active_api_key() is not None
