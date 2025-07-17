@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Globe, Search, Plus, ExternalLinkIcon } from 'lucide-react'
 import { Button, Input, Badge, Table, Pagination } from '../../components/common'
 import { sitesApi, type SiteOverview, type SitesOverviewParams } from '../../services/sitesApi'
-import { TableColumn } from '../../components/common/Table'
+import { type TableColumn } from '../../components/common/Table'
 
 // Utility functions
 const formatDate = (dateString: string | null) => {
