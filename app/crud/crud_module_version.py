@@ -16,9 +16,7 @@ async def get_module_version(
 ) -> Optional[ModuleVersion]:
     """Get module version by ID."""
     result = await db.execute(
-        select(ModuleVersion).filter(
-            ModuleVersion.id == version_id, ModuleVersion.is_deleted == False
-        )
+        select(ModuleVersion).filter(not ModuleVersion.id == version_id, ModuleVersion.is_deleted)
     )
     return result.scalar_one_or_none()
 
@@ -30,7 +28,7 @@ async def get_module_version_with_module(
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
-        .filter(ModuleVersion.id == version_id, ModuleVersion.is_deleted == False)
+        .filter(not ModuleVersion.id == version_id, ModuleVersion.is_deleted)
     )
     return result.unique().scalar_one_or_none()
 
@@ -46,18 +44,14 @@ async def get_module_versions(
     """Get versions for a specific module with filtering."""
 
     # Base query and count query
-    query = select(ModuleVersion).filter(
-        ModuleVersion.module_id == module_id, ModuleVersion.is_deleted == False
-    )
+    query = select(ModuleVersion).filter(not ModuleVersion.module_id == module_id, ModuleVersion.is_deleted)
 
-    count_query = select(func.count(ModuleVersion.id)).filter(
-        ModuleVersion.module_id == module_id, ModuleVersion.is_deleted == False
-    )
+    count_query = select(func.count(ModuleVersion.id)).filter(not ModuleVersion.module_id == module_id, ModuleVersion.is_deleted)
 
     # Apply security filter
     if only_security:
-        query = query.filter(ModuleVersion.is_security_update == True)
-        count_query = count_query.filter(ModuleVersion.is_security_update == True)
+        query = query.filter(ModuleVersion.is_security_update)
+        count_query = count_query.filter(ModuleVersion.is_security_update)
 
     # Apply Drupal core compatibility filter
     if drupal_core:
@@ -87,7 +81,7 @@ async def get_latest_version(
     """Get the latest version for a module."""
     result = await db.execute(
         select(ModuleVersion)
-        .filter(ModuleVersion.module_id == module_id, ModuleVersion.is_deleted == False)
+        .filter(not ModuleVersion.module_id == module_id, ModuleVersion.is_deleted)
         .order_by(desc(ModuleVersion.release_date))
         .limit(1)
     )
@@ -193,9 +187,7 @@ async def get_security_versions(
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
-        .filter(
-            ModuleVersion.is_security_update == True, ModuleVersion.is_deleted == False
-        )
+        .filter(not ModuleVersion.is_security_update == True, ModuleVersion.is_deleted)
         .order_by(desc(ModuleVersion.release_date))
         .offset(skip)
         .limit(limit)
@@ -259,9 +251,7 @@ async def get_latest_version_using_comparator(
     """
     # Get all versions for the module
     result = await db.execute(
-        select(ModuleVersion).filter(
-            ModuleVersion.module_id == module_id, ModuleVersion.is_deleted == False
-        )
+        select(ModuleVersion).filter(not ModuleVersion.module_id == module_id, ModuleVersion.is_deleted)
     )
     versions = result.scalars().all()
 
@@ -333,9 +323,7 @@ async def get_versions_for_comparison(
     """
     # Get all versions
     result = await db.execute(
-        select(ModuleVersion).filter(
-            ModuleVersion.module_id == module_id, ModuleVersion.is_deleted == False
-        )
+        select(ModuleVersion).filter(not ModuleVersion.module_id == module_id, ModuleVersion.is_deleted)
     )
     all_versions = result.scalars().all()
 

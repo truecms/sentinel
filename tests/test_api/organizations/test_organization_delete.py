@@ -68,9 +68,8 @@ async def test_delete_organization_with_resources(
     assert response.status_code == 200
 
     # Verify user's organization_id is cleared
-    async with async_session_maker() as session:
-        user = await session.get(User, test_regular_user.id)
-        assert user.organization_id is None
+    await db_session.refresh(test_regular_user)
+    assert test_regular_user.organization_id is None
 
 
 async def test_delete_organization_cleanup(
@@ -98,9 +97,8 @@ async def test_delete_organization_cleanup(
     assert response.status_code == 404
 
     # Verify user's organization association is removed
-    async with async_session_maker() as session:
-        user = await session.get(User, test_user.id)
-        assert user.organization_id is None
+    await db_session.refresh(test_user)
+    assert test_user.organization_id is None
 
 
 async def test_organization_soft_delete(
@@ -118,7 +116,6 @@ async def test_organization_soft_delete(
     assert response.status_code == 200
 
     # Verify organization is marked as deleted but still exists
-    async with async_session_maker() as session:
-        org = await session.get(Organization, test_organization.id)
-        assert org is not None
-        assert org.is_deleted == True
+    await db_session.refresh(test_organization)
+    assert test_organization is not None
+    assert test_organization.is_deleted is True

@@ -196,7 +196,7 @@ class DashboardAggregator:
             )
             .select_from(SiteModule)
             .join(Site, SiteModule.site_id == Site.id)
-            .where(SiteModule.security_update_available == True)
+            .where(SiteModule.security_update_available)
         )
 
         if org_id:
@@ -304,7 +304,7 @@ class DashboardAggregator:
             query = query.where(Site.organization_id == org_id)
 
         query = query.group_by(Module.id, Module.display_name)
-        query = query.having(func.bool_or(ModuleVersion.is_security_update) == True)
+        query = query.having(func.bool_or(ModuleVersion.is_security_update))
         query = query.order_by(desc("affected_sites"))
         query = query.limit(limit)
 
@@ -791,8 +791,7 @@ class DashboardAggregator:
         Returns number of sites updated.
         """
         # Get all active sites
-        query = select(Site.id).filter(
-            and_(Site.is_active == True, Site.is_deleted == False)
+        query = select(Site.id).filter(not and_(Site.is_active == True, Site.is_deleted)
         )
 
         if org_id:

@@ -16,9 +16,7 @@ async def get_site_module(
 ) -> Optional[SiteModule]:
     """Get site module by ID."""
     result = await db.execute(
-        select(SiteModule).filter(
-            SiteModule.id == site_module_id, SiteModule.is_deleted == False
-        )
+        select(SiteModule).filter(not SiteModule.id == site_module_id, SiteModule.is_deleted)
     )
     return result.scalar_one_or_none()
 
@@ -57,27 +55,25 @@ async def get_site_modules(
             joinedload(SiteModule.latest_version),
             joinedload(SiteModule.site),
         )
-        .filter(SiteModule.site_id == site_id, SiteModule.is_deleted == False)
+        .filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
     )
 
-    count_query = select(func.count(SiteModule.id)).filter(
-        SiteModule.site_id == site_id, SiteModule.is_deleted == False
-    )
+    count_query = select(func.count(SiteModule.id)).filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
 
     # Apply enabled filter
     if enabled_only:
-        query = query.filter(SiteModule.enabled == True)
-        count_query = count_query.filter(SiteModule.enabled == True)
+        query = query.filter(SiteModule.enabled)
+        count_query = count_query.filter(SiteModule.enabled)
 
     # Apply updates filter
     if updates_only:
-        query = query.filter(SiteModule.update_available == True)
-        count_query = count_query.filter(SiteModule.update_available == True)
+        query = query.filter(SiteModule.update_available)
+        count_query = count_query.filter(SiteModule.update_available)
 
     # Apply security updates filter
     if security_only:
-        query = query.filter(SiteModule.security_update_available == True)
-        count_query = count_query.filter(SiteModule.security_update_available == True)
+        query = query.filter(SiteModule.security_update_available)
+        count_query = count_query.filter(SiteModule.security_update_available)
 
     # Order by module name
     query = query.join(Module).order_by(Module.display_name).offset(skip).limit(limit)
@@ -108,12 +104,10 @@ async def get_module_sites(
             joinedload(SiteModule.current_version),
             joinedload(SiteModule.module),
         )
-        .filter(SiteModule.module_id == module_id, SiteModule.is_deleted == False)
+        .filter(not SiteModule.module_id == module_id, SiteModule.is_deleted)
     )
 
-    count_query = select(func.count(SiteModule.id)).filter(
-        SiteModule.module_id == module_id, SiteModule.is_deleted == False
-    )
+    count_query = select(func.count(SiteModule.id)).filter(not SiteModule.module_id == module_id, SiteModule.is_deleted)
 
     # Filter by specific version if provided
     if version_id:
@@ -262,13 +256,13 @@ async def get_sites_needing_updates(
             joinedload(SiteModule.current_version),
             joinedload(SiteModule.latest_version),
         )
-        .filter(SiteModule.is_deleted == False)
+        .filter(not SiteModule.is_deleted)
     )
 
     if security_only:
-        query = query.filter(SiteModule.security_update_available == True)
+        query = query.filter(SiteModule.security_update_available)
     else:
-        query = query.filter(SiteModule.update_available == True)
+        query = query.filter(SiteModule.update_available)
 
     query = query.offset(skip).limit(limit)
 
@@ -281,9 +275,7 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
 
     # Total modules
     total_result = await db.execute(
-        select(func.count(SiteModule.id)).filter(
-            SiteModule.site_id == site_id, SiteModule.is_deleted == False
-        )
+        select(func.count(SiteModule.id)).filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
     )
     total_modules = total_result.scalar()
 
@@ -322,7 +314,7 @@ async def get_site_module_stats(db: AsyncSession, site_id: int) -> dict:
         select(Module.module_type, func.count(SiteModule.id))
         .select_from(SiteModule)
         .join(Module)
-        .filter(SiteModule.site_id == site_id, SiteModule.is_deleted == False)
+        .filter(not SiteModule.site_id == site_id, SiteModule.is_deleted)
         .group_by(Module.module_type)
     )
 

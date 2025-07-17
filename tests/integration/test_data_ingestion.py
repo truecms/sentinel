@@ -295,7 +295,7 @@ class TestModuleVersionManagement:
         stmt = (
             select(SiteModule)
             .where(SiteModule.site_id == site.id)
-            .where(SiteModule.update_available == True)
+            .where(SiteModule.update_available)
         )
         result = await db_session.execute(stmt)
         outdated_modules = result.scalars().all()

@@ -5,8 +5,6 @@ from app.api.v1.api import api_router
 from app.api.v1.dependencies.rate_limit import rate_limit_middleware
 from app.core.config import settings
 from app.core.redis import close_redis_pool
-from app.db.session import engine
-from app.models import Base
 
 app = FastAPI(
     title="Monitoring API",

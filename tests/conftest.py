@@ -1,18 +1,12 @@
 import asyncio
-import itertools
 import os
 import time
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import select, text
@@ -21,7 +15,6 @@ from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash
 from app.db.base_class import Base
 from app.db.session import get_db
-from app.main import app
 from app.models.organization import Organization
 from app.models.user import User
 
