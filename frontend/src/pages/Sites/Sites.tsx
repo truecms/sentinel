@@ -87,14 +87,14 @@ export const Sites: React.FC = () => {
   // Load data on dependency changes
   useEffect(() => {
     loadSites()
-  }, [debouncedSearch, sortBy, sortOrder, currentPage, itemsPerPage, loadSites])
+  }, [loadSites])
 
   // Reset to first page when search or sort changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [debouncedSearch, sortBy, sortOrder, currentPage])
+  }, [debouncedSearch, sortBy, sortOrder])
 
   // Table columns configuration
   const columns: TableColumn[] = useMemo(() => [
