@@ -77,15 +77,20 @@ export function useWebSocketConnection() {
 export function useWebSocketSubscription(
   channel: string,
   callback: SubscriptionCallback,
-  dependencies: any[] = []
+  dependencies: React.DependencyList = []
 ) {
   const callbackRef = useRef(callback);
   const { isConnected } = useWebSocketConnection();
 
-  // Update callback ref when dependencies change
+  // Update callback ref when callback changes
   useEffect(() => {
     callbackRef.current = callback;
-  }, dependencies);
+  }, [callback]);
+  
+  // React to dependency changes
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, dependencies); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isConnected || !channel) {
@@ -93,7 +98,7 @@ export function useWebSocketSubscription(
     }
 
     // Wrap callback to use current ref
-    const wrappedCallback = (data: any) => {
+    const wrappedCallback = (data: unknown) => {
       callbackRef.current(data);
     };
 
@@ -106,7 +111,7 @@ export function useWebSocketSubscription(
 
 // Hook for dashboard metrics updates
 export function useDashboardMetrics(orgId?: number) {
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,13 +119,15 @@ export function useDashboardMetrics(orgId?: number) {
     ? DashboardChannel.ORG_METRICS.replace('{}', orgId.toString())
     : DashboardChannel.METRIC_UPDATES;
 
-  const handleMetricsUpdate = useCallback((data: any) => {
-    setMetrics(prevMetrics => ({
-      ...prevMetrics,
-      ...data,
-    }));
-    setLoading(false);
-    setError(null);
+  const handleMetricsUpdate = useCallback((data: unknown) => {
+    if (typeof data === 'object' && data !== null) {
+      setMetrics(prevMetrics => ({
+        ...prevMetrics,
+        ...(data as Record<string, unknown>),
+      }));
+      setLoading(false);
+      setError(null);
+    }
   }, []);
 
   useWebSocketSubscription(channel, handleMetricsUpdate, []);
@@ -130,10 +137,10 @@ export function useDashboardMetrics(orgId?: number) {
 
 // Hook for security alerts
 export function useSecurityAlerts() {
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<unknown[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleSecurityAlert = useCallback((alert: any) => {
+  const handleSecurityAlert = useCallback((alert: unknown) => {
     setAlerts(prev => [alert, ...prev.slice(0, 49)]); // Keep last 50 alerts
     setUnreadCount(prev => prev + 1);
   }, []);
@@ -159,12 +166,12 @@ export function useSecurityAlerts() {
 
 // Hook for site status updates
 export function useSiteStatus(siteId: number) {
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<unknown>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   const channel = DashboardChannel.SITE_STATUS.replace('{}', siteId.toString());
 
-  const handleStatusUpdate = useCallback((data: any) => {
+  const handleStatusUpdate = useCallback((data: unknown) => {
     setStatus(data);
     setLastUpdate(new Date());
   }, []);
@@ -176,12 +183,12 @@ export function useSiteStatus(siteId: number) {
 
 // Hook for site module updates
 export function useSiteModules(siteId: number) {
-  const [modules, setModules] = useState<any[]>([]);
+  const [modules, setModules] = useState<unknown[]>([]);
   const [pendingUpdates, setPendingUpdates] = useState(0);
 
   const channel = DashboardChannel.SITE_MODULES.replace('{}', siteId.toString());
 
-  const handleModuleUpdate = useCallback((data: any) => {
+  const handleModuleUpdate = useCallback((data: unknown) => {
     if (data.type === 'module_updated') {
       setModules(prev => 
         prev.map(module => 
@@ -201,10 +208,10 @@ export function useSiteModules(siteId: number) {
 
 // Hook for real-time notifications
 export function useRealTimeNotifications() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<unknown[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleNotification = useCallback((notification: any) => {
+  const handleNotification = useCallback((notification: unknown) => {
     setNotifications(prev => [notification, ...prev.slice(0, 99)]); // Keep last 100
     setUnreadCount(prev => prev + 1);
   }, []);
@@ -232,12 +239,12 @@ export function useRealTimeNotifications() {
 
 // Hook for organization activity
 export function useOrganizationActivity(orgId: number) {
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   const channel = DashboardChannel.ORG_ACTIVITY.replace('{}', orgId.toString());
 
-  const handleActivityUpdate = useCallback((data: any) => {
+  const handleActivityUpdate = useCallback((data: unknown) => {
     if (data.type === 'activity_added') {
       setActivities(prev => [data.activity, ...prev.slice(0, 49)]); // Keep last 50
     } else if (data.type === 'activities_sync') {
@@ -253,10 +260,10 @@ export function useOrganizationActivity(orgId: number) {
 
 // Hook for system status
 export function useSystemStatus() {
-  const [status, setStatus] = useState<any>(null);
+  const [status, setStatus] = useState<unknown>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const handleStatusUpdate = useCallback((data: any) => {
+  const handleStatusUpdate = useCallback((data: unknown) => {
     setStatus(data);
     setLastUpdate(new Date());
   }, []);

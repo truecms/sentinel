@@ -8,6 +8,12 @@ from app.models.module_version import ModuleVersion
 from app.models.site_module import SiteModule
 from app.schemas.module import ModuleCreate, ModuleUpdate
 
+# Define allowed sort fields for validation
+ALLOWED_MODULE_SORT_FIELDS = [
+    'machine_name', 'display_name', 'module_type', 
+    'is_covered', 'created_at', 'updated_at'
+]
+
 
 async def get_module(db: AsyncSession, module_id: int) -> Optional[Module]:
     """Get module by ID."""
@@ -34,6 +40,10 @@ async def get_modules(
     sort_order: str = "asc"
 ) -> tuple[List[Module], int]:
     """Get modules with filtering, pagination, and search."""
+    
+    # Validate sort field first to avoid unnecessary database queries
+    if sort_by not in ALLOWED_MODULE_SORT_FIELDS:
+        raise ValueError(f"Invalid sort field: {sort_by}. Allowed fields: {', '.join(ALLOWED_MODULE_SORT_FIELDS)}")
     
     # Base query
     query = select(Module).filter(Module.is_deleted == False)
@@ -74,7 +84,7 @@ async def get_modules(
             count_query = count_query.filter(~Module.id.in_(security_subquery))
     
     # Apply sorting
-    sort_field = getattr(Module, sort_by, Module.display_name)
+    sort_field = getattr(Module, sort_by)
     if sort_order == "desc":
         query = query.order_by(sort_field.desc())
     else:

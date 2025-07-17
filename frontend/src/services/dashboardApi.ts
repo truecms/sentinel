@@ -62,7 +62,11 @@ export const dashboardApi = {
   },
 
   // Get risk matrix data
-  getRiskMatrix: async (orgId?: number, limit = 10): Promise<any> => {
+  getRiskMatrix: async (orgId?: number, limit = 10): Promise<{
+    data: Array<Array<{ value: number; label: string; severity: string }>>;
+    xAxis: string[];
+    yAxis: string[];
+  }> => {
     const params = { limit, ...(orgId && { org_id: orgId }) };
     const response = await apiClient.get('/risk-matrix', { params });
     return response.data;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Globe, Search, Plus, ExternalLinkIcon } from 'lucide-react'
-import { Button, Input, Badge, Table, Pagination } from '../../components/common'
+import { Button, Input, Badge, Table, Pagination, ErrorBoundary } from '../../components/common'
 import { sitesApi, type SiteOverview, type SitesOverviewParams } from '../../services/sitesApi'
 import { type TableColumn } from '../../components/common/Table'
 
@@ -94,7 +94,7 @@ export const Sites: React.FC = () => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [debouncedSearch, sortBy, sortOrder])
+  }, [debouncedSearch, sortBy, sortOrder]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Table columns configuration
   const columns: TableColumn[] = useMemo(() => [
@@ -271,14 +271,16 @@ export const Sites: React.FC = () => {
       )}
 
       {/* Sites Table */}
-      <Table
-        columns={columns}
-        data={sites}
-        loading={loading}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={handleSort}
-      />
+      <ErrorBoundary>
+        <Table
+          columns={columns}
+          data={sites}
+          loading={loading}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+        />
+      </ErrorBoundary>
 
       {/* Pagination - only show if there are multiple pages */}
       {!loading && sites.length > 0 && totalPages > 1 && (

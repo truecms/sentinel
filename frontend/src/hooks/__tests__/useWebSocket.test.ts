@@ -6,7 +6,7 @@ import React from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
-import { toast } from 'react-hot-toast'
+// import { toast } from 'react-hot-toast' // Commented out - not used in tests
 import { useWebSocketConnection, useWebSocketSubscription, useDashboardMetrics } from '../useWebSocket'
 import { websocketService } from '@services/websocket'
 import authSlice from '@features/auth/authSlice'
@@ -56,7 +56,7 @@ describe('useWebSocketConnection', () => {
     mockWebSocketService.onError.mockReturnValue(jest.fn())
     mockWebSocketService.getConnectionStatus.mockReturnValue('connected')
 
-    const { result } = renderHook(() => useWebSocketConnection(), {
+    renderHook(() => useWebSocketConnection(), {
       wrapper: createWrapper(true),
     })
 
@@ -247,7 +247,7 @@ describe('useDashboardMetrics', () => {
   })
 
   it('should handle metrics updates', () => {
-    let capturedCallback: any
+    let capturedCallback: ((data: unknown) => void) | undefined
     const mockUnsubscribe = jest.fn()
     mockWebSocketService.subscribe.mockImplementation((channel, callback) => {
       capturedCallback = callback
@@ -283,7 +283,7 @@ describe('useDashboardMetrics', () => {
   })
 
   it('should update metrics incrementally', () => {
-    let capturedCallback: any
+    let capturedCallback: ((data: unknown) => void) | undefined
     const mockUnsubscribe = jest.fn()
     mockWebSocketService.subscribe.mockImplementation((channel, callback) => {
       capturedCallback = callback

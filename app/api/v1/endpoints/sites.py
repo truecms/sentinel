@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, schemas
 from app.api import deps
-from app.crud import crud_site_module, crud_module, crud_module_version
+from app.crud import crud_site, crud_site_module, crud_module, crud_module_version
 from app.models.user import User
 from app.schemas.site_module import (
     SiteModuleCreate,
@@ -22,9 +22,11 @@ from app.api.v1.dependencies.rate_limit import check_rate_limit
 from app.services.cache import ModuleCacheService
 from app.services.update_detector import UpdateDetector
 from app.tasks.sync_tasks import sync_site_modules_task
+from app.core.config import settings
 import json
 
 router = APIRouter()
+
 
 @router.get("/", response_model=List[schemas.SiteResponse])
 async def read_sites(
@@ -34,10 +36,11 @@ async def read_sites(
     current_user: schemas.UserResponse = Depends(deps.get_current_user)
 ):
     """Retrieve sites."""
-    sites = await crud.get_sites(db, skip=skip, limit=limit)
+    sites = await crud_site.get_sites(db, skip=skip, limit=limit)
     return sites
 
-@router.post("/", response_model=schemas.SiteResponse)
+
+@router.post("/", response_model=schemas.SiteResponse, status_code=status.HTTP_201_CREATED)
 async def create_site(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -45,18 +48,19 @@ async def create_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user)
 ):
     """Create new site."""
-    site = await crud.get_site_by_url(db, url=site_in.url)
+    site = await crud_site.get_site_by_url(db, url=site_in.url)
     if site:
         raise HTTPException(
-            status_code=400,
+            status_code=409,
             detail="The site with this URL already exists."
         )
-    site = await crud.create_site(
+    site = await crud_site.create_site(
         db=db,
         site=site_in,
         created_by=current_user.id
     )
     return site
+
 
 @router.get("/overview", response_model=SitesOverviewResponse)
 async def get_sites_overview(
@@ -83,24 +87,31 @@ async def get_sites_overview(
         filters['search'] = search
     
     # Get sites with overview data
-    sites_data, total = await crud.get_sites_overview(
-        db=db,
-        user=current_user,
-        skip=skip,
-        limit=limit,
-        search=search,
-        sort_by=sort_by,
-        sort_order=sort_order
-    )
+    try:
+        sites_data, total = await crud_site.get_sites_overview(
+            db=db,
+            user=current_user,
+            skip=skip,
+            limit=limit,
+            search=search,
+            sort_by=sort_by,
+            sort_order=sort_order
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
     
     # Convert to response format
     site_overviews = []
     for site in sites_data:
-        # Calculate status based on security score and updates
+        # Calculate status based on security score and updates using configurable thresholds
         status = "healthy"
         if site.security_updates_count > 0:
             status = "critical"
-        elif site.security_score < 70 or site.non_security_updates_count > 10:
+        elif (site.security_score < settings.SECURITY_SCORE_CRITICAL_THRESHOLD or 
+              site.non_security_updates_count > settings.NON_SECURITY_UPDATES_WARNING_THRESHOLD):
             status = "warning"
         
         overview = SiteOverview(
@@ -149,7 +160,7 @@ async def read_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user)
 ):
     """Get a specific site by id."""
-    site = await crud.get_site(db, site_id=site_id)
+    site = await crud_site.get_site(db, site_id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
     return site
@@ -163,10 +174,10 @@ async def update_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user)
 ):
     """Update a site."""
-    site = await crud.get_site(db, site_id=site_id)
+    site = await crud_site.get_site(db, site_id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
-    site = await crud.update_site(
+    site = await crud_site.update_site(
         db=db,
         site_id=site_id,
         site=site_in,
@@ -174,7 +185,7 @@ async def update_site(
     )
     return site
 
-@router.delete("/{site_id}", response_model=schemas.SiteResponse)
+@router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_site(
     *,
     db: AsyncSession = Depends(deps.get_db),
@@ -182,15 +193,14 @@ async def delete_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user)
 ):
     """Delete a site."""
-    site = await crud.get_site(db, site_id=site_id)
+    site = await crud_site.get_site(db, site_id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
-    site = await crud.delete_site(
+    await crud_site.delete_site(
         db=db,
         site_id=site_id,
         updated_by=current_user.id
     )
-    return site
 
 # Site Module Endpoints
 
@@ -213,7 +223,7 @@ async def get_site_modules(
     - **enabled_only**: Show only enabled modules
     """
     # Check if site exists and user has access
-    site = await crud.get_site(db, site_id)
+    site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -346,7 +356,7 @@ async def sync_site_modules(
     - 429: Rate limit exceeded
     """
     # Check if site exists and user has access
-    site = await crud.get_site(db, site_id)
+    site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -528,7 +538,7 @@ async def sync_site_modules(
     site_update = schemas.SiteUpdate(
         name=payload.site.name  # Update site name if changed
     )
-    await crud.update_site(db, site_id, site_update, current_user.id)
+    await crud_site.update_site(db, site_id, site_update, current_user.id)
     
     return ModuleSyncResult(
         site_id=site_id,
@@ -553,7 +563,7 @@ async def update_site_module(
     Update a site-module relationship (e.g., version, enabled status).
     """
     # Check if site exists and user has access
-    site = await crud.get_site(db, site_id)
+    site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -663,7 +673,7 @@ async def remove_site_module(
     Remove a module from a site.
     """
     # Check if site exists and user has access
-    site = await crud.get_site(db, site_id)
+    site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -696,7 +706,7 @@ async def get_site_module_stats(
     Get statistics for modules on a site.
     """
     # Check if site exists and user has access
-    site = await crud.get_site(db, site_id)
+    site = await crud_site.get_site(db, site_id)
     if not site:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

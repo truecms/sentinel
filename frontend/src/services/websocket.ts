@@ -35,7 +35,7 @@ export enum DashboardChannel {
 export interface WebSocketMessage {
   type: MessageType;
   timestamp: string;
-  data?: any;
+  data?: unknown;
   channel?: string;
 }
 
@@ -46,12 +46,12 @@ export interface SubscriptionMessage {
 
 export interface BroadcastMessage {
   channel: string;
-  data: any;
+  data: unknown;
   timestamp: string;
 }
 
 // Callback types
-export type SubscriptionCallback = (data: any) => void;
+export type SubscriptionCallback = (data: unknown) => void;
 export type ConnectionCallback = (connected: boolean) => void;
 export type ErrorCallback = (error: string) => void;
 
@@ -285,17 +285,24 @@ export class WebSocketService {
   /**
    * Handle direct messages
    */
-  private handleDirectMessage(data: any): void {
+  private handleDirectMessage(data: unknown): void {
     // Handle direct messages like notifications
-    if (data.type === 'notification') {
+    if (this.isNotification(data)) {
       this.showNotification(data);
     }
+  }
+
+  private isNotification(data: unknown): data is { type: string; title: string; message: string; severity?: string } {
+    return typeof data === 'object' && 
+           data !== null && 
+           'type' in data && 
+           (data as Record<string, unknown>).type === 'notification';
   }
 
   /**
    * Handle channel messages
    */
-  private handleChannelMessage(channel: string, data: any): void {
+  private handleChannelMessage(channel: string, data: unknown): void {
     const callbacks = this.subscriptions.get(channel);
     if (callbacks) {
       callbacks.forEach(callback => {
@@ -311,7 +318,7 @@ export class WebSocketService {
   /**
    * Send message to server
    */
-  private sendMessage(message: any): void {
+  private sendMessage(message: unknown): void {
     if (this.isConnected()) {
       this.ws!.send(JSON.stringify(message));
     }
@@ -408,7 +415,7 @@ export class WebSocketService {
   /**
    * Show notification
    */
-  private showNotification(notification: any): void {
+  private showNotification(notification: { type: string; title: string; message: string; severity?: string }): void {
     const { title, message, severity = 'info' } = notification;
     
     switch (severity) {

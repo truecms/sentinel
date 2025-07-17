@@ -19,7 +19,7 @@ import {
   RiskHeatmap 
 } from '../../components/dashboard/charts'
 import type { 
-  ModuleStatus, 
+  // ModuleStatus, // Currently unused - using ModuleStatusItem from API
   TimeSeriesData, 
   RiskData,
   DashboardOverview 
@@ -31,35 +31,35 @@ import type { ModuleStatusItem } from '../../services/modulesApi'
 import { toast } from 'react-hot-toast'
 
 // Mock data for demo purposes
-const mockModules: ModuleStatus[] = [
-  {
-    id: '1',
-    name: 'views',
-    currentVersion: '8.9.20',
-    latestVersion: '8.10.1',
-    securityUpdate: true,
-    lastUpdated: new Date('2024-01-15'),
-    sites: 45,
-  },
-  {
-    id: '2',
-    name: 'token',
-    currentVersion: '8.9.20',
-    latestVersion: '8.9.20',
-    securityUpdate: false,
-    lastUpdated: new Date('2024-01-10'),
-    sites: 38,
-  },
-  {
-    id: '3',
-    name: 'pathauto',
-    currentVersion: '8.9.18',
-    latestVersion: '8.9.20',
-    securityUpdate: false,
-    lastUpdated: new Date('2024-01-05'),
-    sites: 42,
-  },
-]
+// const mockModules: ModuleStatus[] = [
+//   {
+//     id: '1',
+//     name: 'views',
+//     currentVersion: '8.9.20',
+//     latestVersion: '8.10.1',
+//     securityUpdate: true,
+//     lastUpdated: new Date('2024-01-15'),
+//     sites: 45,
+//   },
+//   {
+//     id: '2',
+//     name: 'token',
+//     currentVersion: '8.9.20',
+//     latestVersion: '8.9.20',
+//     securityUpdate: false,
+//     lastUpdated: new Date('2024-01-10'),
+//     sites: 38,
+//   },
+//   {
+//     id: '3',
+//     name: 'pathauto',
+//     currentVersion: '8.9.18',
+//     latestVersion: '8.9.20',
+//     securityUpdate: false,
+//     lastUpdated: new Date('2024-01-05'),
+//     sites: 42,
+//   },
+// ]
 
 const mockTimelineData: TimeSeriesData[] = [
   { timestamp: new Date('2024-01-01'), value: 95, label: 'Security Score' },
@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<'day' | 'week' | 'month'>('week')
   const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null)
   const [moduleData, setModuleData] = useState<ModuleStatusItem[]>([])
-  const [moduleLoading, setModuleLoading] = useState(true)
+  // const [moduleLoading, setModuleLoading] = useState(true) // Currently unused
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [moduleFilters, setModuleFilters] = useState<{ searchTerm?: string; securityOnly?: boolean }>({ 
@@ -101,7 +101,11 @@ export const Dashboard: React.FC = () => {
     securityOnly: false 
   })
   const [modulePage, setModulePage] = useState(1)
-  const [riskMatrixData, setRiskMatrixData] = useState<any>(null)
+  const [riskMatrixData, setRiskMatrixData] = useState<{
+    data: RiskData[][];
+    xAxis: string[];
+    yAxis: string[];
+  } | null>(null)
   const [riskMatrixLoading, setRiskMatrixLoading] = useState(true)
 
   // WebSocket connection and real-time data
@@ -149,8 +153,8 @@ export const Dashboard: React.FC = () => {
     
     const loadModuleData = async () => {
       try {
-        setModuleLoading(true)
-        const params: any = { 
+        // setModuleLoading(true)
+        const params: Record<string, string | number | boolean> = { 
           page: modulePage,
           page_size: 10 
         }
@@ -172,7 +176,7 @@ export const Dashboard: React.FC = () => {
         }
       } finally {
         if (!isCancelled) {
-          setModuleLoading(false)
+          // setModuleLoading(false)
         }
       }
     }
@@ -414,7 +418,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <TimelineChart
-            data={dashboardData?.trends?.security_score?.map((point: any) => ({
+            data={dashboardData?.trends?.security_score?.map((point) => ({
               ...point,
               label: 'Security Score'
             })) || mockTimelineData}

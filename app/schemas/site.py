@@ -23,12 +23,26 @@ class SiteUpdate(BaseModel):
 
 class SiteInDBBase(SiteBase):
     id: int
+    site_uuid: Optional[str] = None
+    api_token: Optional[str] = None
+    drupal_core_version: Optional[str] = None
+    php_version: Optional[str] = None
+    database_type: Optional[str] = None
+    database_version: Optional[str] = None
+    server_info: Optional[dict] = None
+    last_check: Optional[datetime] = None
+    security_score: Optional[int] = 0
+    total_modules_count: Optional[int] = 0
+    security_updates_count: Optional[int] = 0
+    non_security_updates_count: Optional[int] = 0
+    last_data_push: Optional[datetime] = None
+    last_drupal_org_check: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     is_active: bool
     is_deleted: bool
-    created_by: int
-    updated_by: int
+    created_by: Optional[int] = None
+    updated_by: Optional[int] = None
 
     class Config:
         from_attributes = True

@@ -10,6 +10,7 @@ class Site(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     url = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=True)
     site_uuid = Column(String(36), nullable=True)
     api_token = Column(String(255), nullable=True)
     drupal_core_version = Column(String(50), nullable=True)
