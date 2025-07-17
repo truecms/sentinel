@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Globe, Search, Plus, ExternalLinkIcon } from 'lucide-react'
 import { Button, Input, Badge, Table, Pagination } from '../../components/common'
 import { sitesApi, type SiteOverview, type SitesOverviewParams } from '../../services/sitesApi'
@@ -59,7 +59,7 @@ export const Sites: React.FC = () => {
   }, [search])
 
   // Load sites data
-  const loadSites = async () => {
+  const loadSites = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -82,19 +82,19 @@ export const Sites: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, itemsPerPage, debouncedSearch, sortBy, sortOrder])
 
   // Load data on dependency changes
   useEffect(() => {
     loadSites()
-  }, [debouncedSearch, sortBy, sortOrder, currentPage, itemsPerPage])
+  }, [debouncedSearch, sortBy, sortOrder, currentPage, itemsPerPage, loadSites])
 
   // Reset to first page when search or sort changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [debouncedSearch, sortBy, sortOrder])
+  }, [debouncedSearch, sortBy, sortOrder, currentPage])
 
   // Table columns configuration
   const columns: TableColumn[] = useMemo(() => [

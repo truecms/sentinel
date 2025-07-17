@@ -7,12 +7,12 @@ export interface TableColumn {
   label: string
   sortable?: boolean
   tooltip?: string
-  render?: (value: any, row: any) => React.ReactNode
+  render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode
 }
 
 export interface TableProps {
   columns: TableColumn[]
-  data: any[]
+  data: Record<string, unknown>[]
   loading?: boolean
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
