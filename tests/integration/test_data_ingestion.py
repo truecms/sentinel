@@ -234,7 +234,7 @@ class TestDataIngestionWorkflow:
 
         # In a real implementation, we would measure sync time
         # and ensure it's under performance thresholds
-    # expected_max_time_per_site = 5.0  # seconds
+        # expected_max_time_per_site = 5.0  # seconds
         total_modules = sum(len(req["modules"]) for req in bulk_sync_requests)
 
         # Performance assertion (theoretical)
@@ -289,7 +289,7 @@ class TestModuleVersionManagement:
     ):
         """Test detection of available version updates."""
         site = site_with_outdated_modules["site"]
-    # site_modules = site_with_outdated_modules["site_modules"]
+        # site_modules = site_with_outdated_modules["site_modules"]
 
         # Query to find modules with updates available
         stmt = (

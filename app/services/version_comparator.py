@@ -7,7 +7,6 @@ Implements comparison logic following Drupal version conventions.
 from typing import Dict, List, Optional, Tuple
 
 
-
 class VersionComparator:
     """Service for comparing Drupal module versions."""
 

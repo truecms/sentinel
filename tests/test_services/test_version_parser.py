@@ -2,6 +2,7 @@
 
 import pytest
 
+from app.services.version_parser import DrupalVersionParser, ReleaseType
 
 
 class TestVersionParser:
