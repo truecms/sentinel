@@ -5,16 +5,18 @@ Tests for site pagination and filtering.
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.site import Site
+
 from app.models.organization import Organization
+from app.models.site import Site
 
 pytestmark = pytest.mark.asyncio
+
 
 async def test_get_sites_pagination(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test site list pagination."""
     # Create multiple test sites
@@ -25,15 +27,14 @@ async def test_get_sites_pagination(
             description=f"Test site {i}",
             organization_id=test_organization.id,
             is_active=True,
-            is_deleted=False
+            is_deleted=False,
         )
         db_session.add(site)
     await db_session.commit()
 
     # Test first page
     response = await client.get(
-        "/api/v1/sites/?skip=0&limit=10",
-        headers=superuser_token_headers
+        "/api/v1/sites/?skip=0&limit=10", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
@@ -41,19 +42,19 @@ async def test_get_sites_pagination(
 
     # Test second page
     response = await client.get(
-        "/api/v1/sites/?skip=10&limit=10",
-        headers=superuser_token_headers
+        "/api/v1/sites/?skip=10&limit=10", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
     assert len(data) > 0
     assert len(data) <= 10
 
+
 async def test_get_sites_filter_active(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test filtering sites by active status."""
     # Create active and inactive sites
@@ -63,7 +64,7 @@ async def test_get_sites_filter_active(
         description="Active test site",
         organization_id=test_organization.id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
     )
     inactive_site = Site(
         name="Inactive Site",
@@ -71,7 +72,7 @@ async def test_get_sites_filter_active(
         description="Inactive test site",
         organization_id=test_organization.id,
         is_active=False,
-        is_deleted=False
+        is_deleted=False,
     )
     db_session.add(active_site)
     db_session.add(inactive_site)
@@ -79,8 +80,7 @@ async def test_get_sites_filter_active(
 
     # Test filtering active sites
     response = await client.get(
-        "/api/v1/sites/?is_active=true",
-        headers=superuser_token_headers
+        "/api/v1/sites/?is_active=true", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
@@ -88,18 +88,18 @@ async def test_get_sites_filter_active(
 
     # Test filtering inactive sites
     response = await client.get(
-        "/api/v1/sites/?is_active=false",
-        headers=superuser_token_headers
+        "/api/v1/sites/?is_active=false", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
     assert all(not site["is_active"] for site in data)
 
+
 async def test_get_sites_filter_organization(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test filtering sites by organization."""
     # Create sites in different organizations
@@ -110,24 +110,25 @@ async def test_get_sites_filter_organization(
             description=f"Organization site {i}",
             organization_id=test_organization.id + i,
             is_active=True,
-            is_deleted=False
+            is_deleted=False,
         )
         db_session.add(site)
     await db_session.commit()
 
     response = await client.get(
         f"/api/v1/sites/?organization_id={test_organization.id}",
-        headers=superuser_token_headers
+        headers=superuser_token_headers,
     )
     assert response.status_code == 200
     data = response.json()
     assert all(site["organization_id"] == test_organization.id for site in data)
 
+
 async def test_get_sites_search(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test searching sites by name or URL."""
     # Create sites with specific names and URLs
@@ -137,7 +138,7 @@ async def test_get_sites_search(
         description="Site for search testing",
         organization_id=test_organization.id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
     )
     other_site = Site(
         name="Other Site",
@@ -145,7 +146,7 @@ async def test_get_sites_search(
         description="Another site",
         organization_id=test_organization.id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
     )
     db_session.add(search_site)
     db_session.add(other_site)
@@ -153,8 +154,7 @@ async def test_get_sites_search(
 
     # Test searching by name
     response = await client.get(
-        "/api/v1/sites/?search=Searchable",
-        headers=superuser_token_headers
+        "/api/v1/sites/?search=Searchable", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
@@ -163,19 +163,19 @@ async def test_get_sites_search(
 
     # Test searching by URL
     response = await client.get(
-        "/api/v1/sites/?search=searchable.example",
-        headers=superuser_token_headers
+        "/api/v1/sites/?search=searchable.example", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
     assert len(data) > 0
     assert any("searchable.example" in site["url"] for site in data)
 
+
 async def test_get_sites_combined_filters(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test combining multiple filters."""
     # Create various sites
@@ -185,7 +185,7 @@ async def test_get_sites_combined_filters(
         description="Active site in organization",
         organization_id=test_organization.id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
     )
     site2 = Site(
         name="Inactive Org Site",
@@ -193,7 +193,7 @@ async def test_get_sites_combined_filters(
         description="Inactive site in organization",
         organization_id=test_organization.id,
         is_active=False,
-        is_deleted=False
+        is_deleted=False,
     )
     db_session.add(site1)
     db_session.add(site2)
@@ -202,17 +202,21 @@ async def test_get_sites_combined_filters(
     # Test combining organization and active status filters
     response = await client.get(
         f"/api/v1/sites/?organization_id={test_organization.id}&is_active=true",
-        headers=superuser_token_headers
+        headers=superuser_token_headers,
     )
     assert response.status_code == 200
     data = response.json()
-    assert all(site["organization_id"] == test_organization.id and site["is_active"] for site in data)
+    assert all(
+        site["organization_id"] == test_organization.id and site["is_active"]
+        for site in data
+    )
+
 
 async def test_get_sites_sort(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test sorting sites by various fields."""
     # Create sites with different names and creation times
@@ -223,7 +227,7 @@ async def test_get_sites_sort(
             description="Site A description",
             organization_id=test_organization.id,
             is_active=True,
-            is_deleted=False
+            is_deleted=False,
         ),
         Site(
             name="Site B",
@@ -231,8 +235,8 @@ async def test_get_sites_sort(
             description="Site B description",
             organization_id=test_organization.id,
             is_active=True,
-            is_deleted=False
-        )
+            is_deleted=False,
+        ),
     ]
     for site in sites:
         db_session.add(site)
@@ -240,8 +244,7 @@ async def test_get_sites_sort(
 
     # Test sorting by name ascending
     response = await client.get(
-        "/api/v1/sites/?sort=name",
-        headers=superuser_token_headers
+        "/api/v1/sites/?sort=name", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
@@ -250,10 +253,9 @@ async def test_get_sites_sort(
 
     # Test sorting by name descending
     response = await client.get(
-        "/api/v1/sites/?sort=-name",
-        headers=superuser_token_headers
+        "/api/v1/sites/?sort=-name", headers=superuser_token_headers
     )
     assert response.status_code == 200
     data = response.json()
     names = [site["name"] for site in data]
-    assert names == sorted(names, reverse=True) 
+    assert names == sorted(names, reverse=True)

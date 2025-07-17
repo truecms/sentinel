@@ -1,15 +1,16 @@
 """Tests for WebSocket functionality."""
 
 import asyncio
-import pytest
 import json
-from unittest.mock import Mock, patch, AsyncMock
-from fastapi.testclient import TestClient
-from fastapi import WebSocket
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+from fastapi import WebSocket
+from fastapi.testclient import TestClient
+
+from app.api.v1.endpoints.ws import can_access_channel, get_websocket_user
+from app.core.websocket import ConnectionManager, manager
 from app.main import app
-from app.core.websocket import manager, ConnectionManager
-from app.api.v1.endpoints.ws import get_websocket_user, can_access_channel
 from app.models.user import User
 
 
@@ -38,13 +39,13 @@ class TestConnectionManager:
         """Test connecting a WebSocket."""
         mock_websocket = AsyncMock()
         user_id = "1"
-        
+
         await connection_manager.connect(mock_websocket, user_id)
-        
+
         # Verify WebSocket was accepted
         mock_websocket.accept.assert_called_once()
         mock_websocket.send_json.assert_called_once()
-        
+
         # Verify connection was registered
         assert user_id in connection_manager.active_connections
         assert mock_websocket in connection_manager.active_connections[user_id]
@@ -55,16 +56,16 @@ class TestConnectionManager:
         """Test disconnecting a WebSocket."""
         mock_websocket = AsyncMock()
         user_id = "1"
-        
+
         # Connect first
         await connection_manager.connect(mock_websocket, user_id)
-        
+
         # Subscribe to a channel
         await connection_manager.subscribe(mock_websocket, "test.channel")
-        
+
         # Disconnect
         await connection_manager.disconnect(mock_websocket, user_id)
-        
+
         # Verify cleanup
         assert user_id not in connection_manager.active_connections
         assert mock_websocket not in connection_manager.user_subscriptions
@@ -76,17 +77,17 @@ class TestConnectionManager:
         mock_websocket = AsyncMock()
         user_id = "1"
         channel = "security.alerts"
-        
+
         # Connect first
         await connection_manager.connect(mock_websocket, user_id)
-        
+
         # Subscribe
         await connection_manager.subscribe(mock_websocket, channel)
-        
+
         # Verify subscription
         assert channel in connection_manager.user_subscriptions[mock_websocket]
         assert mock_websocket in connection_manager.channel_subscribers[channel]
-        
+
         # Verify confirmation was sent
         assert mock_websocket.send_json.call_count == 2  # connect + subscribe
         subscribe_call = mock_websocket.send_json.call_args_list[1][0][0]
@@ -102,22 +103,26 @@ class TestConnectionManager:
         user_id2 = "2"
         channel = "security.alerts"
         message = {"type": "alert", "data": "test"}
-        
+
         # Connect both WebSockets
         await connection_manager.connect(mock_websocket1, user_id1)
         await connection_manager.connect(mock_websocket2, user_id2)
-        
+
         # Subscribe both to the same channel
         await connection_manager.subscribe(mock_websocket1, channel)
         await connection_manager.subscribe(mock_websocket2, channel)
-        
+
         # Broadcast message
         await connection_manager.broadcast_to_channel(channel, message)
-        
+
         # Verify both received the message
-        assert mock_websocket1.send_json.call_count == 3  # connect + subscribe + broadcast
-        assert mock_websocket2.send_json.call_count == 3  # connect + subscribe + broadcast
-        
+        assert (
+            mock_websocket1.send_json.call_count == 3
+        )  # connect + subscribe + broadcast
+        assert (
+            mock_websocket2.send_json.call_count == 3
+        )  # connect + subscribe + broadcast
+
         # Check broadcast message format
         broadcast_call = mock_websocket1.send_json.call_args_list[2][0][0]
         assert broadcast_call["channel"] == channel
@@ -130,18 +135,18 @@ class TestConnectionManager:
         mock_websocket2 = AsyncMock()
         user_id = "1"
         message = {"type": "notification", "data": "test"}
-        
+
         # Connect both WebSockets for same user
         await connection_manager.connect(mock_websocket1, user_id)
         await connection_manager.connect(mock_websocket2, user_id)
-        
+
         # Send message to user
         await connection_manager.send_to_user(user_id, message)
-        
+
         # Verify both connections received the message
         assert mock_websocket1.send_json.call_count == 2  # connect + direct message
         assert mock_websocket2.send_json.call_count == 2  # connect + direct message
-        
+
         # Check direct message format
         direct_call = mock_websocket1.send_json.call_args_list[1][0][0]
         assert direct_call["type"] == "direct"
@@ -150,21 +155,21 @@ class TestConnectionManager:
     def test_connection_count(self, connection_manager):
         """Test getting connection count."""
         assert connection_manager.get_connection_count() == 0
-        
+
         # Add connections
         connection_manager.active_connections["1"] = {Mock(), Mock()}
         connection_manager.active_connections["2"] = {Mock()}
-        
+
         assert connection_manager.get_connection_count() == 3
 
     def test_channel_subscriber_count(self, connection_manager):
         """Test getting channel subscriber count."""
         channel = "test.channel"
         assert connection_manager.get_channel_subscriber_count(channel) == 0
-        
+
         # Add subscribers
         connection_manager.channel_subscribers[channel] = {Mock(), Mock(), Mock()}
-        
+
         assert connection_manager.get_channel_subscriber_count(channel) == 3
 
 
@@ -174,14 +179,15 @@ class TestWebSocketEndpoints:
     @pytest.mark.asyncio
     async def test_get_websocket_user_valid_token(self, mock_user):
         """Test getting user from valid token."""
-        with patch('app.api.v1.endpoints.ws.jwt.decode') as mock_jwt_decode, \
-             patch('app.api.v1.endpoints.ws.deps.get_user_by_id') as mock_get_user:
-            
+        with patch("app.api.v1.endpoints.ws.jwt.decode") as mock_jwt_decode, patch(
+            "app.api.v1.endpoints.ws.deps.get_user_by_id"
+        ) as mock_get_user:
+
             mock_jwt_decode.return_value = {"sub": "1"}
             mock_get_user.return_value = mock_user
-            
+
             user = await get_websocket_user("valid_token", Mock())
-            
+
             assert user == mock_user
             mock_jwt_decode.assert_called_once()
             mock_get_user.assert_called_once()
@@ -189,11 +195,11 @@ class TestWebSocketEndpoints:
     @pytest.mark.asyncio
     async def test_get_websocket_user_invalid_token(self):
         """Test getting user from invalid token."""
-        with patch('app.api.v1.endpoints.ws.jwt.decode') as mock_jwt_decode:
+        with patch("app.api.v1.endpoints.ws.jwt.decode") as mock_jwt_decode:
             mock_jwt_decode.side_effect = Exception("Invalid token")
-            
+
             user = await get_websocket_user("invalid_token", Mock())
-            
+
             assert user is None
 
     def test_can_access_channel_global_channels(self, mock_user):
@@ -228,12 +234,12 @@ class TestWebSocketIntegration:
     def test_websocket_status_endpoint(self):
         """Test the WebSocket status endpoint."""
         client = TestClient(app)
-        
+
         # This endpoint requires superuser authentication
         # For now, this test will fail until we implement proper auth in tests
         # response = client.get("/api/v1/ws/status")
         # assert response.status_code == 401  # Unauthorized without proper auth
-        
+
         # TODO: Add proper authenticated test when auth is set up
         pass
 
@@ -242,24 +248,26 @@ class TestWebSocketIntegration:
         """Test WebSocket message handling flow."""
         mock_websocket = AsyncMock()
         user_id = "1"
-        
+
         # Connect
         await connection_manager.connect(mock_websocket, user_id)
-        
+
         # Simulate subscription message
         await connection_manager.subscribe(mock_websocket, "security.alerts")
-        
+
         # Broadcast a message
         test_message = {
             "type": "security_alert",
             "severity": "high",
-            "message": "New security update available"
+            "message": "New security update available",
         }
         await connection_manager.broadcast_to_channel("security.alerts", test_message)
-        
+
         # Verify message was received
-        assert mock_websocket.send_json.call_count == 3  # connect + subscribe + broadcast
-        
+        assert (
+            mock_websocket.send_json.call_count == 3
+        )  # connect + subscribe + broadcast
+
         # Check the broadcast message
         broadcast_call = mock_websocket.send_json.call_args_list[2][0][0]
         assert broadcast_call["channel"] == "security.alerts"
@@ -272,16 +280,18 @@ class TestWebSocketIntegration:
         mock_websocket = AsyncMock()
         mock_websocket.send_json.side_effect = Exception("Connection lost")
         user_id = "1"
-        
+
         # Connect
         await connection_manager.connect(mock_websocket, user_id)
-        
+
         # Subscribe (this should work despite future send errors)
         await connection_manager.subscribe(mock_websocket, "security.alerts")
-        
+
         # Try to broadcast (should handle the error gracefully)
-        await connection_manager.broadcast_to_channel("security.alerts", {"test": "data"})
-        
+        await connection_manager.broadcast_to_channel(
+            "security.alerts", {"test": "data"}
+        )
+
         # The error should be logged but not crash the system
         # The connection should be cleaned up
         # Note: This test depends on the actual error handling implementation

@@ -15,14 +15,16 @@ router = APIRouter()
 async def get_security_versions(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
-    current_user: User = Depends(deps.get_current_user)
+    limit: int = Query(
+        100, ge=1, le=500, description="Maximum number of records to return"
+    ),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Get all security update versions across all modules.
     """
     versions = await crud_module_version.get_security_versions(db, skip, limit)
-    
+
     return [
         ModuleVersionResponse(
             id=version.id,
@@ -40,19 +42,23 @@ async def get_security_versions(
             created_by=version.created_by,
             updated_by=version.updated_by,
             module_name=version.module.display_name,
-            module_machine_name=version.module.machine_name
+            module_machine_name=version.module.machine_name,
         )
         for version in versions
     ]
 
 
-@router.get("/drupal-core/{core_version}/versions", response_model=List[ModuleVersionResponse])
+@router.get(
+    "/drupal-core/{core_version}/versions", response_model=List[ModuleVersionResponse]
+)
 async def get_versions_by_drupal_core(
     core_version: str,
     db: AsyncSession = Depends(deps.get_db),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=500, description="Maximum number of records to return"),
-    current_user: User = Depends(deps.get_current_user)
+    limit: int = Query(
+        100, ge=1, le=500, description="Maximum number of records to return"
+    ),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Get module versions compatible with a specific Drupal core version.
@@ -60,7 +66,7 @@ async def get_versions_by_drupal_core(
     versions = await crud_module_version.get_versions_by_drupal_core(
         db, core_version, skip, limit
     )
-    
+
     return [
         ModuleVersionResponse(
             id=version.id,
@@ -78,7 +84,7 @@ async def get_versions_by_drupal_core(
             created_by=version.created_by,
             updated_by=version.updated_by,
             module_name=version.module.display_name,
-            module_machine_name=version.module.machine_name
+            module_machine_name=version.module.machine_name,
         )
         for version in versions
     ]

@@ -3,12 +3,12 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Table
+from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
+                        Table, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.models.base import Base
-
 
 # Junction table for role-permission many-to-many relationship
 role_permissions = Table(
@@ -35,7 +35,9 @@ class Role(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     # Relationships
-    permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
+    permissions = relationship(
+        "Permission", secondary=role_permissions, back_populates="roles"
+    )
     user_roles = relationship("UserRole", back_populates="role")
 
     def __repr__(self) -> str:
@@ -52,17 +54,17 @@ class Role(Base):
         permission_name = f"{resource}:{action}"
         if self.has_permission(permission_name):
             return True
-        
+
         # Check for wildcard permissions
         if self.has_permission("*:*"):  # Super admin
             return True
-            
+
         if self.has_permission(f"{resource}:*"):  # All actions on resource
             return True
-            
+
         if self.has_permission(f"*:{action}"):  # Specific action on all resources
             return True
-            
+
         return False
 
     def get_permissions_list(self) -> List[str]:
@@ -71,32 +73,26 @@ class Role(Base):
 
     @classmethod
     def create_system_role(
-        cls,
-        name: str,
-        display_name: str,
-        description: Optional[str] = None
+        cls, name: str, display_name: str, description: Optional[str] = None
     ) -> "Role":
         """Create a system role."""
         return cls(
             name=name,
             display_name=display_name,
             description=description,
-            is_system=True
+            is_system=True,
         )
 
     @classmethod
     def create_custom_role(
-        cls,
-        name: str,
-        display_name: str,
-        description: Optional[str] = None
+        cls, name: str, display_name: str, description: Optional[str] = None
     ) -> "Role":
         """Create a custom role."""
         return cls(
             name=name,
             display_name=display_name,
             description=description,
-            is_system=False
+            is_system=False,
         )
 
 
@@ -112,7 +108,9 @@ class Permission(Base):
     description = Column(Text, nullable=True)
 
     # Relationships
-    roles = relationship("Role", secondary=role_permissions, back_populates="permissions")
+    roles = relationship(
+        "Role", secondary=role_permissions, back_populates="permissions"
+    )
 
     def __repr__(self) -> str:
         """String representation of the permission."""
@@ -120,19 +118,11 @@ class Permission(Base):
 
     @classmethod
     def create_permission(
-        cls,
-        resource: str,
-        action: str,
-        description: Optional[str] = None
+        cls, resource: str, action: str, description: Optional[str] = None
     ) -> "Permission":
         """Create a new permission."""
         name = f"{resource}:{action}"
-        return cls(
-            name=name,
-            resource=resource,
-            action=action,
-            description=description
-        )
+        return cls(name=name, resource=resource, action=action, description=description)
 
     @property
     def is_wildcard(self) -> bool:
@@ -148,7 +138,9 @@ class UserRole(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, index=True)
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=True, index=True
+    )
     valid_from = Column(DateTime, server_default=func.now())
     valid_until = Column(DateTime, nullable=True)
     assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -162,20 +154,22 @@ class UserRole(Base):
 
     def __repr__(self) -> str:
         """String representation of the user role assignment."""
-        org_part = f" in org {self.organization_id}" if self.organization_id else " globally"
+        org_part = (
+            f" in org {self.organization_id}" if self.organization_id else " globally"
+        )
         return f"<UserRole user={self.user_id} role={self.role_id}{org_part}>"
 
     def is_active(self) -> bool:
         """Check if this role assignment is currently active."""
         now = datetime.utcnow()
-        
+
         # Check if role is within valid time range
         if self.valid_from and now < self.valid_from:
             return False
-            
+
         if self.valid_until and now > self.valid_until:
             return False
-            
+
         return True
 
     def is_global(self) -> bool:
@@ -193,7 +187,7 @@ class UserRole(Base):
         role_id: int,
         organization_id: Optional[int] = None,
         assigned_by_id: Optional[int] = None,
-        valid_until: Optional[datetime] = None
+        valid_until: Optional[datetime] = None,
     ) -> "UserRole":
         """Assign a role to a user."""
         return cls(
@@ -201,5 +195,5 @@ class UserRole(Base):
             role_id=role_id,
             organization_id=organization_id,
             assigned_by_id=assigned_by_id,
-            valid_until=valid_until
+            valid_until=valid_until,
         )

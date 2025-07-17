@@ -15,13 +15,13 @@ class TestModuleModel:
             machine_name="views",
             display_name="Views",
             module_type="contrib",
-            description="Create customized lists and queries from your database."
+            description="Create customized lists and queries from your database.",
         )
-        
+
         db_session.add(module)
         await db_session.commit()
         await db_session.refresh(module)
-        
+
         assert module.id is not None
         assert module.machine_name == "views"
         assert module.display_name == "Views"
@@ -34,15 +34,12 @@ class TestModuleModel:
     @pytest.mark.asyncio
     async def test_create_module_with_minimal_data(self, db_session: AsyncSession):
         """Test creating a module with only required fields."""
-        module = Module(
-            machine_name="custom_module",
-            display_name="Custom Module"
-        )
-        
+        module = Module(machine_name="custom_module", display_name="Custom Module")
+
         db_session.add(module)
         await db_session.commit()
         await db_session.refresh(module)
-        
+
         assert module.id is not None
         assert module.machine_name == "custom_module"
         assert module.display_name == "Custom Module"
@@ -51,23 +48,19 @@ class TestModuleModel:
         assert module.drupal_org_link is None
 
     @pytest.mark.asyncio
-    async def test_module_machine_name_unique_constraint(self, db_session: AsyncSession):
+    async def test_module_machine_name_unique_constraint(
+        self, db_session: AsyncSession
+    ):
         """Test that machine_name must be unique."""
         # Create first module
-        module1 = Module(
-            machine_name="duplicate_name",
-            display_name="First Module"
-        )
+        module1 = Module(machine_name="duplicate_name", display_name="First Module")
         db_session.add(module1)
         await db_session.commit()
-        
+
         # Try to create second module with same machine_name
-        module2 = Module(
-            machine_name="duplicate_name",
-            display_name="Second Module"
-        )
+        module2 = Module(machine_name="duplicate_name", display_name="Second Module")
         db_session.add(module2)
-        
+
         with pytest.raises(IntegrityError):
             await db_session.commit()
 
@@ -75,17 +68,17 @@ class TestModuleModel:
     async def test_module_type_variations(self, db_session: AsyncSession):
         """Test different module types."""
         types_to_test = ["contrib", "custom", "core"]
-        
+
         for i, module_type in enumerate(types_to_test):
             module = Module(
                 machine_name=f"test_module_{i}",
                 display_name=f"Test Module {i}",
-                module_type=module_type
+                module_type=module_type,
             )
             db_session.add(module)
-        
+
         await db_session.commit()
-        
+
         # Verify all modules were created
         for i, module_type in enumerate(types_to_test):
             stmt = db_session.get(Module, i + 1)
@@ -99,43 +92,39 @@ class TestModuleModel:
             machine_name="webform",
             display_name="Webform",
             drupal_org_link="https://www.drupal.org/project/webform",
-            description="Enables the creation of webforms and questionnaires."
+            description="Enables the creation of webforms and questionnaires.",
         )
-        
+
         db_session.add(module)
         await db_session.commit()
         await db_session.refresh(module)
-        
+
         assert module.drupal_org_link == "https://www.drupal.org/project/webform"
 
     @pytest.mark.asyncio
     async def test_module_soft_delete(self, db_session: AsyncSession):
         """Test soft delete functionality."""
         module = Module(
-            machine_name="soft_delete_test",
-            display_name="Soft Delete Test"
+            machine_name="soft_delete_test", display_name="Soft Delete Test"
         )
-        
+
         db_session.add(module)
         await db_session.commit()
         await db_session.refresh(module)
-        
+
         # Mark as deleted
         module.is_deleted = True
         module.is_active = False
         await db_session.commit()
-        
+
         assert module.is_deleted is True
         assert module.is_active is False
 
     @pytest.mark.asyncio
     async def test_module_string_representation(self, db_session: AsyncSession):
         """Test string representation of module."""
-        module = Module(
-            machine_name="test_repr",
-            display_name="Test Representation"
-        )
-        
+        module = Module(machine_name="test_repr", display_name="Test Representation")
+
         # The model should have a readable representation
         assert "test_repr" in str(module) or "Test Representation" in str(module)
 
@@ -143,12 +132,11 @@ class TestModuleModel:
     async def test_module_relationships_structure(self, db_session: AsyncSession):
         """Test that relationships are properly defined."""
         module = Module(
-            machine_name="relationship_test",
-            display_name="Relationship Test"
+            machine_name="relationship_test", display_name="Relationship Test"
         )
-        
+
         # Check that relationship attributes exist
-        assert hasattr(module, 'versions')
-        assert hasattr(module, 'site_modules')
-        assert hasattr(module, 'creator')
-        assert hasattr(module, 'updater')
+        assert hasattr(module, "versions")
+        assert hasattr(module, "site_modules")
+        assert hasattr(module, "creator")
+        assert hasattr(module, "updater")

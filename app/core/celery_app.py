@@ -1,5 +1,7 @@
 """Celery configuration and app initialization."""
+
 import os
+
 from celery import Celery
 
 # Create Celery app

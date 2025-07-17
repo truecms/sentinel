@@ -1,25 +1,23 @@
-from typing import List, Any, Optional
 from datetime import datetime
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, text
 from sqlalchemy.orm import selectinload
 
 from app import crud, schemas
 from app.api import deps
-from app.models.organization import Organization
-from app.schemas.organization import (
-    OrganizationResponse,
-    OrganizationCreate,
-    OrganizationUpdate,
-    OrganizationDeleteResponse
-)
 from app.models import User
-from app.models.user_organization import user_organization
+from app.models.organization import Organization
 from app.models.site import Site
+from app.models.user_organization import user_organization
+from app.schemas.organization import (OrganizationCreate,
+                                      OrganizationDeleteResponse,
+                                      OrganizationResponse, OrganizationUpdate)
 
 router = APIRouter()
+
 
 @router.get("/", response_model=List[OrganizationResponse])
 async def read_organizations(
@@ -33,32 +31,31 @@ async def read_organizations(
     """Retrieve organizations."""
     # Build base query
     query = select(Organization).options(selectinload(Organization.users))
-    
+
     # Apply filters
     if name:
         query = query.where(Organization.name.ilike(f"%{name}%"))
     if is_active is not None:
         query = query.where(Organization.is_active == is_active)
-    
+
     # Always exclude soft-deleted organizations unless explicitly requested
     query = query.where(Organization.is_deleted == False)
-    
+
     # For non-superusers, only show organizations they belong to
     if not current_user.is_superuser:
-        query = (
-            query
-            .join(user_organization, Organization.id == user_organization.c.organization_id)
-            .where(user_organization.c.user_id == current_user.id)
-        )
-    
+        query = query.join(
+            user_organization, Organization.id == user_organization.c.organization_id
+        ).where(user_organization.c.user_id == current_user.id)
+
     # Apply pagination
     query = query.offset(skip).limit(limit)
-    
+
     # Execute query
     result = await db.execute(query)
     organizations = result.unique().scalars().all()
-    
+
     return organizations
+
 
 @router.post("/", response_model=OrganizationResponse)
 async def create_organization(
@@ -74,21 +71,20 @@ async def create_organization(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if organization exists
     query = select(Organization).where(
-        Organization.name == organization_in.name,
-        Organization.is_deleted == False
+        Organization.name == organization_in.name, Organization.is_deleted == False
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
-    
+
     if organization:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="The organization with this name already exists.",
         )
-    
+
     # Create organization
     organization = Organization(
         name=organization_in.name,
@@ -96,12 +92,12 @@ async def create_organization(
         created_by=organization_in.created_by or current_user.id,
         updated_by=current_user.id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
     )
     db.add(organization)
     await db.commit()
     await db.refresh(organization)
-    
+
     # Add users to organization if specified
     if organization_in.users:
         for user_id in organization_in.users:
@@ -109,58 +105,68 @@ async def create_organization(
             query = select(User).where(User.id == user_id)
             result = await db.execute(query)
             user = result.scalar_one_or_none()
-            
+
             if user:
                 # Add user to organization
                 await db.execute(
                     user_organization.insert().values(
-                        user_id=user_id,
-                        organization_id=organization.id
+                        user_id=user_id, organization_id=organization.id
                     )
                 )
                 # Update user's organization_id
                 user.organization_id = organization.id
                 db.add(user)
-    
+
     await db.commit()
     await db.refresh(organization)
-    
+
     # Reload organization with users
-    query = select(Organization).options(selectinload(Organization.users)).where(Organization.id == organization.id)
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(Organization.id == organization.id)
+    )
     result = await db.execute(query)
     organization = result.unique().scalar_one()
-    
+
     return organization
+
 
 @router.get("/{organization_id}", response_model=OrganizationResponse)
 async def read_organization(
     organization_id: int,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: schemas.UserResponse = Depends(deps.get_current_user)
+    current_user: schemas.UserResponse = Depends(deps.get_current_user),
 ):
     """Get a specific organization by id."""
-    query = select(Organization).options(selectinload(Organization.users)).where(
-        Organization.id == organization_id,
-        Organization.is_active == True,
-        Organization.is_deleted == False
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(
+            Organization.id == organization_id,
+            Organization.is_active == True,
+            Organization.is_deleted == False,
+        )
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
-    
+
     if not organization:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found"
         )
-    
+
     # Check if user has access to this organization
-    if not current_user.is_superuser and current_user.organization_id != organization_id:
+    if (
+        not current_user.is_superuser
+        and current_user.organization_id != organization_id
+    ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-    
+
     return organization
+
 
 @router.put("/{organization_id}", response_model=OrganizationResponse)
 async def update_organization(
@@ -177,30 +183,34 @@ async def update_organization(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Get organization
-    query = select(Organization).options(selectinload(Organization.users)).where(
-        Organization.id == organization_id,
-        Organization.is_active == True,
-        Organization.is_deleted == False
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(
+            Organization.id == organization_id,
+            Organization.is_active == True,
+            Organization.is_deleted == False,
+        )
     )
     result = await db.execute(query)
     organization = result.unique().scalar_one_or_none()
-    
+
     if not organization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found",
         )
-    
+
     # Update organization fields
     for field, value in organization_in.model_dump(exclude_unset=True).items():
         if field != "users":
             setattr(organization, field, value)
-    
+
     organization.updated_by = current_user.id
     organization.updated_at = datetime.utcnow()
-    
+
     # Update user associations if specified
     if organization_in.users is not None:
         # Remove existing user associations
@@ -209,42 +219,46 @@ async def update_organization(
                 user_organization.c.organization_id == organization_id
             )
         )
-        
+
         # Clear organization_id for users
         await db.execute(
             update(User)
             .where(User.organization_id == organization_id)
             .values(organization_id=None)
         )
-        
+
         # Add new user associations
         for user_id in organization_in.users:
             # Check if user exists
             query = select(User).where(User.id == user_id)
             result = await db.execute(query)
             user = result.scalar_one_or_none()
-            
+
             if user:
                 # Add user to organization
                 await db.execute(
                     user_organization.insert().values(
-                        user_id=user_id,
-                        organization_id=organization_id
+                        user_id=user_id, organization_id=organization_id
                     )
                 )
                 # Update user's organization_id
                 user.organization_id = organization_id
                 db.add(user)
-    
+
     await db.commit()
     await db.refresh(organization)
-    
+
     # Reload organization with users
-    query = select(Organization).options(selectinload(Organization.users)).where(Organization.id == organization_id)
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(Organization.id == organization_id)
+    )
     result = await db.execute(query)
     organization = result.unique().scalar_one()
-    
+
     return organization
+
 
 @router.delete("/{organization_id}", response_model=OrganizationDeleteResponse)
 async def delete_organization(
@@ -254,31 +268,32 @@ async def delete_organization(
 ):
     """Delete an organization."""
     # Check if organization exists and user has permission
-    query = select(Organization).options(selectinload(Organization.users)).where(
-        Organization.id == organization_id,
-        Organization.is_active == True,
-        Organization.is_deleted == False
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(
+            Organization.id == organization_id,
+            Organization.is_active == True,
+            Organization.is_deleted == False,
+        )
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
 
     if not organization:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found"
         )
     if not current_user.is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     # Update associated users to remove organization_id
-    user_update = update(User).where(
-        User.organization_id == organization_id
-    ).values(
-        organization_id=None,
-        updated_at=datetime.utcnow()
+    user_update = (
+        update(User)
+        .where(User.organization_id == organization_id)
+        .values(organization_id=None, updated_at=datetime.utcnow())
     )
     await db.execute(user_update)
     await db.commit()
@@ -295,8 +310,9 @@ async def delete_organization(
     return {
         "message": "Organization deleted successfully",
         "organization_id": organization.id,
-        "name": organization.name
+        "name": organization.name,
     }
+
 
 @router.get("/{organization_id}/sites", response_model=List[schemas.SiteResponse])
 async def read_organization_sites(
@@ -304,39 +320,45 @@ async def read_organization_sites(
     db: AsyncSession = Depends(deps.get_db),
     current_user: schemas.UserResponse = Depends(deps.get_current_user),
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ):
     """Get all sites for a specific organization."""
     # Check if organization exists
     query = select(Organization).where(
         Organization.id == organization_id,
         Organization.is_active == True,
-        Organization.is_deleted == False
+        Organization.is_deleted == False,
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
-    
+
     if not organization:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found"
         )
-    
+
     # Check if user has access to this organization
-    if not current_user.is_superuser and current_user.organization_id != organization_id:
+    if (
+        not current_user.is_superuser
+        and current_user.organization_id != organization_id
+    ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
-    
+
     # Get sites for the organization
-    query = select(Site).where(
-        Site.organization_id == organization_id,
-        Site.is_active == True,
-        Site.is_deleted == False
-    ).offset(skip).limit(limit)
-    
+    query = (
+        select(Site)
+        .where(
+            Site.organization_id == organization_id,
+            Site.is_active == True,
+            Site.is_deleted == False,
+        )
+        .offset(skip)
+        .limit(limit)
+    )
+
     result = await db.execute(query)
     sites = result.scalars().all()
-    
+
     return sites

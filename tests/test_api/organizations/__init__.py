@@ -12,9 +12,9 @@ Please see the following files for specific test cases:
 """
 
 from .test_organization_create import *
-from .test_organization_read import *
-from .test_organization_update import *
 from .test_organization_delete import *
 from .test_organization_filters import *
+from .test_organization_permissions import *
+from .test_organization_read import *
+from .test_organization_update import *
 from .test_organization_users import *
-from .test_organization_permissions import * 

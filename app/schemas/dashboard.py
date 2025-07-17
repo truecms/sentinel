@@ -1,13 +1,15 @@
 """Dashboard data schemas."""
 
-from typing import List, Dict, Optional, Any
-from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
 
 
 class SeverityLevel(str, Enum):
     """Vulnerability severity levels."""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -16,6 +18,7 @@ class SeverityLevel(str, Enum):
 
 class HealthStatus(str, Enum):
     """Site health status."""
+
     HEALTHY = "healthy"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -23,6 +26,7 @@ class HealthStatus(str, Enum):
 
 class VulnerabilityCount(BaseModel):
     """Vulnerability count by severity."""
+
     critical: int = 0
     high: int = 0
     medium: int = 0
@@ -31,6 +35,7 @@ class VulnerabilityCount(BaseModel):
 
 class TimeSeriesData(BaseModel):
     """Time series data point."""
+
     timestamp: datetime
     value: float
     label: Optional[str] = None
@@ -38,6 +43,7 @@ class TimeSeriesData(BaseModel):
 
 class ActivityItem(BaseModel):
     """Activity feed item."""
+
     id: str
     type: str  # "module_update", "site_sync", "security_alert", etc.
     title: str
@@ -49,6 +55,7 @@ class ActivityItem(BaseModel):
 
 class RiskItem(BaseModel):
     """Risk assessment item."""
+
     id: str
     title: str
     risk_score: float  # 0-100
@@ -59,6 +66,7 @@ class RiskItem(BaseModel):
 
 class ModuleRiskItem(BaseModel):
     """Module risk assessment."""
+
     module_name: str
     module_version: str
     risk_score: float
@@ -69,6 +77,7 @@ class ModuleRiskItem(BaseModel):
 
 class DashboardMetrics(BaseModel):
     """Core dashboard metrics."""
+
     total_sites: int
     security_score: float  # 0-100
     critical_updates: int
@@ -78,6 +87,7 @@ class DashboardMetrics(BaseModel):
 
 class DashboardOverview(BaseModel):
     """Executive dashboard overview."""
+
     metrics: DashboardMetrics
     trends: Dict[str, List[TimeSeriesData]]
     top_risks: List[RiskItem]
@@ -86,6 +96,7 @@ class DashboardOverview(BaseModel):
 
 class SecurityMetrics(BaseModel):
     """Security-specific metrics."""
+
     active_threats: int
     unpatched_vulnerabilities: int
     average_time_to_patch: float  # hours
@@ -96,6 +107,7 @@ class SecurityMetrics(BaseModel):
 
 class SecurityDashboard(BaseModel):
     """Security operations dashboard."""
+
     metrics: SecurityMetrics
     critical_modules: List[ModuleRiskItem]
     vulnerability_timeline: List[TimeSeriesData]
@@ -105,6 +117,7 @@ class SecurityDashboard(BaseModel):
 
 class SiteHealth(BaseModel):
     """Site health information."""
+
     score: float  # 0-100
     status: HealthStatus
     last_sync: datetime
@@ -112,6 +125,7 @@ class SiteHealth(BaseModel):
 
 class SiteModuleStats(BaseModel):
     """Site module statistics."""
+
     total: int
     up_to_date: int
     needs_update: int
@@ -120,6 +134,7 @@ class SiteModuleStats(BaseModel):
 
 class Recommendation(BaseModel):
     """Site recommendation."""
+
     id: str
     priority: SeverityLevel
     title: str
@@ -129,6 +144,7 @@ class Recommendation(BaseModel):
 
 class SiteDashboard(BaseModel):
     """Site-specific dashboard."""
+
     site_id: int
     site_name: str
     health: SiteHealth
@@ -139,6 +155,7 @@ class SiteDashboard(BaseModel):
 
 class WebSocketNotification(BaseModel):
     """Real-time notification via WebSocket."""
+
     id: str
     type: str
     title: str

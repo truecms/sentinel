@@ -13,10 +13,10 @@ Please see the following files for specific test cases:
 """
 
 from .test_user_create import *
-from .test_user_read import *
-from .test_user_update import *
 from .test_user_delete import *
 from .test_user_me import *
 from .test_user_organization import *
+from .test_user_pagination import *
 from .test_user_permissions import *
-from .test_user_pagination import * 
+from .test_user_read import *
+from .test_user_update import *

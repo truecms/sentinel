@@ -1,11 +1,12 @@
 """API Key model for authentication."""
 
-import secrets
 import hashlib
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
+                        Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -56,7 +57,11 @@ class ApiKey(Base):
 
     def is_valid(self) -> bool:
         """Check if the API key is valid (active and not expired)."""
-        return self.is_active and not self.is_expired()
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < datetime.utcnow():
+            return False
+        return True
 
     def update_last_used(self) -> None:
         """Update the last used timestamp."""
@@ -67,23 +72,20 @@ class ApiKey(Base):
         cls,
         user_id: int,
         name: Optional[str] = None,
-        expires_in_days: Optional[int] = 365
+        expires_in_days: Optional[int] = 365,
     ) -> tuple["ApiKey", str]:
         """Create a new API key for a user."""
         raw_key = cls.generate_key("sk_user_")
         key_hash = cls.hash_key(raw_key)
-        
+
         expires_at = None
         if expires_in_days:
             expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
-        
+
         api_key = cls(
-            key_hash=key_hash,
-            user_id=user_id,
-            name=name,
-            expires_at=expires_at
+            key_hash=key_hash, user_id=user_id, name=name, expires_at=expires_at
         )
-        
+
         return api_key, raw_key
 
     @classmethod
@@ -91,24 +93,42 @@ class ApiKey(Base):
         cls,
         site_id: int,
         name: Optional[str] = None,
-        expires_in_days: Optional[int] = None
+        expires_in_days: Optional[int] = None,
     ) -> tuple["ApiKey", str]:
         """Create a new API key for a site."""
         raw_key = cls.generate_key("sk_site_")
         key_hash = cls.hash_key(raw_key)
-        
+
         expires_at = None
         if expires_in_days:
             expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
-        
+
         api_key = cls(
-            key_hash=key_hash,
-            site_id=site_id,
-            name=name,
-            expires_at=expires_at
+            key_hash=key_hash, site_id=site_id, name=name, expires_at=expires_at
         )
-        
+
         return api_key, raw_key
+
+    @classmethod
+    def rotate_key(
+        cls, old_key: "ApiKey", grace_period_hours: int = 24
+    ) -> tuple[str, "ApiKey"]:
+        """Rotate an API key with optional grace period for the old key."""
+        # Generate new key
+        if old_key.user_id:
+            new_key, raw_key = cls.create_for_user(old_key.user_id, old_key.name)
+        elif old_key.site_id:
+            new_key, raw_key = cls.create_for_site(old_key.site_id, old_key.name)
+        else:
+            raise ValueError("API key must be associated with either a user or site")
+
+        # Set expiration on old key
+        if grace_period_hours > 0:
+            old_key.expires_at = datetime.utcnow() + timedelta(hours=grace_period_hours)
+        else:
+            old_key.is_active = False
+
+        return raw_key, new_key
 
     def __repr__(self) -> str:
         """String representation of the API key."""

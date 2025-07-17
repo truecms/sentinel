@@ -16,19 +16,23 @@ async def test_api_key_authentication():
     # Get database session
     async for db in get_db():
         try:
+            # Use unique names to avoid conflicts
+            import uuid
+            unique_id = str(uuid.uuid4())[:8]
+            
             # Create a test organization
-            org = Organization(name="Test Organization")
+            org = Organization(name=f"Test Organization {unique_id}")
             db.add(org)
             await db.commit()
             await db.refresh(org)
             
             # Create a test site
             site = Site(
-                name="Test Site",
-                url="https://test.example.com",
+                name=f"Test Site {unique_id}",
+                url=f"https://test{unique_id}.example.com",
                 organization_id=org.id,
-                site_uuid="test-uuid-123",
-                api_token="legacy-token-123"
+                site_uuid=f"test-uuid-{unique_id}",
+                api_token=f"legacy-token-{unique_id}"
             )
             db.add(site)
             await db.commit()
@@ -51,20 +55,26 @@ async def test_api_key_authentication():
             
             test_data = {
                 "site": {
-                    "name": "Test Site",
-                    "url": "https://test.example.com",
-                    "site_uuid": "test-uuid-123",
-                    "drupal_core_version": "10.0.0"
+                    "name": site.name,
+                    "url": site.url,
+                    "token": site.api_token
+                },
+                "drupal_info": {
+                    "core_version": "10.0.0",
+                    "php_version": "8.1.0",
+                    "ip_address": "127.0.0.1"
                 },
                 "modules": [
                     {
-                        "name": "Test Module",
                         "machine_name": "test_module",
-                        "project_name": "test_module",
+                        "display_name": "Test Module",
+                        "module_type": "contrib",
+                        "enabled": True,
                         "version": "1.0.0",
-                        "status": "enabled"
+                        "description": "Test module description"
                     }
-                ]
+                ],
+                "full_sync": False
             }
             
             # Test with API key
@@ -162,13 +172,15 @@ async def test_api_key_authentication():
         finally:
             # Clean up test data
             try:
-                # Delete test data
-                await db.execute(f"DELETE FROM api_keys WHERE site_id = {site.id}")
-                await db.execute(f"DELETE FROM sites WHERE id = {site.id}")
-                await db.execute(f"DELETE FROM organizations WHERE id = {org.id}")
+                # Delete test data using cascade
+                from sqlalchemy import text
+                await db.execute(text(f"DELETE FROM api_keys WHERE site_id = {site.id}"))
+                await db.execute(text(f"DELETE FROM sites WHERE id = {site.id}"))
+                await db.execute(text(f"DELETE FROM organizations WHERE id = {org.id}"))
                 await db.commit()
                 print("🧹 Test data cleaned up")
-            except:
+            except Exception as e:
+                print(f"⚠️  Cleanup failed: {e}")
                 pass
             
             await db.close()

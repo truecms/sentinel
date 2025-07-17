@@ -1,9 +1,12 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, JSON
+
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Integer,
+                        String)
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
+
 
 class Site(Base):
     __tablename__ = "sites"
@@ -20,7 +23,7 @@ class Site(Base):
     database_version = Column(String(50), nullable=True)
     server_info = Column(JSON, nullable=True)
     last_check = Column(DateTime, nullable=True)
-    
+
     # Site overview tracking fields
     security_score = Column(Integer, nullable=True, default=0)
     total_modules_count = Column(Integer, nullable=True, default=0)
@@ -28,10 +31,10 @@ class Site(Base):
     non_security_updates_count = Column(Integer, nullable=True, default=0)
     last_data_push = Column(DateTime, nullable=True)
     last_drupal_org_check = Column(DateTime, nullable=True)
-    
+
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
-    
+
     # Ownership and timestamps
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -43,16 +46,18 @@ class Site(Base):
     organization = relationship("Organization", back_populates="sites")
     creator = relationship("User", foreign_keys=[created_by])
     updater = relationship("User", foreign_keys=[updated_by])
-    modules = relationship("SiteModule", back_populates="site", cascade="all, delete-orphan")
+    modules = relationship(
+        "SiteModule", back_populates="site", cascade="all, delete-orphan"
+    )
     api_keys = relationship("ApiKey", back_populates="site")
-    
+
     def get_active_api_key(self) -> Optional["ApiKey"]:
         """Get the active API key for this site."""
         for api_key in self.api_keys:
             if api_key.is_valid():
                 return api_key
         return None
-    
+
     def has_valid_api_key(self) -> bool:
         """Check if site has a valid API key."""
         return self.get_active_api_key() is not None

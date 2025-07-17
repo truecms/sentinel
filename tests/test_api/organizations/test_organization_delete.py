@@ -1,62 +1,60 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.organization import Organization
 from app.models.user import User
 
 pytestmark = pytest.mark.asyncio
 
+
 async def test_delete_organization(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test deleting an organization."""
     org_id = test_organization.id
     response = await client.delete(
-        f"/api/v1/organizations/{org_id}",
-        headers=superuser_token_headers
+        f"/api/v1/organizations/{org_id}", headers=superuser_token_headers
     )
     assert response.status_code == 200
-    
+
     # Verify organization is deleted
     response = await client.get(
-        f"/api/v1/organizations/{org_id}",
-        headers=superuser_token_headers
+        f"/api/v1/organizations/{org_id}", headers=superuser_token_headers
     )
     assert response.status_code == 404
 
+
 async def test_delete_organization_regular_user(
-    client: AsyncClient,
-    user_token_headers: dict,
-    test_organization: Organization
+    client: AsyncClient, user_token_headers: dict, test_organization: Organization
 ):
     """Test that regular users cannot delete organizations."""
     org_id = test_organization.id
     response = await client.delete(
-        f"/api/v1/organizations/{org_id}",
-        headers=user_token_headers
+        f"/api/v1/organizations/{org_id}", headers=user_token_headers
     )
     assert response.status_code == 403
 
+
 async def test_delete_organization_not_found(
-    client: AsyncClient,
-    superuser_token_headers: dict
+    client: AsyncClient, superuser_token_headers: dict
 ):
     """Test deleting non-existent organization."""
     response = await client.delete(
-        "/api/v1/organizations/99999",
-        headers=superuser_token_headers
+        "/api/v1/organizations/99999", headers=superuser_token_headers
     )
     assert response.status_code == 404
+
 
 async def test_delete_organization_with_resources(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
     test_regular_user: User,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test deleting organization with associated resources."""
     # Add user to organization
@@ -65,8 +63,7 @@ async def test_delete_organization_with_resources(
     await db_session.commit()
 
     response = await client.delete(
-        f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers
+        f"/api/v1/organizations/{test_organization.id}", headers=superuser_token_headers
     )
     assert response.status_code == 200
 
@@ -75,12 +72,13 @@ async def test_delete_organization_with_resources(
         user = await session.get(User, test_regular_user.id)
         assert user.organization_id is None
 
+
 async def test_delete_organization_cleanup(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
     test_user: User,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test proper cleanup after organization deletion."""
     # Associate user with organization
@@ -89,15 +87,13 @@ async def test_delete_organization_cleanup(
     await db_session.commit()
 
     response = await client.delete(
-        f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers
+        f"/api/v1/organizations/{test_organization.id}", headers=superuser_token_headers
     )
     assert response.status_code == 200
 
     # Verify organization is deleted
     response = await client.get(
-        f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers
+        f"/api/v1/organizations/{test_organization.id}", headers=superuser_token_headers
     )
     assert response.status_code == 404
 
@@ -106,17 +102,18 @@ async def test_delete_organization_cleanup(
         user = await session.get(User, test_user.id)
         assert user.organization_id is None
 
+
 async def test_organization_soft_delete(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
-    db_session: AsyncSession
+    db_session: AsyncSession,
 ):
     """Test soft deletion of organization."""
     response = await client.delete(
         f"/api/v1/organizations/{test_organization.id}",
         headers=superuser_token_headers,
-        params={"soft_delete": True}
+        params={"soft_delete": True},
     )
     assert response.status_code == 200
 
@@ -124,4 +121,4 @@ async def test_organization_soft_delete(
     async with async_session_maker() as session:
         org = await session.get(Organization, test_organization.id)
         assert org is not None
-        assert org.is_deleted == True 
+        assert org.is_deleted == True

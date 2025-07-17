@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
+
 from pydantic import BaseModel
 
 from app.schemas.organization import OrganizationResponse
+
 
 class SiteBase(BaseModel):
     url: str
@@ -10,8 +12,10 @@ class SiteBase(BaseModel):
     description: Optional[str] = None
     organization_id: int
 
+
 class SiteCreate(SiteBase):
     pass
+
 
 class SiteUpdate(BaseModel):
     url: Optional[str] = None
@@ -20,6 +24,7 @@ class SiteUpdate(BaseModel):
     organization_id: Optional[int] = None
     is_active: Optional[bool] = None
     is_deleted: Optional[bool] = None
+
 
 class SiteInDBBase(SiteBase):
     id: int
@@ -47,11 +52,14 @@ class SiteInDBBase(SiteBase):
     class Config:
         from_attributes = True
 
+
 class SiteResponse(SiteInDBBase):
     organizations: List[OrganizationResponse] = []
 
+
 class SiteInDB(SiteInDBBase):
     pass
+
 
 # Site overview schemas for dashboard table view
 class SiteOverview(BaseModel):
@@ -66,9 +74,10 @@ class SiteOverview(BaseModel):
     last_drupal_org_check: Optional[datetime] = None
     status: str  # 'healthy', 'warning', 'critical'
     organization_id: int
-    
+
     class Config:
         from_attributes = True
+
 
 class SitesOverviewResponse(BaseModel):
     sites: List[SiteOverview]
