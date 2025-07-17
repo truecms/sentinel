@@ -97,10 +97,10 @@ async def get_sites_overview(
         )
         query = query.filter(search_filter)
     
-    # Count total results
-    count_query = select(func.count(Site.id)).select_from(query.subquery())
+    # Count total results - use direct count to avoid cartesian product
+    count_query = select(func.count()).select_from(query.subquery())
     count_result = await db.execute(count_query)
-    total = count_result.scalar()
+    total = count_result.scalar() or 0
     
     # Apply sorting
     sort_column = getattr(Site, sort_by, Site.name)

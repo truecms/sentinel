@@ -16,6 +16,8 @@ interface SidebarProps {
   onClose: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  sitesCount?: number;
+  modulesCount?: number;
 }
 
 interface NavItem {
@@ -26,7 +28,7 @@ interface NavItem {
   badgeType?: 'info' | 'warning' | 'danger' | 'success';
 }
 
-const navItems: NavItem[] = [
+const getNavItems = (sitesCount?: number, modulesCount?: number): NavItem[] => [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -36,14 +38,14 @@ const navItems: NavItem[] = [
     label: 'Sites',
     icon: Globe,
     path: '/app/sites',
-    badge: '12',
+    badge: sitesCount !== undefined ? sitesCount : undefined,
     badgeType: 'info',
   },
   {
     label: 'Modules',
     icon: Package,
     path: '/app/modules',
-    badge: '3',
+    badge: modulesCount !== undefined ? modulesCount : undefined,
     badgeType: 'warning',
   },
   {
@@ -78,7 +80,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   isCollapsed = false,
   onToggleCollapse,
+  sitesCount,
+  modulesCount,
 }) => {
+  const navItems = getNavItems(sitesCount, modulesCount);
   const sidebarVariants = {
     open: { x: 0 },
     closed: { x: '-100%' },

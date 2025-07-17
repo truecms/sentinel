@@ -280,8 +280,8 @@ export const Sites: React.FC = () => {
         onSort={handleSort}
       />
 
-      {/* Pagination */}
-      {!loading && sites.length > 0 && (
+      {/* Pagination - only show if there are multiple pages */}
+      {!loading && sites.length > 0 && totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
