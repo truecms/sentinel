@@ -18,6 +18,15 @@ class Site(Base):
     database_version = Column(String(50), nullable=True)
     server_info = Column(JSON, nullable=True)
     last_check = Column(DateTime, nullable=True)
+    
+    # Site overview tracking fields
+    security_score = Column(Integer, nullable=True, default=0)
+    total_modules_count = Column(Integer, nullable=True, default=0)
+    security_updates_count = Column(Integer, nullable=True, default=0)
+    non_security_updates_count = Column(Integer, nullable=True, default=0)
+    last_data_push = Column(DateTime, nullable=True)
+    last_drupal_org_check = Column(DateTime, nullable=True)
+    
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
     

@@ -38,3 +38,25 @@ class SiteResponse(SiteInDBBase):
 
 class SiteInDB(SiteInDBBase):
     pass
+
+# Site overview schemas for dashboard table view
+class SiteOverview(BaseModel):
+    id: int
+    name: str
+    url: str
+    security_score: Optional[int] = 0
+    total_modules_count: Optional[int] = 0
+    security_updates_count: Optional[int] = 0
+    non_security_updates_count: Optional[int] = 0
+    last_data_push: Optional[datetime] = None
+    last_drupal_org_check: Optional[datetime] = None
+    status: str  # 'healthy', 'warning', 'critical'
+    organization_id: int
+    
+    class Config:
+        from_attributes = True
+
+class SitesOverviewResponse(BaseModel):
+    sites: List[SiteOverview]
+    pagination: dict
+    filters: Optional[dict] = None
