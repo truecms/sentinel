@@ -1,15 +1,13 @@
 """Tests for enhanced sync endpoint with rate limiting and caching."""
 
-import asyncio
-import json
 from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.redis import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW, get_redis
+from app.core.redis import RATE_LIMIT_MAX_REQUESTS, get_redis
 from app.models import Organization, Site, User
 from app.services.cache import ModuleCacheService
 

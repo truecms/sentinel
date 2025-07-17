@@ -111,9 +111,8 @@ async def test_create_organization_with_users(
     assert "id" in data
 
     # Verify user association
-    async with async_session_maker() as session:
-        user = await session.get(User, test_user.id)
-        assert user.organization_id == data["id"]
+    await db_session.refresh(test_user)
+    assert test_user.organization_id == data["id"]
 
 
 async def test_update_organization_with_users(
@@ -138,6 +137,5 @@ async def test_update_organization_with_users(
     assert data["name"] == "Updated Organization"
 
     # Verify user association
-    async with async_session_maker() as session:
-        user = await session.get(User, test_user.id)
-        assert user.organization_id == test_organization.id
+    await db_session.refresh(test_user)
+    assert test_user.organization_id == test_organization.id

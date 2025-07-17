@@ -27,9 +27,6 @@ async def test_update_user_me(
     client: AsyncClient, user_token_headers: dict, test_user: User
 ):
     """Test updating current user profile."""
-    # Store user details before async operation
-    user_id = test_user.id
-
     response = await client.put(
         "/api/v1/users/me",
         headers=user_token_headers,
@@ -67,9 +64,6 @@ async def test_update_user_me_email(
     client: AsyncClient, user_token_headers: dict, test_user: User
 ):
     """Test updating current user email."""
-    # Store user details before async operation
-    user_id = test_user.id
-
     response = await client.put(
         "/api/v1/users/me",
         headers=user_token_headers,

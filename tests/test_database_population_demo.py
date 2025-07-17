@@ -8,7 +8,6 @@ realistic test data for various scenarios.
 Run with: pytest tests/test_database_population_demo.py -v
 """
 
-import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,21 +67,26 @@ class TestDatabasePopulationDemo:
         print(f"   Modules: {len(minimal_site['modules'])} (core only)")
 
         core_modules = [m.machine_name for m in minimal_site["modules"]]
-        print(f"   Core modules: {', '.join(core_modules)}")
+        print("   Core modules: {}".format(", ".join(core_modules)))
 
         # Demo 3: Security Data
         security_data = populated_database["security_data"]
-        print(f"\n🔒 Security Test Data:")
+        print("\n🔒 Security Test Data:")
         print(f"   Vulnerable modules: {len(security_data['security_modules'])}")
         print(f"   Security versions: {len(security_data['security_versions'])}")
 
         for advisory in security_data["advisory_data"]:
             print(
-                f"   {advisory['machine_name']}: {advisory['vulnerable_version']} → {advisory['secure_version']} ({advisory['severity']})"
+                "   {}: {} → {} ({})".format(
+                    advisory["machine_name"],
+                    advisory["vulnerable_version"],
+                    advisory["secure_version"],
+                    advisory["severity"],
+                )
             )
 
         # Demo 4: Total Statistics
-        print(f"\n📈 Total Database Stats:")
+        print("\n📈 Total Database Stats:")
         print(f"   Total unique modules: {populated_database['total_modules']}")
         print(f"   Standard site modules: {len(standard_site['modules'])}")
         print(f"   Minimal site modules: {len(minimal_site['modules'])}")
@@ -208,13 +212,13 @@ class TestDatabasePopulationDemo:
         print(f"  Contrib modules: {len(contrib_modules)}")
 
         # Find modules with security updates
-        stmt = select(ModuleVersion).where(ModuleVersion.is_security_update == True)
+        stmt = select(ModuleVersion).where(ModuleVersion.is_security_update is True)
         result = await db_session.execute(stmt)
         security_versions = result.scalars().all()
         print(f"  Security update versions: {len(security_versions)}")
 
         # Find sites with modules needing updates
-        stmt = select(SiteModule).where(SiteModule.update_available == True)
+        stmt = select(SiteModule).where(SiteModule.update_available is True)
         result = await db_session.execute(stmt)
         outdated_site_modules = result.scalars().all()
         print(f"  Site modules needing updates: {len(outdated_site_modules)}")

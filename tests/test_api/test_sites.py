@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
 from app.models.organization import Organization
-from app.models.site import Site
 from app.models.user import User
 
 pytestmark = pytest.mark.asyncio
@@ -45,7 +44,7 @@ async def test_create_site_duplicate_url(
         url="https://existing.example.com",
         organization_id=test_organization.id,
     )
-    site = await crud.create_site(db_session, site_in, 1)  # Use default user ID
+    await crud.create_site(db_session, site_in, 1)  # Use default user ID
 
     # Try to create site with same URL
     response = await client.post(

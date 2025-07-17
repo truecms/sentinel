@@ -21,7 +21,7 @@ async def test_update_organization(
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Updated Organization"
-    assert data["is_active"] == True
+    assert data["is_active"] is True
 
 
 async def test_update_organization_invalid_data(
@@ -75,7 +75,7 @@ async def test_update_organization_success(
     data = response.json()
     assert data["name"] == "Updated Organization"
     assert data["description"] == "Updated Description"
-    assert data["is_active"] == True
+    assert data["is_active"] is True
 
 
 async def test_update_organization_regular_user(

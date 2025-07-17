@@ -1,15 +1,12 @@
 """Tests for WebSocket functionality."""
 
-import asyncio
-import json
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from fastapi import WebSocket
 from fastapi.testclient import TestClient
 
 from app.api.v1.endpoints.ws import can_access_channel, get_websocket_user
-from app.core.websocket import ConnectionManager, manager
+from app.core.websocket import ConnectionManager
 from app.main import app
 from app.models.user import User
 
@@ -234,10 +231,9 @@ class TestWebSocketIntegration:
 
     def test_websocket_status_endpoint(self):
         """Test the WebSocket status endpoint."""
-        client = TestClient(app)
-
         # This endpoint requires superuser authentication
         # For now, this test will fail until we implement proper auth in tests
+        # client = TestClient(app)
         # response = client.get("/api/v1/ws/status")
         # assert response.status_code == 401  # Unauthorized without proper auth
 

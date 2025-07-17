@@ -88,7 +88,7 @@ async def test_monitored_site(
         is_active=True,
         is_deleted=False,
         # Note: monitoring fields (last_check_time, status, response_time, ssl_expiry)
-        # are not part of the current Site model - they would be in a separate MonitoringData model
+        # are not part of the current Site model - separate MonitoringData model
     )
     db_session.add(site)
     await db_session.commit()
