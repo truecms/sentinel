@@ -138,9 +138,9 @@ class DashboardAggregator:
             select(
                 Site.id,
                 func.count(SiteModule.id).label("outdated_modules"),
-                func.sum(
-                    case((ModuleVersion.is_security_update, 1), else_=0)
-                ).label("security_updates"),
+                func.sum(case((ModuleVersion.is_security_update, 1), else_=0)).label(
+                    "security_updates"
+                ),
             )
             .select_from(Site)
             .join(SiteModule, Site.id == SiteModule.site_id)
@@ -590,9 +590,7 @@ class DashboardAggregator:
                     )
                 ).label("security_updates"),
                 func.count(
-                    case(
-                        (SiteModule.update_available, SiteModule.id), else_=None
-                    )
+                    case((SiteModule.update_available, SiteModule.id), else_=None)
                 ).label("regular_updates"),
             )
             .select_from(Site)
@@ -791,9 +789,7 @@ class DashboardAggregator:
         Returns number of sites updated.
         """
         # Get all active sites
-        query = select(Site.id).filter(
-            and_(Site.is_active, not Site.is_deleted)
-        )
+        query = select(Site.id).filter(and_(Site.is_active, not Site.is_deleted))
 
         if org_id:
             query = query.filter(Site.organization_id == org_id)

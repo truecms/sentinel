@@ -16,7 +16,9 @@ async def get_site_module(
 ) -> Optional[SiteModule]:
     """Get site module by ID."""
     result = await db.execute(
-        select(SiteModule).filter(SiteModule.id == site_module_id, not SiteModule.is_deleted)
+        select(SiteModule).filter(
+            SiteModule.id == site_module_id, not SiteModule.is_deleted
+        )
     )
     return result.scalar_one_or_none()
 

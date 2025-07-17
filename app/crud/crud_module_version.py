@@ -16,7 +16,9 @@ async def get_module_version(
 ) -> Optional[ModuleVersion]:
     """Get module version by ID."""
     result = await db.execute(
-        select(ModuleVersion).filter(ModuleVersion.id == version_id, not ModuleVersion.is_deleted)
+        select(ModuleVersion).filter(
+            ModuleVersion.id == version_id, not ModuleVersion.is_deleted
+        )
     )
     return result.scalar_one_or_none()
 

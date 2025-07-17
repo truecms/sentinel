@@ -33,7 +33,9 @@ async def get_module_by_machine_name(
 ) -> Optional[Module]:
     """Get module by machine name."""
     result = await db.execute(
-        select(Module).filter(Module.machine_name == machine_name, not Module.is_deleted)
+        select(Module).filter(
+            Module.machine_name == machine_name, not Module.is_deleted
+        )
     )
     return result.scalar_one_or_none()
 
@@ -80,16 +82,16 @@ async def get_modules(
         if has_security_update:
             # Modules that have security updates available
             security_subquery = select(ModuleVersion.module_id).filter(
-                ModuleVersion.is_security_update == True,
-                ModuleVersion.is_deleted == False,
+                ModuleVersion.is_security_update,
+                not ModuleVersion.is_deleted,
             )
             query = query.filter(Module.id.in_(security_subquery))
             count_query = count_query.filter(Module.id.in_(security_subquery))
         else:
             # Modules that don't have security updates
             security_subquery = select(ModuleVersion.module_id).filter(
-                ModuleVersion.is_security_update == True,
-                ModuleVersion.is_deleted == False,
+                ModuleVersion.is_security_update,
+                not ModuleVersion.is_deleted,
             )
             query = query.filter(~Module.id.in_(security_subquery))
             count_query = count_query.filter(~Module.id.in_(security_subquery))
@@ -259,7 +261,7 @@ async def search_modules(
                 Module.display_name.ilike(f"%{search_term}%"),
                 Module.description.ilike(f"%{search_term}%"),
             ),
-            Module.is_deleted == False,
+            not Module.is_deleted,
         )
         .offset(skip)
         .limit(limit)
