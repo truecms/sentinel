@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import crud
 from app.api import deps
 from app.models.user import User
-from app.schemas.module_version import (UpdateCheckResponse,
-                                        VersionCheckRequest,
-                                        VersionCheckResponse)
+from app.schemas.module_version import (
+    UpdateCheckResponse,
+    VersionCheckRequest,
+    VersionCheckResponse,
+)
 from app.services.update_detector import UpdateDetector, UpdateInfo
 from app.services.version_comparator import VersionComparator
 

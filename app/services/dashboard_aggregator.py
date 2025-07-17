@@ -14,13 +14,23 @@ from app.models.organization import Organization
 from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
-from app.schemas.dashboard import (ActivityItem, DashboardMetrics,
-                                   DashboardOverview, HealthStatus,
-                                   ModuleRiskItem, Recommendation, RiskItem,
-                                   SecurityDashboard, SecurityMetrics,
-                                   SeverityLevel, SiteDashboard, SiteHealth,
-                                   SiteModuleStats, TimeSeriesData,
-                                   VulnerabilityCount)
+from app.schemas.dashboard import (
+    ActivityItem,
+    DashboardMetrics,
+    DashboardOverview,
+    HealthStatus,
+    ModuleRiskItem,
+    Recommendation,
+    RiskItem,
+    SecurityDashboard,
+    SecurityMetrics,
+    SeverityLevel,
+    SiteDashboard,
+    SiteHealth,
+    SiteModuleStats,
+    TimeSeriesData,
+    VulnerabilityCount,
+)
 
 logger = logging.getLogger(__name__)
 

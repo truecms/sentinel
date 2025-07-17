@@ -7,10 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api import deps
 from app.crud import crud_module, crud_module_version
 from app.models.user import User
-from app.schemas.module_version import (ModuleVersionCreate,
-                                        ModuleVersionListResponse,
-                                        ModuleVersionResponse,
-                                        ModuleVersionUpdate)
+from app.schemas.module_version import (
+    ModuleVersionCreate,
+    ModuleVersionListResponse,
+    ModuleVersionResponse,
+    ModuleVersionUpdate,
+)
 
 router = APIRouter()
 

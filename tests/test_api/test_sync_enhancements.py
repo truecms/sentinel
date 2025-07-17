@@ -9,8 +9,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.redis import (RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW,
-                            get_redis)
+from app.core.redis import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW, get_redis
 from app.models import Organization, Site, User
 from app.services.cache import ModuleCacheService
 

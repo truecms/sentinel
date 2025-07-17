@@ -14,10 +14,15 @@ from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
 from app.schemas.base import PaginatedResponse, get_pagination_params
-from app.schemas.module import (ModuleCreate, ModuleListResponse,
-                                ModuleResponse, ModuleStatusItem,
-                                ModuleStatusResponse, ModuleUpdate,
-                                ModuleUpdateInfo)
+from app.schemas.module import (
+    ModuleCreate,
+    ModuleListResponse,
+    ModuleResponse,
+    ModuleStatusItem,
+    ModuleStatusResponse,
+    ModuleUpdate,
+    ModuleUpdateInfo,
+)
 
 router = APIRouter()
 

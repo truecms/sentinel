@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
-                        text)
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, text
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base

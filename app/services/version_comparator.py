@@ -6,8 +6,7 @@ Implements comparison logic following Drupal version conventions.
 
 from typing import Dict, List, Optional, Tuple
 
-from app.services.version_parser import (DrupalVersionParser, ParsedVersion,
-                                         ReleaseType)
+from app.services.version_parser import DrupalVersionParser, ParsedVersion, ReleaseType
 
 
 class VersionComparator:

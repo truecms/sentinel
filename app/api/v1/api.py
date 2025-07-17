@@ -1,10 +1,21 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import (auth, dashboard, module_sites,
-                                  module_versions, module_versions_global,
-                                  module_versions_standalone, modules,
-                                  organizations, roles, sites, tasks, users,
-                                  version_check, ws)
+from app.api.v1.endpoints import (
+    auth,
+    dashboard,
+    module_sites,
+    module_versions,
+    module_versions_global,
+    module_versions_standalone,
+    modules,
+    organizations,
+    roles,
+    sites,
+    tasks,
+    users,
+    version_check,
+    ws,
+)
 
 api_router = APIRouter()
 

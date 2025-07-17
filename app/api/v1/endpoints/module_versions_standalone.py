@@ -7,10 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api import deps
 from app.crud import crud_module, crud_module_version
 from app.models.user import User
-from app.schemas.module_version import (ModuleVersionCreate,
-                                        ModuleVersionListResponse,
-                                        ModuleVersionResponse,
-                                        ModuleVersionUpdate)
+from app.schemas.module_version import (
+    ModuleVersionCreate,
+    ModuleVersionListResponse,
+    ModuleVersionResponse,
+    ModuleVersionUpdate,
+)
 
 router = APIRouter()
 
@@ -20,7 +22,7 @@ async def create_module_version(
     *,
     db: AsyncSession = Depends(deps.get_db),
     version: ModuleVersionCreate,
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Register a new module version (superuser only).
@@ -125,7 +127,7 @@ async def update_module_version(
     db: AsyncSession = Depends(deps.get_db),
     version_id: int,
     version_update: ModuleVersionUpdate,
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Update a module version (superuser only).
@@ -178,7 +180,7 @@ async def delete_module_version(
     *,
     db: AsyncSession = Depends(deps.get_db),
     version_id: int,
-    current_user: User = Depends(deps.get_current_user)
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Soft delete a module version (superuser only).

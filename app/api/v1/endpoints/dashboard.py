@@ -16,10 +16,16 @@ from app.models.organization import Organization
 from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
-from app.schemas.dashboard import (ActivityItem, DashboardMetrics,
-                                   DashboardOverview, ModuleRiskItem,
-                                   SecurityDashboard, SiteDashboard,
-                                   TimeSeriesData, VulnerabilityCount)
+from app.schemas.dashboard import (
+    ActivityItem,
+    DashboardMetrics,
+    DashboardOverview,
+    ModuleRiskItem,
+    SecurityDashboard,
+    SiteDashboard,
+    TimeSeriesData,
+    VulnerabilityCount,
+)
 from app.services.dashboard_aggregator import DashboardAggregator
 
 router = APIRouter()

@@ -6,8 +6,7 @@ from typing import Optional
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
-from app.core.redis import (RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW,
-                            get_redis)
+from app.core.redis import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW, get_redis
 
 
 class RateLimitException(HTTPException):

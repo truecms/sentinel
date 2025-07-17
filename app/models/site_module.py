@@ -1,7 +1,15 @@
 from datetime import datetime
 
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Index, Integer,
-                        UniqueConstraint, text)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base

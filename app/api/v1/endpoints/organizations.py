@@ -12,9 +12,12 @@ from app.models import User
 from app.models.organization import Organization
 from app.models.site import Site
 from app.models.user_organization import user_organization
-from app.schemas.organization import (OrganizationCreate,
-                                      OrganizationDeleteResponse,
-                                      OrganizationResponse, OrganizationUpdate)
+from app.schemas.organization import (
+    OrganizationCreate,
+    OrganizationDeleteResponse,
+    OrganizationResponse,
+    OrganizationUpdate,
+)
 
 router = APIRouter()
 

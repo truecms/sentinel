@@ -3,8 +3,16 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Integer, String,
-                        Table, Text)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 

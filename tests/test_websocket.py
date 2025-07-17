@@ -179,9 +179,10 @@ class TestWebSocketEndpoints:
     @pytest.mark.asyncio
     async def test_get_websocket_user_valid_token(self, mock_user):
         """Test getting user from valid token."""
-        with patch("app.api.v1.endpoints.ws.jwt.decode") as mock_jwt_decode, patch(
-            "app.api.v1.endpoints.ws.deps.get_user_by_id"
-        ) as mock_get_user:
+        with (
+            patch("app.api.v1.endpoints.ws.jwt.decode") as mock_jwt_decode,
+            patch("app.api.v1.endpoints.ws.deps.get_user_by_id") as mock_get_user,
+        ):
 
             mock_jwt_decode.return_value = {"sub": "1"}
             mock_get_user.return_value = mock_user

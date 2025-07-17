@@ -2,8 +2,15 @@ import json
 from math import ceil
 from typing import List, Optional, Union
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, HTTPException, Query,
-                     Request, status)
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud, schemas
@@ -11,16 +18,19 @@ from app.api import deps
 from app.api.v1.dependencies.rate_limit import check_rate_limit
 from app.core.config import settings
 from app.core.permissions import require_resource_action_dependency
-from app.crud import (crud_module, crud_module_version, crud_site,
-                      crud_site_module)
+from app.crud import crud_module, crud_module_version, crud_site, crud_site_module
 from app.models.site import Site
 from app.models.user import User
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
 from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.site import SiteOverview, SitesOverviewResponse
-from app.schemas.site_module import (SiteModuleCreate, SiteModuleListResponse,
-                                     SiteModuleResponse,
-                                     SiteModuleStatsResponse, SiteModuleUpdate)
+from app.schemas.site_module import (
+    SiteModuleCreate,
+    SiteModuleListResponse,
+    SiteModuleResponse,
+    SiteModuleStatsResponse,
+    SiteModuleUpdate,
+)
 from app.services.cache import ModuleCacheService
 from app.services.update_detector import UpdateDetector
 from app.tasks.sync_tasks import sync_site_modules_task
