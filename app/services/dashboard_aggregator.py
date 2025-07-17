@@ -677,3 +677,143 @@ class DashboardAggregator:
             return 'low'
         else:
             return 'info'
+    
+    async def update_site_tracking_data(self, site_id: int) -> None:
+        """
+        Update site tracking fields with calculated values.
+        Called after module sync or update detection.
+        """
+        # Get the site
+        site = await self.db.get(Site, site_id)
+        if not site:
+            return
+        
+        # Calculate all tracking metrics
+        tasks = [
+            self._calculate_site_security_score(site_id),
+            self._calculate_site_module_counts(site_id)
+        ]
+        
+        results = await asyncio.gather(*tasks)
+        security_score, module_counts = results
+        
+        # Update the site with calculated values
+        site.security_score = security_score
+        site.total_modules_count = module_counts['total']
+        site.security_updates_count = module_counts['security_updates']
+        site.non_security_updates_count = module_counts['non_security_updates']
+        site.last_data_push = datetime.utcnow()
+        
+        await self.db.commit()
+        await self.db.refresh(site)
+    
+    async def _calculate_site_security_score(self, site_id: int) -> int:
+        """Calculate security score for a specific site."""
+        # Get module statistics for this site
+        query = select(
+            func.count(SiteModule.id).label("total_modules"),
+            func.sum(
+                case(
+                    (SiteModule.update_available == True, 1),
+                    else_=0
+                )
+            ).label("modules_needing_updates"),
+            func.sum(
+                case(
+                    (SiteModule.security_update_available == True, 1),
+                    else_=0
+                )
+            ).label("security_updates_needed")
+        ).select_from(SiteModule).where(
+            and_(
+                SiteModule.site_id == site_id,
+                SiteModule.enabled == True,
+                SiteModule.is_active == True
+            )
+        )
+        
+        result = await self.db.execute(query)
+        stats = result.first()
+        
+        if not stats or stats.total_modules == 0:
+            return 100  # No modules means perfect score
+        
+        total_modules = stats.total_modules
+        security_updates_needed = stats.security_updates_needed or 0
+        modules_needing_updates = stats.modules_needing_updates or 0
+        
+        # Base score: percentage of modules up to date
+        modules_up_to_date = total_modules - modules_needing_updates
+        base_score = (modules_up_to_date / total_modules) * 100
+        
+        # Security penalty: Each security update reduces score significantly
+        security_penalty = min(security_updates_needed * 20, 80)  # Max 80% penalty
+        
+        # Final score
+        final_score = max(base_score - security_penalty, 0)
+        
+        return int(round(final_score))
+    
+    async def _calculate_site_module_counts(self, site_id: int) -> Dict[str, int]:
+        """Calculate module counts for a specific site."""
+        query = select(
+            func.count(SiteModule.id).label("total"),
+            func.sum(
+                case(
+                    (SiteModule.security_update_available == True, 1),
+                    else_=0
+                )
+            ).label("security_updates"),
+            func.sum(
+                case(
+                    (
+                        and_(
+                            SiteModule.update_available == True,
+                            SiteModule.security_update_available == False
+                        ),
+                        1
+                    ),
+                    else_=0
+                )
+            ).label("non_security_updates")
+        ).select_from(SiteModule).where(
+            and_(
+                SiteModule.site_id == site_id,
+                SiteModule.enabled == True,
+                SiteModule.is_active == True
+            )
+        )
+        
+        result = await self.db.execute(query)
+        stats = result.first()
+        
+        return {
+            "total": stats.total or 0,
+            "security_updates": stats.security_updates or 0,
+            "non_security_updates": stats.non_security_updates or 0
+        }
+    
+    async def update_all_sites_tracking_data(self, org_id: Optional[int] = None) -> int:
+        """
+        Update tracking data for all sites (or all sites in an organization).
+        Returns number of sites updated.
+        """
+        # Get all active sites
+        query = select(Site.id).filter(
+            and_(
+                Site.is_active == True,
+                Site.is_deleted == False
+            )
+        )
+        
+        if org_id:
+            query = query.filter(Site.organization_id == org_id)
+        
+        result = await self.db.execute(query)
+        site_ids = [row.id for row in result.fetchall()]
+        
+        # Update each site
+        for site_id in site_ids:
+            await self.update_site_tracking_data(site_id)
+        
+        return len(site_ids)

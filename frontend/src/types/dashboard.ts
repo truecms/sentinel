@@ -69,7 +69,7 @@ export interface ActivityItem {
   description?: string
   timestamp: Date
   severity?: 'critical' | 'high' | 'medium' | 'low' | 'info'
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface RiskItem {

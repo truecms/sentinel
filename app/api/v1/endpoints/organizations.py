@@ -17,6 +17,7 @@ from app.schemas.organization import (
 )
 from app.models import User
 from app.models.user_organization import user_organization
+from app.models.site import Site
 
 router = APIRouter()
 
@@ -296,3 +297,46 @@ async def delete_organization(
         "organization_id": organization.id,
         "name": organization.name
     }
+
+@router.get("/{organization_id}/sites", response_model=List[schemas.SiteResponse])
+async def read_organization_sites(
+    organization_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    skip: int = 0,
+    limit: int = 100
+):
+    """Get all sites for a specific organization."""
+    # Check if organization exists
+    query = select(Organization).where(
+        Organization.id == organization_id,
+        Organization.is_active == True,
+        Organization.is_deleted == False
+    )
+    result = await db.execute(query)
+    organization = result.scalar_one_or_none()
+    
+    if not organization:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    # Check if user has access to this organization
+    if not current_user.is_superuser and current_user.organization_id != organization_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    
+    # Get sites for the organization
+    query = select(Site).where(
+        Site.organization_id == organization_id,
+        Site.is_active == True,
+        Site.is_deleted == False
+    ).offset(skip).limit(limit)
+    
+    result = await db.execute(query)
+    sites = result.scalars().all()
+    
+    return sites

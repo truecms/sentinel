@@ -1,5 +1,5 @@
 import { store } from '@app/store';
-import { setCredentials, updateAccessToken, clearAuth } from '@features/auth/authSlice';
+import { setCredentials, clearAuth } from '@features/auth/authSlice';
 import TokenStorageService from '@services/tokenStorage';
 
 class TokenManager {

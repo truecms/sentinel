@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     SUPERUSER_PASSWORD: str
     SUPERUSER_FIRST_NAME: Optional[str] = None
     SUPERUSER_LAST_NAME: Optional[str] = None
+    
+    # Security Score Thresholds
+    SECURITY_SCORE_CRITICAL_THRESHOLD: int = 70
+    SECURITY_SCORE_WARNING_THRESHOLD: int = 85
+    NON_SECURITY_UPDATES_WARNING_THRESHOLD: int = 10
 
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 

@@ -10,6 +10,7 @@ class Site(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     url = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=True)
     site_uuid = Column(String(36), nullable=True)
     api_token = Column(String(255), nullable=True)
     drupal_core_version = Column(String(50), nullable=True)
@@ -18,6 +19,15 @@ class Site(Base):
     database_version = Column(String(50), nullable=True)
     server_info = Column(JSON, nullable=True)
     last_check = Column(DateTime, nullable=True)
+    
+    # Site overview tracking fields
+    security_score = Column(Integer, nullable=True, default=0)
+    total_modules_count = Column(Integer, nullable=True, default=0)
+    security_updates_count = Column(Integer, nullable=True, default=0)
+    non_security_updates_count = Column(Integer, nullable=True, default=0)
+    last_data_push = Column(DateTime, nullable=True)
+    last_drupal_org_check = Column(DateTime, nullable=True)
+    
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
     

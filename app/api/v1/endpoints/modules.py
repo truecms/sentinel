@@ -51,16 +51,22 @@ async def get_modules(
     - **sort_by**: Field to sort by
     - **sort_order**: Sort direction (asc|desc)
     """
-    modules, total = await crud_module.get_modules(
-        db=db,
-        skip=skip,
-        limit=limit,
-        search=search,
-        module_type=module_type,
-        has_security_update=has_security_update,
-        sort_by=sort_by,
-        sort_order=sort_order
-    )
+    try:
+        modules, total = await crud_module.get_modules(
+            db=db,
+            skip=skip,
+            limit=limit,
+            search=search,
+            module_type=module_type,
+            has_security_update=has_security_update,
+            sort_by=sort_by,
+            sort_order=sort_order
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
     
     # Calculate additional response fields for each module
     module_responses = []

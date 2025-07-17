@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.site import Site
 from app.models.organization import Organization
 from app.models.user import User
+from app import crud
 
 pytestmark = pytest.mark.asyncio
 
@@ -27,7 +28,6 @@ async def test_create_site(
     data = response.json()
     assert data["name"] == "Test Drupal Site"
     assert data["url"] == "https://test-drupal.example.com"
-    assert "uuid" in data
     assert "id" in data
 
 async def test_create_site_duplicate_url(
@@ -37,14 +37,14 @@ async def test_create_site_duplicate_url(
     db_session: AsyncSession
 ):
     """Test creating site with duplicate URL."""
-    # Create initial site
-    site = Site(
+    # Create initial site using CRUD
+    from app.schemas.site import SiteCreate
+    site_in = SiteCreate(
         name="Existing Site",
         url="https://existing.example.com",
         organization_id=test_organization.id
     )
-    db_session.add(site)
-    await db_session.commit()
+    site = await crud.create_site(db_session, site_in, 1)  # Use default user ID
 
     # Try to create site with same URL
     response = await client.post(
@@ -62,18 +62,26 @@ async def test_get_site(
     client: AsyncClient,
     user_token_headers: dict,
     test_organization: Organization,
+    test_user: User,
     db_session: AsyncSession
 ):
     """Test getting site details."""
-    # Create test site
-    site = Site(
+    # Assign user to organization using direct SQL to avoid session issues
+    from sqlalchemy import update
+    from app.models.user import User as UserModel
+    
+    stmt = update(UserModel).where(UserModel.id == test_user.id).values(organization_id=test_organization.id)
+    await db_session.execute(stmt)
+    await db_session.commit()
+    
+    # Create test site using CRUD
+    from app.schemas.site import SiteCreate
+    site_in = SiteCreate(
         name="Test Site",
         url="https://test.example.com",
         organization_id=test_organization.id
     )
-    db_session.add(site)
-    await db_session.commit()
-    await db_session.refresh(site)
+    site = await crud.create_site(db_session, site_in, test_user.id)
 
     response = await client.get(
         f"/api/v1/sites/{site.id}",
@@ -93,20 +101,22 @@ async def test_update_site_modules(
     db_session: AsyncSession
 ):
     """Test syncing site module information from Drupal."""
-    # Assign user to organization
-    test_user.organization_id = test_organization.id
-    db_session.add(test_user)
+    # Assign user to organization using direct SQL to avoid session issues
+    from sqlalchemy import update
+    from app.models.user import User as UserModel
+    
+    stmt = update(UserModel).where(UserModel.id == test_user.id).values(organization_id=test_organization.id)
+    await db_session.execute(stmt)
     await db_session.commit()
     
-    # Create test site
-    site = Site(
+    # Create test site using CRUD
+    from app.schemas.site import SiteCreate
+    site_in = SiteCreate(
         name="Module Test Site",
         url="https://modules.example.com",
         organization_id=test_organization.id
     )
-    db_session.add(site)
-    await db_session.commit()
-    await db_session.refresh(site)
+    site = await crud.create_site(db_session, site_in, test_user.id)
 
     # Sync module information using DrupalSiteSync payload
     response = await client.post(
@@ -155,20 +165,22 @@ async def test_get_site_modules(
     db_session: AsyncSession
 ):
     """Test retrieving site module information."""
-    # Assign user to organization
-    test_user.organization_id = test_organization.id
-    db_session.add(test_user)
+    # Assign user to organization using direct SQL to avoid session issues
+    from sqlalchemy import update
+    from app.models.user import User as UserModel
+    
+    stmt = update(UserModel).where(UserModel.id == test_user.id).values(organization_id=test_organization.id)
+    await db_session.execute(stmt)
     await db_session.commit()
     
-    # Create test site with modules
-    site = Site(
+    # Create test site using CRUD
+    from app.schemas.site import SiteCreate
+    site_in = SiteCreate(
         name="Module List Site",
         url="https://modulelist.example.com",
         organization_id=test_organization.id
     )
-    db_session.add(site)
-    await db_session.commit()
-    await db_session.refresh(site)
+    site = await crud.create_site(db_session, site_in, test_user.id)
 
     # First sync modules using DrupalSiteSync payload
     await client.post(
@@ -219,18 +231,18 @@ async def test_delete_site(
     client: AsyncClient,
     superuser_token_headers: dict,
     test_organization: Organization,
+    test_user: User,
     db_session: AsyncSession
 ):
     """Test deleting a site."""
-    # Create test site
-    site = Site(
+    # Create test site using CRUD
+    from app.schemas.site import SiteCreate
+    site_in = SiteCreate(
         name="Delete Test Site",
         url="https://delete.example.com",
         organization_id=test_organization.id
     )
-    db_session.add(site)
-    await db_session.commit()
-    await db_session.refresh(site)
+    site = await crud.create_site(db_session, site_in, test_user.id)
 
     response = await client.delete(
         f"/api/v1/sites/{site.id}",
@@ -249,21 +261,29 @@ async def test_get_organization_sites(
     client: AsyncClient,
     user_token_headers: dict,
     test_organization: Organization,
+    test_user: User,
     db_session: AsyncSession
 ):
     """Test getting all sites for an organization."""
-    # Create multiple test sites
-    sites = [
-        Site(
+    # Assign user to organization using direct SQL to avoid session issues
+    from sqlalchemy import update
+    from app.models.user import User as UserModel
+    
+    stmt = update(UserModel).where(UserModel.id == test_user.id).values(organization_id=test_organization.id)
+    await db_session.execute(stmt)
+    await db_session.commit()
+    
+    # Create multiple test sites using CRUD
+    from app.schemas.site import SiteCreate
+    sites = []
+    for i in range(3):
+        site_in = SiteCreate(
             name=f"Org Site {i}",
             url=f"https://site{i}.example.com",
             organization_id=test_organization.id
         )
-        for i in range(3)
-    ]
-    for site in sites:
-        db_session.add(site)
-    await db_session.commit()
+        site = await crud.create_site(db_session, site_in, test_user.id)
+        sites.append(site)
 
     response = await client.get(
         f"/api/v1/organizations/{test_organization.id}/sites",

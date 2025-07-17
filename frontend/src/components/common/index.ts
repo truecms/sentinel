@@ -6,5 +6,7 @@ export * from './EmptyState';
 export * from './Alert';
 export * from './Input';
 export * from './Modal';
+export * from './Pagination';
 export * from './Spinner';
+export * from './Table';
 export * from './ErrorBoundary';

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TopBar, Sidebar, MobileNav, Breadcrumbs } from '../../components/navigation';
 import type { BreadcrumbItem } from '../../components/navigation/Breadcrumbs/Breadcrumbs';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { useSiteCount } from '../../hooks/useSiteCount';
 
 interface DashboardLayoutProps {
   breadcrumbs?: BreadcrumbItem[];
@@ -12,6 +13,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = [] }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { siteCount } = useSiteCount();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -75,6 +77,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
             onClose={() => {}}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleSidebarCollapse}
+            sitesCount={siteCount ?? undefined}
           />
         </div>
 
@@ -82,6 +85,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          sitesCount={siteCount ?? undefined}
         />
 
         {/* Main Content */}
