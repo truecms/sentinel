@@ -18,6 +18,7 @@ from app.db.session import get_db
 from app.models.organization import Organization
 from app.models.user import User
 
+
 # Test database URL - dynamically determine based on environment
 def get_test_database_url():
     """Get the test database URL based on environment variables."""
@@ -28,6 +29,7 @@ def get_test_database_url():
     else:
         # Local testing environment - use default test credentials
         return f"postgresql+asyncpg://test_user:test_password@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/test_db"
+
 
 # Create async engine for tests - moved to test_engine fixture for proper URL
 # Global engine is not needed as we use the fixture
