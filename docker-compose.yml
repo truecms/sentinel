@@ -107,7 +107,7 @@ services:
       - JWT_SECRET_KEY=testing_secret_key_123
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
       - PYTHONPATH=/app
-      - TESTING=1
+      - TESTING=True
       - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
       - REDIS_HOST=redis
