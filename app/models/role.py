@@ -152,7 +152,7 @@ class UserRole(Base):
     valid_from = Column(DateTime, server_default=func.now())
     valid_until = Column(DateTime, nullable=True)
     assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, server_default=func.now())
+    assigned_at = Column(DateTime, server_default=func.now())
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id], back_populates="user_roles")
