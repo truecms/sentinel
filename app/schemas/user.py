@@ -38,7 +38,7 @@ class UserInDBBase(UserBase):
     role: Optional[str] = None
 
     class Config:
-        _ = True
+        from_attributes = True
 
 
 # Additional properties to return via API

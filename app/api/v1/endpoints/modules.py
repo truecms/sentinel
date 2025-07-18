@@ -424,24 +424,24 @@ async def get_dashboard_module_status(
                 module_type=row.module_type,
                 current_version=row.current_version_string,  # Use current version from query
                 latest_version=latest_version,
-                has_security_update=row.sites_with_security_updates > 0,
-                sites_needing_update=row.sites_needing_update,
+                security_update=row.sites_with_security_updates > 0,
+                sites_affected=row.sites_needing_update,
                 total_sites=row.total_sites,
                 last_updated=row.last_updated or datetime.utcnow(),
                 update_info=ModuleUpdateInfo(
                     has_security_update=row.sites_with_security_updates > 0,
                     sites_with_security_updates=row.sites_with_security_updates,
-                    sites_with_regular_updates=row.sites_needing_update
+                    sites_needing_regular_update=row.sites_needing_update
                     - row.sites_with_security_updates,
                 ),
             )
         )
 
     return PaginatedResponse(
-        data=modules,
+        items=modules,
         total=total,
         page=pagination.page,
-        per_page=pagination.limit,
+        page_size=pagination.limit,
         pages=((total - 1) // pagination.limit) + 1 if total > 0 else 0,
     )
 
@@ -454,50 +454,33 @@ async def get_dashboard_module_overview(
 ) -> Any:
     """Get module overview statistics for dashboard."""
 
-    # Get total modules
-    total_modules_query = (
-        select(func.count(func.distinct(Module.id)))
+    # Single query to get all counts at once to avoid concurrency issues
+    base_query = (
+        select(
+            func.count(func.distinct(Module.id)).label("total_modules"),
+            func.count(func.distinct(
+                case((SiteModule.update_available, Module.id), else_=None)
+            )).label("modules_with_updates"),
+            func.count(func.distinct(
+                case((SiteModule.security_update_available, Module.id), else_=None)
+            )).label("modules_with_security")
+        )
         .select_from(Module)
         .join(SiteModule, Module.id == SiteModule.module_id)
         .join(Site, SiteModule.site_id == Site.id)
-    )
-
-    # Get modules with updates needed
-    modules_with_updates_query = (
-        select(func.count(func.distinct(Module.id)))
-        .select_from(Module)
-        .join(SiteModule, Module.id == SiteModule.module_id)
-        .join(Site, SiteModule.site_id == Site.id)
-        .where(SiteModule.update_available)
-    )
-
-    # Get modules with security updates
-    modules_with_security_query = (
-        select(func.count(func.distinct(Module.id)))
-        .select_from(Module)
-        .join(SiteModule, Module.id == SiteModule.module_id)
-        .join(Site, SiteModule.site_id == Site.id)
-        .where(SiteModule.security_update_available)
     )
 
     # Apply organization filter if provided
     if org_id:
-        total_modules_query = total_modules_query.where(Site.organization_id == org_id)
-        modules_with_updates_query = modules_with_updates_query.where(
-            Site.organization_id == org_id
-        )
-        modules_with_security_query = modules_with_security_query.where(
-            Site.organization_id == org_id
-        )
+        base_query = base_query.where(Site.organization_id == org_id)
 
-    # Execute queries
-    total_modules_result = await db.execute(total_modules_query)
-    modules_with_updates_result = await db.execute(modules_with_updates_query)
-    modules_with_security_result = await db.execute(modules_with_security_query)
-
-    total_modules = total_modules_result.scalar() or 0
-    modules_with_updates = modules_with_updates_result.scalar() or 0
-    modules_with_security = modules_with_security_result.scalar() or 0
+    # Execute single query
+    result = await db.execute(base_query)
+    row = result.first()
+    
+    total_modules = row.total_modules if row else 0
+    modules_with_updates = row.modules_with_updates if row else 0
+    modules_with_security = row.modules_with_security if row else 0
 
     return ModuleStatusResponse(
         total_modules=total_modules,

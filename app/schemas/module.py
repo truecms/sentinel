@@ -52,7 +52,7 @@ class ModuleInDB(ModuleBase):
     updated_by: Optional[int] = None
 
     class Config:
-        _ = True
+        from_attributes = True
 
 
 class ModuleResponse(ModuleInDB):

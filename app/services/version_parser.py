@@ -85,7 +85,7 @@ class DrupalVersionParser:
     """Parser for Drupal module versions."""
 
     # Regex patterns for different version formats
-    patterns = {
+    PATTERNS = {
         # Drupal contrib format: 8.x-1.0, 7.x-2.5-beta1, 8.x-1.0+5
         "drupal_contrib": re.compile(
             r"^(\d+)\.x-(\d+)\.(\d+)"
@@ -164,7 +164,7 @@ class DrupalVersionParser:
                 minor=int(minor),
                 patch=int(patch),
                 release_type=cls._parse_release_type(release_type),
-                release_num=int(release_num) if release_num else None,
+                release_number=int(release_num) if release_num else None,
                 extra=extra,
                 original=version_string,
             )
