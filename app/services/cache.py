@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import crud
 from app.core.redis import MODULE_CACHE_TTL, VERSION_CACHE_TTL, get_redis
 from app.models import Module, ModuleVersion
 

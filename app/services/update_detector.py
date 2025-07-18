@@ -5,6 +5,7 @@ Checks for available updates and identifies security updates.
 """
 
 from datetime import datetime
+from typing import Optional, Dict, List, Tuple
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession

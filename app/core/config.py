@@ -59,16 +59,16 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v
         postgres_dsn = PostgresDsn.build(
-            _="postgresql+asyncpg",
-            _=info.data.get("POSTGRES_USER"),
-            _=info.data.get("POSTGRES_PASSWORD"),
-            _=info.data.get("POSTGRES_HOST"),
-            _=int(info.data.get("POSTGRES_PORT", 5432)),
-            _=info.data.get("POSTGRES_DB", ""),
+            scheme="postgresql+asyncpg",
+            username=info.data.get("POSTGRES_USER"),
+            password=info.data.get("POSTGRES_PASSWORD"),
+            host=info.data.get("POSTGRES_HOST"),
+            port=int(info.data.get("POSTGRES_PORT", 5432)),
+            path=info.data.get("POSTGRES_DB", ""),
         )
         return str(postgres_dsn)
 
-    _ = SettingsConfigDict(case_sensitive=True, env_file=".env")
+    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 
-_ = Settings()
+settings = Settings()

@@ -11,7 +11,7 @@ class Module(Base):
     Module model for tracking Drupal modules in the monitoring system.
 
     Represents a single Drupal module that can be installed across multiple sites.
-    Tracks basic module information and relationships to versions and site installations.
+    Tracks basic module information and relationships to versions and sites.
     """
 
     _ = "modules"

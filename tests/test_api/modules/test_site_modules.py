@@ -101,7 +101,6 @@ class TestSiteModulesList:
         )
         assert response.status_code == 200
 
-        data = response.json()
         # Should include both enabled and disabled modules
 
     async def test_get_site_modules_pagination(

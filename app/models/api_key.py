@@ -5,6 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -14,21 +15,21 @@ from app.models.base import Base
 class ApiKey(Base):
     """API Key model for user and site authentication."""
 
-    _ = "api_keys"
+    __tablename__ = "api_keys"
 
-    _ = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     key_hash = Column(String(255), nullable=False, unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=True, index=True)
     name = Column(String(100), nullable=True)
-    _ = Column(DateTime, nullable=True)
+    last_used = Column(DateTime, nullable=True)
     expires_at = Column(DateTime, nullable=True)
-    _ = Column(DateTime, server_default=func.now())
-    _ = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    is_active = Column(Boolean, default=True, nullable=False)
 
     # Relationships
-    _ = relationship("User", back_populates="api_keys")
-    _ = relationship("Site", back_populates="api_keys")
+    user = relationship("User", back_populates="api_keys")
+    site = relationship("Site", back_populates="api_keys")
 
     @classmethod
     def generate_key(cls, prefix: str = "sk_") -> str:
@@ -101,7 +102,7 @@ class ApiKey(Base):
         if expires_in_days:
             expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
 
-        api_key = cls(_=key_hash, site_id=site_id, name=name, expires_at=expires_at)
+        api_key = cls(key_hash=key_hash, site_id=site_id, name=name, expires_at=expires_at)
 
         return api_key, raw_key
 

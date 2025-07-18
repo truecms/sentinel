@@ -35,7 +35,7 @@ else:
         f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
     )
 
-# Create async engine for tests - moved to test_engine fixture to ensure proper URL is used
+# Create async engine for tests - moved to test_engine fixture for proper URL
 # Global engine is not needed as we use the fixture
 
 # Create async session factory - will be created in fixtures using test engine
@@ -317,7 +317,7 @@ async def security_update_modules() -> list[dict]:
             "secure_version": "1.18.0",
             "severity": "medium",
             "advisory_id": "SA-CONTRIB-2024-023",
-            "description": "Paragraphs module security update for medium-severity issue",
+            "description": "Paragraphs module security update for medium issue",
         },
     ]
 
