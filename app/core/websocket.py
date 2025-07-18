@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 
 from fastapi import WebSocket
 

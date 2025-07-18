@@ -65,8 +65,6 @@ class TestModuleModel:
     @pytest.mark.asyncio
     async def test_module_type_variations(self, db_session: AsyncSession):
         """Test different module types."""
-        from sqlalchemy import select
-
         types_to_test = ["contrib", "custom", "core"]
         created_modules = []
 

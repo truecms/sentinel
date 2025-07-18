@@ -126,7 +126,7 @@ def require_permission(permission: str):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Extract request, db, and current user/site from kwargs
-            request = kwargs.get("request")
+            # request = kwargs.get("request")  # Unused for now
             db = kwargs.get("db")
             auth_subject = kwargs.get("current_user") or kwargs.get("current_site")
 
@@ -166,7 +166,7 @@ def require_resource_action(resource: str, action: str):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Extract request, db, and current user/site from kwargs
-            request = kwargs.get("request")
+            # request = kwargs.get("request")  # Unused for now
             db = kwargs.get("db")
             auth_subject = kwargs.get("current_user") or kwargs.get("current_site")
 

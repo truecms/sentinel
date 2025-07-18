@@ -5,8 +5,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import crud
-from app.schemas import ModuleCreate, ModuleVersionCreate, SiteModuleCreate
 from app.core.security import create_access_token
+from app.schemas import ModuleCreate, ModuleVersionCreate, SiteModuleCreate
 
 
 @pytest.fixture
