@@ -63,17 +63,17 @@ class SiteModule(Base):
     )
 
     # Relationships
-    _ = relationship("Site", back_populates="modules")
-    _ = relationship("Module", back_populates="site_modules")
-    _ = relationship(
+    site = relationship("Site", back_populates="modules")
+    module = relationship("Module", back_populates="site_modules")
+    current_version = relationship(
         "ModuleVersion",
         foreign_keys=[current_version_id],
         back_populates="site_modules",
     )
-    _ = relationship(
+    latest_version = relationship(
         "ModuleVersion",
         foreign_keys=[latest_version_id],
-        _="site_modules_latest",
+        viewonly=True,
     )
-    _ = relationship("User", foreign_keys=[created_by])
-    _ = relationship("User", foreign_keys=[updated_by])
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])

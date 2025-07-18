@@ -20,7 +20,7 @@ class ModuleBase(BaseModel):
         None, description="Link to Drupal.org project page"
     )
     module_type: str = Field(
-        _="contrib",
+        default="contrib",
         pattern="^(contrib|custom|core)$",
         description="Type of module",
     )

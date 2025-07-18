@@ -309,7 +309,7 @@ def require_resource_action_dependency(resource: str, action: str):
 
         if not has_permission:
             raise HTTPException(
-                _=403, detail=f"Missing permission: {resource}:{action}"
+                status_code=403, detail=f"Missing permission: {resource}:{action}"
             )
 
         return auth_subject

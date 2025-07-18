@@ -18,9 +18,9 @@ class OrganizationBase(BaseModel):
 class OrganizationCreate(OrganizationBase):
     name: str = Field(
         ...,
-        _=1,
-        _="Name of the organization",
-        _={"min_length_error": "Organization name cannot be empty"},
+        min_length=1,
+        description="Name of the organization",
+        json_schema_extra={"min_length_error": "Organization name cannot be empty"},
     )
     created_by: Optional[int] = None
     users: Optional[List[int]] = None

@@ -97,7 +97,7 @@ async def _async_sync_site_modules(
             # Update progress
             current_task.update_state(
                 state="PROGRESS",
-                _={
+                meta={
                     "current": modules_processed,
                     "total": total_modules,
                     "status": f"Processed {modules_processed}/{total_modules} modules",
@@ -155,9 +155,9 @@ async def _process_module_batch(
                 # Create new module
                 module_create = schemas.ModuleCreate(
                     machine_name=machine_name,
-                    _=module_info["display_name"],
-                    _=module_info["module_type"],
-                    _=module_info.get("description"),
+                    display_name=module_info["display_name"],
+                    module_type=module_info["module_type"],
+                    description=module_info.get("description"),
                 )
                 module = await crud.crud_module.create_module(
                     db, module_create, user_id
@@ -175,8 +175,8 @@ async def _process_module_batch(
                 # Create new version
                 version_create = schemas.ModuleVersionCreate(
                     module_id=module.id,
-                    _=module_info["version"],
-                    _=[drupal_info["core_version"]],
+                    version_string=module_info["version"],
+                    drupal_core_compatibility=[drupal_info["core_version"]],
                 )
                 version = await crud.crud_module_version.create_module_version(
                     db, version_create, user_id
@@ -211,10 +211,10 @@ async def _process_module_batch(
             else:
                 # Create new association
                 site_module_create = schemas.SiteModuleCreate(
-                    _=site_id,
-                    _=module.id,
-                    _=version.id,
-                    _=module_info["enabled"],
+                    site_id=site_id,
+                    module_id=module.id,
+                    module_version_id=version.id,
+                    is_enabled=module_info["enabled"],
                 )
                 await crud.crud_site_module.create_site_module(
                     db, site_module_create, user_id

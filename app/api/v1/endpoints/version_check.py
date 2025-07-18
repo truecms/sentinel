@@ -134,13 +134,13 @@ async def batch_check_updates(
                 # No update info available
                 responses.append(
                     UpdateCheckResponse(
-                        _=req.machine_name,
-                        _=req.current_version,
-                        _=None,
-                        _=None,
-                        _=False,
-                        _=False,
-                        _={},
+                        machine_name=req.machine_name,
+                        current_version=req.current_version,
+                        latest_version=None,
+                        latest_security_version=None,
+                        update_available=False,
+                        security_update_available=False,
+                        details={},
                     )
                 )
 
@@ -167,10 +167,10 @@ async def compare_versions(
         parsed2 = comparator.parser.parse(version2)
 
         return VersionCheckResponse(
-            _=comparison,
-            _=version1,
-            _=version2,
-            _={
+            comparison=comparison,
+            version1=version1,
+            version2=version2,
+            version1_parsed={
                 "drupal_core": parsed1.drupal_core,
                 "major": parsed1.major,
                 "minor": parsed1.minor,
@@ -179,7 +179,7 @@ async def compare_versions(
                 "release_number": parsed1.release_number,
                 "semantic": parsed1.to_semantic(),
             },
-            _={
+            version2_parsed={
                 "drupal_core": parsed2.drupal_core,
                 "major": parsed2.major,
                 "minor": parsed2.minor,
@@ -191,6 +191,6 @@ async def compare_versions(
         )
     except ValueError as e:
         raise HTTPException(
-            _=status.HTTP_400_BAD_REQUEST,
-            _=f"Invalid version string: {str(e)}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid version string: {str(e)}",
         )

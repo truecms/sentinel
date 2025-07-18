@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import select, func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -143,7 +143,7 @@ async def create_module(
         machine_name=module.machine_name,
         display_name=module.display_name,
         drupal_org_link=str(module.drupal_org_link) if module.drupal_org_link else None,
-        _=module.module_type,
+        module_type=module.module_type,
         description=module.description,
         created_by=created_by,
         updated_by=created_by,

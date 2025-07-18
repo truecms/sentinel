@@ -8,10 +8,10 @@ from app.models.user import User
 async def create_superuser():
     async with SessionLocal() as db:
         user = User(
-            _="admin@example.com",
-            _=get_password_hash("admin123"),
-            _=True,
-            _=True,
+            email="admin@example.com",
+            hashed_password=get_password_hash("admin123"),
+            is_active=True,
+            is_superuser=True,
         )
         db.add(user)
         await db.commit()

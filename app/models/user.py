@@ -11,42 +11,42 @@ if TYPE_CHECKING:
 
 
 class User(Base):
-    _ = "users"
+    __tablename__ = "users"
 
-    _ = Column(Integer, primary_key=True, index=True)
-    _ = Column(String, unique=True, index=True, nullable=False)
-    _ = Column(String, nullable=True)
-    _ = Column(String, nullable=False)
-    _ = Column(Boolean(), default=True)
-    _ = Column(Boolean(), default=False)
-    _ = Column(DateTime, nullable=False, server_default=text("now()"))
-    _ = Column(DateTime, nullable=False, server_default=text("now()"))
-    _ = Column(DateTime, nullable=True)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    full_name = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=False)
+    is_active = Column(Boolean(), default=True)
+    is_superuser = Column(Boolean(), default=False)
+    created_at = Column(DateTime, nullable=False, server_default=text("now()"))
+    updated_at = Column(DateTime, nullable=False, server_default=text("now()"))
+    last_login = Column(DateTime, nullable=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
     role = Column(String, nullable=True)
 
     # Relationships
-    _ = relationship(
+    organization = relationship(
         "Organization", foreign_keys=[organization_id], back_populates="users"
     )
-    _ = relationship(
+    organizations = relationship(
         "Organization", secondary=user_organization, back_populates="users"
     )
-    _ = relationship(
+    created_organizations = relationship(
         "Organization",
         back_populates="creator",
         foreign_keys="[Organization.created_by]",
     )
 
     # API Keys and RBAC relationships
-    _ = relationship("ApiKey", back_populates="user")
-    _ = relationship(
+    api_keys = relationship("ApiKey", back_populates="user")
+    user_roles = relationship(
         "UserRole", back_populates="user", foreign_keys="[UserRole.user_id]"
     )
-    _ = relationship(
+    assigned_roles = relationship(
         "UserRole",
-        _="assigned_by",
-        _="[UserRole.assigned_by_id]",
+        back_populates="assigned_by",
+        foreign_keys="[UserRole.assigned_by_id]",
     )
 
     def get_roles(self, organization_id: Optional[int] = None) -> List["Role"]:

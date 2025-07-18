@@ -38,13 +38,13 @@ class Role(Base):
     name = Column(String(50), unique=True, nullable=False, index=True)
     display_name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    _ = Column(Boolean, default=False, nullable=False)
-    _ = Column(DateTime, server_default=func.now())
-    _ = Column(DateTime, onupdate=func.now())
+    is_system = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     # Relationships
-    _ = relationship("Permission", secondary=role_permissions, back_populates="roles")
-    _ = relationship("UserRole", back_populates="role")
+    permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
+    user_roles = relationship("UserRole", back_populates="role")
 
     def __repr__(self) -> str:
         """String representation of the role."""
@@ -96,9 +96,9 @@ class Role(Base):
         """Create a custom role."""
         return cls(
             name=name,
-            _=display_name,
+            display_name=display_name,
             description=description,
-            _=False,
+            is_system=False,
         )
 
 
@@ -137,24 +137,24 @@ class Permission(Base):
 class UserRole(Base):
     """User-Role assignment model with organization scope."""
 
-    _ = "user_roles"
+    __tablename__ = "user_roles"
 
-    _ = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False, index=True)
     organization_id = Column(
         Integer, ForeignKey("organizations.id"), nullable=True, index=True
     )
-    _ = Column(DateTime, server_default=func.now())
+    valid_from = Column(DateTime, server_default=func.now())
     valid_until = Column(DateTime, nullable=True)
     assigned_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    _ = Column(DateTime, server_default=func.now())
+    created_at = Column(DateTime, server_default=func.now())
 
     # Relationships
-    _ = relationship("User", foreign_keys=[user_id], back_populates="user_roles")
-    _ = relationship("Role", back_populates="user_roles")
-    _ = relationship("Organization")
-    _ = relationship("User", foreign_keys=[assigned_by_id])
+    user = relationship("User", foreign_keys=[user_id], back_populates="user_roles")
+    role = relationship("Role", back_populates="user_roles")
+    organization = relationship("Organization")
+    assigned_by = relationship("User", foreign_keys=[assigned_by_id])
 
     def __repr__(self) -> str:
         """String representation of the user role assignment."""
@@ -195,9 +195,9 @@ class UserRole(Base):
     ) -> "UserRole":
         """Assign a role to a user."""
         return cls(
-            _=user_id,
-            _=role_id,
-            _=organization_id,
-            _=assigned_by_id,
-            _=valid_until,
+            user_id=user_id,
+            role_id=role_id,
+            organization_id=organization_id,
+            assigned_by_id=assigned_by_id,
+            valid_until=valid_until,
         )

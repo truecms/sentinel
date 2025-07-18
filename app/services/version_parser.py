@@ -164,8 +164,8 @@ class DrupalVersionParser:
                 minor=int(minor),
                 patch=int(patch),
                 release_type=cls._parse_release_type(release_type),
-                _=int(release_num) if release_num else None,
-                _=extra,
+                release_num=int(release_num) if release_num else None,
+                extra=extra,
                 original=version_string,
             )
 
@@ -198,11 +198,11 @@ class DrupalVersionParser:
         if match:
             major, minor, patch = match.groups()
             return ParsedVersion(
-                _=int(major),
-                _=int(minor),
-                _=int(patch),
-                _=ReleaseType.STABLE,
-                _=version_string,
+                major=int(major),
+                minor=int(minor),
+                patch=int(patch),
+                release_type=ReleaseType.STABLE,
+                original=version_string,
             )
 
         # If no pattern matches, raise an error

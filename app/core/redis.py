@@ -28,14 +28,14 @@ async def get_redis_client() -> Optional[redis.Redis]:
     if _redis_client is None:
         try:
             _redis_client = redis.Redis(
-                _=settings.REDIS_HOST,
-                _=settings.REDIS_PORT,
-                _=settings.REDIS_DB,
-                _=settings.REDIS_PASSWORD,
-                _=True,
-                _=5,
-                _=5,
-                _=30,
+                host=settings.REDIS_HOST,
+                port=settings.REDIS_PORT,
+                db=settings.REDIS_DB,
+                password=settings.REDIS_PASSWORD,
+                decode_responses=True,
+                socket_connect_timeout=5,
+                socket_timeout=5,
+                socket_keepalive_options=30,
             )
 
             # Test connection

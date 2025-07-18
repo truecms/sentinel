@@ -58,10 +58,10 @@ async def test_engine():
     """Create a test engine and initialize the database with a superuser."""
     engine = create_async_engine(
         TEST_SQLALCHEMY_DATABASE_URL,
-        _=True,
-        _=True,
-        _="READ COMMITTED",
-        _=NullPool,  # Use NullPool to avoid connection reuse
+        echo=True,
+        future=True,
+        isolation_level="READ COMMITTED",
+        poolclass=NullPool,  # Use NullPool to avoid connection reuse
     )
 
     # Create tables at the start of the test session
@@ -167,9 +167,9 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     main_app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        _=ASGITransport(app=main_app),
-        _="http://test",
-        _=True,
+        transport=ASGITransport(app=main_app),
+        base_url="http://test",
+        follow_redirects=True,
     ) as client:
         yield client
 
@@ -233,7 +233,7 @@ async def test_site(
         created_by=test_user.id,
         updated_by=test_user.id,
         is_active=True,
-        _=False,
+        is_deleted=False,
     )
     db_session.add(site)
     await db_session.commit()
@@ -260,10 +260,10 @@ async def test_regular_user(db_session: AsyncSession) -> User:
     """Create a regular (non-superuser) test user."""
     user = User(
         email="test_regular_user@example.com",
-        _=get_password_hash("test123"),
-        _=True,
-        _=False,
-        _="user",
+        hashed_password=get_password_hash("test123"),
+        is_active=True,
+        is_superuser=False,
+        role="user",
     )
     db_session.add(user)
     await db_session.commit()
@@ -383,8 +383,8 @@ async def minimal_drupal_site(
     return await factory.create_minimal_site(
         organization=test_organization,
         user=test_user,
-        _="Minimal Test Site",
-        _="https://minimal-test.example.com",
+        name="Minimal Test Site",
+        url="https://minimal-test.example.com",
     )
 
 
@@ -406,10 +406,10 @@ async def bulk_test_data(
 
     factory = TestDataFactory(db_session)
     return await factory.create_bulk_test_data(
-        _=test_organization,
-        _=test_user,
-        _=10,
-        _=50,
+        organization=test_organization,
+        user=test_user,
+        num_sites=10,
+        num_modules=50,
     )
 
 
@@ -477,8 +477,8 @@ async def site_with_outdated_modules(
         # Create new version (available update)
         new_version = ModuleVersion(
             module_id=module.id,
-            _=module_data["new_version"],
-            _=datetime.utcnow() - timedelta(days=30),
+            version=module_data["new_version"],
+            release_date=datetime.utcnow() - timedelta(days=30),
             is_security_update=False,
             created_by=test_user.id,
             updated_by=test_user.id,
@@ -525,10 +525,10 @@ async def site_with_security_issues(
 
     # Create site
     site = Site(
-        _="Site with Security Issues",
-        _="https://vulnerable.example.com",
-        _=test_organization.id,
-        _="vulnerable_token_123",
+        name="Site with Security Issues",
+        url="https://vulnerable.example.com",
+        organization_id=test_organization.id,
+        api_token="vulnerable_token_123",
         created_by=test_user.id,
         updated_by=test_user.id,
     )
@@ -548,14 +548,14 @@ async def site_with_security_issues(
 
         if vulnerable_version:
             site_module = SiteModule(
-                _=site.id,
-                _=module.id,
-                _=vulnerable_version.id,
-                _=True,
-                _=True,
-                _=True,  # Mark as having security update
-                _=test_user.id,
-                _=test_user.id,
+                site_id=site.id,
+                module_id=module.id,
+                module_version_id=vulnerable_version.id,
+                is_enabled=True,
+                is_installed=True,
+                has_security_update=True,  # Mark as having security update
+                created_by=test_user.id,
+                updated_by=test_user.id,
             )
             db_session.add(site_module)
             site_modules.append(site_module)

@@ -291,8 +291,8 @@ async def get_organization_users(
 
     if not organization:
         raise HTTPException(
-            _=status.HTTP_404_NOT_FOUND,
-            _="Organization not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found",
         )
 
     # Get users through user_organizations table

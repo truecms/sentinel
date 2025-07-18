@@ -31,7 +31,7 @@ async def test_api_key_authentication():
             site = Site(
                 name=f"Test Site {unique_id}",
                 url=f"https://test{unique_id}.example.com",
-                _=org.id,
+                organization_id=org.id,
                 site_uuid=f"test-uuid-{unique_id}",
                 api_token=f"legacy-token-{unique_id}",
             )
