@@ -102,7 +102,9 @@ class ApiKey(Base):
         if expires_in_days:
             expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
 
-        api_key = cls(key_hash=key_hash, site_id=site_id, name=name, expires_at=expires_at)
+        api_key = cls(
+            key_hash=key_hash, site_id=site_id, name=name, expires_at=expires_at
+        )
 
         return api_key, raw_key
 
