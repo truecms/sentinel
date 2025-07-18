@@ -16,9 +16,7 @@ class ModuleVersionBase(BaseModel):
     is_security_update: bool = Field(
         False, description="Whether this version contains security fixes"
     )
-    release_notes: Optional[str] = Field(
-        None, description="Release notes text"
-    )
+    release_notes: Optional[str] = Field(None, description="Release notes text")
     drupal_core_compatibility: Optional[List[str]] = Field(
         None, description="Compatible Drupal core versions (e.g., ['9.x', '10.x'])"
     )

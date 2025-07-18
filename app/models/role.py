@@ -116,7 +116,9 @@ class Permission(Base):
     description = Column(Text, nullable=True)
 
     # Relationships
-    roles = relationship("Role", secondary=role_permissions, back_populates="permissions")
+    roles = relationship(
+        "Role", secondary=role_permissions, back_populates="permissions"
+    )
 
     def __repr__(self) -> str:
         """String representation of the permission."""

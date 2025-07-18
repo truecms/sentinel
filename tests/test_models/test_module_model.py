@@ -15,7 +15,6 @@ class TestModuleModel:
             machine_name="views",
             display_name="Views",
             module_type="contrib",
-            description="Create customized lists and queries from your database.",
         )
 
         db_session.add(module)
@@ -44,7 +43,6 @@ class TestModuleModel:
         assert module.machine_name == "custom_module"
         assert module.display_name == "Custom Module"
         assert module.module_type == "contrib"  # Default value
-        assert module.description is None
         assert module.drupal_org_link is None
 
     @pytest.mark.asyncio
@@ -67,7 +65,10 @@ class TestModuleModel:
     @pytest.mark.asyncio
     async def test_module_type_variations(self, db_session: AsyncSession):
         """Test different module types."""
+        from sqlalchemy import select
+
         types_to_test = ["contrib", "custom", "core"]
+        created_modules = []
 
         for i, module_type in enumerate(types_to_test):
             module = Module(
@@ -76,14 +77,14 @@ class TestModuleModel:
                 module_type=module_type,
             )
             db_session.add(module)
+            created_modules.append(module)
 
         await db_session.commit()
 
         # Verify all modules were created
-        for i, module_type in enumerate(types_to_test):
-            stmt = db_session.get(Module, i + 1)
-            module = await stmt
-            assert module.module_type == module_type
+        for module, expected_type in zip(created_modules, types_to_test):
+            await db_session.refresh(module)
+            assert module.module_type == expected_type
 
     @pytest.mark.asyncio
     async def test_module_with_drupal_org_link(self, db_session: AsyncSession):
@@ -92,7 +93,6 @@ class TestModuleModel:
             machine_name="webform",
             display_name="Webform",
             drupal_org_link="https://www.drupal.org/project/webform",
-            description="Enables the creation of webforms and questionnaires.",
         )
 
         db_session.add(module)
@@ -131,7 +131,9 @@ class TestModuleModel:
     @pytest.mark.asyncio
     async def test_module_relationships_structure(self, db_session: AsyncSession):
         """Test that relationships are properly defined."""
-        module = Module(_="relationship_test", display_name="Relationship Test")
+        module = Module(
+            machine_name="relationship_test", display_name="Relationship Test"
+        )
 
         # Check that relationship attributes exist
         assert hasattr(module, "versions")

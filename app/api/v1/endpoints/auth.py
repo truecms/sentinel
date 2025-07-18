@@ -227,8 +227,7 @@ async def forgot_password(
     # Always return success to prevent email enumeration
     return {
         "message": (
-            "If an account exists with this email, "
-            "reset instructions have been sent"
+            "If an account exists with this email, " "reset instructions have been sent"
         )
     }
 

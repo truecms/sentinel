@@ -13,7 +13,7 @@ from app.core.security import create_access_token
 async def test_organization_dict(db_session):
     """Create a test organization and return as dict."""
     from app.models.organization import Organization
-    
+
     org = Organization(
         name="Test Organization",
         description="Test organization for full sync tests",
@@ -23,7 +23,7 @@ async def test_organization_dict(db_session):
     db_session.add(org)
     await db_session.commit()
     await db_session.refresh(org)
-    
+
     return {
         "id": org.id,
         "name": org.name,
@@ -34,7 +34,7 @@ async def test_organization_dict(db_session):
 async def test_site_dict(db_session, test_organization_dict):
     """Create a test site and return as dict."""
     from app.models.site import Site
-    
+
     site = Site(
         name="Test Site",
         url="https://test-site.com",
@@ -47,7 +47,7 @@ async def test_site_dict(db_session, test_organization_dict):
     db_session.add(site)
     await db_session.commit()
     await db_session.refresh(site)
-    
+
     return {
         "id": site.id,
         "name": site.name,
@@ -315,5 +315,3 @@ class TestFullSync:
         module_names = {m.module.machine_name for m in modules_after}
         assert "partial_module_1" in module_names
         assert "partial_module_2" in module_names
-
-

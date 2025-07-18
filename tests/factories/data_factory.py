@@ -420,16 +420,20 @@ class TestDataFactory:
         all_site_modules = []
 
         # Prepare modules to use
-        all_available_modules = self.core_modules + self.contrib_modules + self.custom_modules
-        
+        all_available_modules = (
+            self.core_modules + self.contrib_modules + self.custom_modules
+        )
+
         # Generate additional modules if needed to reach modules_per_site
         if len(all_available_modules) < modules_per_site:
             for i in range(len(all_available_modules), modules_per_site):
-                all_available_modules.append({
-                    "machine_name": f"bulk_module_{i}",
-                    "display_name": f"Bulk Module {i}",
-                    "module_type": "contrib" if i % 2 == 0 else "custom",
-                })
+                all_available_modules.append(
+                    {
+                        "machine_name": f"bulk_module_{i}",
+                        "display_name": f"Bulk Module {i}",
+                        "module_type": "contrib" if i % 2 == 0 else "custom",
+                    }
+                )
 
         for i in range(num_sites):
             # Create site
@@ -444,17 +448,17 @@ class TestDataFactory:
             self.db_session.add(site)
             await self.db_session.commit()
             await self.db_session.refresh(site)
-            
+
             site_data = {
                 "site": site,
                 "modules": [],
                 "versions": [],
                 "site_modules": [],
             }
-            
+
             # Use the requested number of modules per site
             modules_to_use = all_available_modules[:modules_per_site]
-            
+
             for module_data in modules_to_use:
                 # Create module if it doesn't exist
                 module = await self._get_or_create_module(module_data, user)
@@ -465,7 +469,9 @@ class TestDataFactory:
                 site_data["versions"].append(version)
 
                 # Create site-module association
-                site_module = await self._create_site_module(site, module, version, user)
+                site_module = await self._create_site_module(
+                    site, module, version, user
+                )
                 site_data["site_modules"].append(site_module)
 
             created_sites.append(site_data["site"])
@@ -523,7 +529,7 @@ class TestDataFactory:
 
         stmt = select(ModuleVersion).where(
             ModuleVersion.module_id == module.id,
-            ModuleVersion.version_string == version_string
+            ModuleVersion.version_string == version_string,
         )
         result = await self.db_session.execute(stmt)
         existing_version = result.scalar_one_or_none()
@@ -537,7 +543,7 @@ class TestDataFactory:
             version_string=version_string,
             created_by=user.id,
             updated_by=user.id,
-            **kwargs
+            **kwargs,
         )
         self.db_session.add(version)
         await self.db_session.commit()
@@ -565,7 +571,7 @@ class TestDataFactory:
 
         stmt = select(ModuleVersion).where(
             ModuleVersion.module_id == module.id,
-            ModuleVersion.version_string == version_string
+            ModuleVersion.version_string == version_string,
         )
         result = await self.db_session.execute(stmt)
         existing_version = result.scalar_one_or_none()
@@ -597,7 +603,9 @@ class TestDataFactory:
             current_version_id=version.id,
             enabled=True,
             update_available=random.choice([True, False]),
-            security_update_available=random.choice([True, False, False, False]),  # 25% chance
+            security_update_available=random.choice(
+                [True, False, False, False]
+            ),  # 25% chance
             created_by=user.id,
             updated_by=user.id,
         )

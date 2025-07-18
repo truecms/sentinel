@@ -458,12 +458,16 @@ async def get_dashboard_module_overview(
     base_query = (
         select(
             func.count(func.distinct(Module.id)).label("total_modules"),
-            func.count(func.distinct(
-                case((SiteModule.update_available, Module.id), else_=None)
-            )).label("modules_with_updates"),
-            func.count(func.distinct(
-                case((SiteModule.security_update_available, Module.id), else_=None)
-            )).label("modules_with_security")
+            func.count(
+                func.distinct(
+                    case((SiteModule.update_available, Module.id), else_=None)
+                )
+            ).label("modules_with_updates"),
+            func.count(
+                func.distinct(
+                    case((SiteModule.security_update_available, Module.id), else_=None)
+                )
+            ).label("modules_with_security"),
         )
         .select_from(Module)
         .join(SiteModule, Module.id == SiteModule.module_id)
@@ -477,7 +481,7 @@ async def get_dashboard_module_overview(
     # Execute single query
     result = await db.execute(base_query)
     row = result.first()
-    
+
     total_modules = row.total_modules if row else 0
     modules_with_updates = row.modules_with_updates if row else 0
     modules_with_security = row.modules_with_security if row else 0

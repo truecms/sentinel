@@ -20,7 +20,9 @@ class Module(Base):
     machine_name = Column(String(255), unique=True, nullable=False, index=True)
     display_name = Column(String(255), nullable=False)
     drupal_org_link = Column(String(500), nullable=True)
-    module_type = Column(String(50), nullable=False, default="contrib")  # contrib, custom, core
+    module_type = Column(
+        String(50), nullable=False, default="contrib"
+    )  # contrib, custom, core
     is_covered = Column(Boolean(), default=False)
     is_active = Column(Boolean(), default=True)
     is_deleted = Column(Boolean(), default=False)
@@ -38,3 +40,7 @@ class Module(Base):
     site_modules = relationship("SiteModule", back_populates="module")
     creator = relationship("User", foreign_keys=[created_by])
     updater = relationship("User", foreign_keys=[updated_by])
+
+    def __str__(self):
+        """String representation of the module."""
+        return f"{self.display_name} ({self.machine_name})"

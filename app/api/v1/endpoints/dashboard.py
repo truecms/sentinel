@@ -46,86 +46,121 @@ async def get_dashboard_overview(
     # TEMPORARY: Return mock data to avoid SQLAlchemy concurrency issues
     # TODO: Fix the dashboard aggregator to handle concurrent queries properly
     from datetime import datetime, timedelta
-    from app.schemas.dashboard import (
-        DashboardMetrics, VulnerabilityCount, TimeSeriesData,
-        ActivityItem, RiskItem, SeverityLevel
-    )
-    from sqlalchemy import select, func, case
+
+    from sqlalchemy import case, func, select
+
     from app.models.site import Site
-    
+
     # Get real data from database
     from app.models.site_module import SiteModule
-    
+    from app.schemas.dashboard import (
+        ActivityItem,
+        DashboardMetrics,
+        RiskItem,
+        SeverityLevel,
+        TimeSeriesData,
+        VulnerabilityCount,
+    )
+
     # Get site and security statistics
-    stats_query = select(
-        func.count(func.distinct(Site.id)).label("total_sites"),
-        func.count(func.distinct(
-            case((SiteModule.security_update_available == True, Site.id), else_=None)
-        )).label("sites_with_security_updates"),
-        func.count(func.distinct(
-            case((SiteModule.security_update_available == True, SiteModule.module_id), else_=None)
-        )).label("modules_with_security_updates"),
-        func.count(func.distinct(
-            case((SiteModule.update_available == True, SiteModule.module_id), else_=None)
-        )).label("modules_with_regular_updates")
-    ).select_from(Site).outerjoin(SiteModule, Site.id == SiteModule.site_id).where(Site.is_active == True)
-    
+    stats_query = (
+        select(
+            func.count(func.distinct(Site.id)).label("total_sites"),
+            func.count(
+                func.distinct(
+                    case(
+                        (SiteModule.security_update_available.is_(True), Site.id),
+                        else_=None,
+                    )
+                )
+            ).label("sites_with_security_updates"),
+            func.count(
+                func.distinct(
+                    case(
+                        (
+                            SiteModule.security_update_available.is_(True),
+                            SiteModule.module_id,
+                        ),
+                        else_=None,
+                    )
+                )
+            ).label("modules_with_security_updates"),
+            func.count(
+                func.distinct(
+                    case(
+                        (SiteModule.update_available.is_(True), SiteModule.module_id),
+                        else_=None,
+                    )
+                )
+            ).label("modules_with_regular_updates"),
+        )
+        .select_from(Site)
+        .outerjoin(SiteModule, Site.id == SiteModule.site_id)
+        .where(Site.is_active.is_(True))
+    )
+
     if org_id:
         stats_query = stats_query.where(Site.organization_id == org_id)
-    
+
     stats_result = await db.execute(stats_query)
     stats = stats_result.first()
-    
+
     total_sites = stats.total_sites if stats else 0
     sites_with_security = stats.sites_with_security_updates if stats else 0
     security_updates = stats.modules_with_security_updates if stats else 0
     regular_updates = stats.modules_with_regular_updates if stats else 0
-    
+
     # Calculate compliance rate (sites without security updates / total sites)
-    compliance_rate = ((total_sites - sites_with_security) / total_sites * 100) if total_sites > 0 else 100.0
-    
+    compliance_rate = (
+        ((total_sites - sites_with_security) / total_sites * 100)
+        if total_sites > 0
+        else 100.0
+    )
+
     # Calculate security score based on actual metrics
     # Higher score = better security (fewer sites with security updates)
     security_score = compliance_rate * 0.85 + 15  # Base score of 15, max 100
-    
+
     # Create properly typed components based on actual data
     # Categorize vulnerabilities by severity (simplified mapping)
     vulnerabilities = VulnerabilityCount(
         critical=security_updates,  # Security updates are critical
         high=min(4, sites_with_security),  # Sites with security issues
-        medium=min(12, regular_updates - security_updates) if regular_updates > security_updates else 0,
-        low=min(23, regular_updates) if regular_updates > 0 else 0
+        medium=(
+            min(12, regular_updates - security_updates)
+            if regular_updates > security_updates
+            else 0
+        ),
+        low=min(23, regular_updates) if regular_updates > 0 else 0,
     )
-    
+
     metrics = DashboardMetrics(
         total_sites=total_sites,
         security_score=round(security_score, 1),
         critical_updates=security_updates,
         compliance_rate=round(compliance_rate, 1),
-        vulnerabilities=vulnerabilities
+        vulnerabilities=vulnerabilities,
     )
-    
+
     # Generate trend data with multiple points for the chart
     now = datetime.utcnow()
     trend_points = []
-    
+
     # Generate 7 days of trend data
     for i in range(7, -1, -1):
         timestamp = now - timedelta(days=i)
         # Simulate slight variations in security score
         daily_variation = 2.5 * (0.5 - (i % 3) / 3)  # Creates a wave pattern
         daily_score = min(100, max(0, security_score + daily_variation))
-        
-        trend_points.append(TimeSeriesData(
-            timestamp=timestamp,
-            value=round(daily_score, 1),
-            label="Security Score"
-        ))
-    
-    trends = {
-        "security_score": trend_points
-    }
-    
+
+        trend_points.append(
+            TimeSeriesData(
+                timestamp=timestamp, value=round(daily_score, 1), label="Security Score"
+            )
+        )
+
+    trends = {"security_score": trend_points}
+
     top_risks = [
         RiskItem(
             id="risk-1",
@@ -133,7 +168,7 @@ async def get_dashboard_overview(
             risk_score=78.0,
             affected_sites=1,
             severity=SeverityLevel.CRITICAL,
-            action_required="Apply 2 critical security updates immediately"
+            action_required="Apply 2 critical security updates immediately",
         ),
         RiskItem(
             id="risk-2",
@@ -141,10 +176,10 @@ async def get_dashboard_overview(
             risk_score=65.0,
             affected_sites=1,
             severity=SeverityLevel.HIGH,
-            action_required="Apply 1 critical update and 4 regular updates"
-        )
+            action_required="Apply 1 critical update and 4 regular updates",
+        ),
     ]
-    
+
     recent_activity = [
         ActivityItem(
             id="activity-1",
@@ -152,7 +187,7 @@ async def get_dashboard_overview(
             title="Critical security update available",
             description="Critical security update available for Webform module",
             timestamp=datetime.utcnow(),
-            severity=SeverityLevel.CRITICAL
+            severity=SeverityLevel.CRITICAL,
         ),
         ActivityItem(
             id="activity-2",
@@ -160,17 +195,17 @@ async def get_dashboard_overview(
             title="Module updated",
             description="Token module updated to version 1.13.1",
             timestamp=datetime.utcnow(),
-            severity=SeverityLevel.LOW
-        )
+            severity=SeverityLevel.LOW,
+        ),
     ]
-    
+
     mock_metrics = DashboardOverview(
         metrics=metrics,
         trends=trends,
         top_risks=top_risks,
-        recent_activity=recent_activity
+        recent_activity=recent_activity,
     )
-    
+
     # Cache for 1 minute
     if redis:
         await redis.setex(cache_key, 60, mock_metrics.model_dump_json())
