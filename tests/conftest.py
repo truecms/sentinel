@@ -25,10 +25,20 @@ def get_test_database_url():
     if os.getenv("TESTING") == "True":
         # In CI environment, use the same database settings as the main app
         # Read directly from environment variables to avoid cached settings
-        return f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB')}"
+        return (
+            f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:"
+            f"{os.getenv('POSTGRES_PASSWORD')}@"
+            f"{os.getenv('POSTGRES_SERVER', 'db')}:"
+            f"{os.getenv('POSTGRES_PORT', '5432')}/"
+            f"{os.getenv('POSTGRES_DB')}"
+        )
     else:
         # Local testing environment - use default test credentials
-        return f"postgresql+asyncpg://test_user:test_password@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/test_db"
+        return (
+            f"postgresql+asyncpg://test_user:test_password@"
+            f"{os.getenv('POSTGRES_SERVER', 'db')}:"
+            f"{os.getenv('POSTGRES_PORT', '5432')}/test_db"
+        )
 
 
 # Create async engine for tests - moved to test_engine fixture for proper URL
