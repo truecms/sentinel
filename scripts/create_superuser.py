@@ -1,7 +1,8 @@
-from app.core.security import get_password_hash
-from app.models.user import User
-from app.db.session import SessionLocal
 import asyncio
+
+from app.core.security import get_password_hash
+from app.db.session import SessionLocal
+from app.models.user import User
 
 
 async def create_superuser():

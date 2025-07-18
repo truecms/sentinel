@@ -7,20 +7,20 @@ from app.core.config import settings
 from app.core.redis import close_redis_pool
 
 app = FastAPI(
-    _="Monitoring API",
-    _="API for monitoring Drupal sites",
-    _="1.0.0",
-    _=f"{settings.API_V1_STR}/openapi.json",
+    title="Monitoring API",
+    description="API for monitoring Drupal sites",
+    version="1.0.0",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
-        _=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
-        _=True,
-        _=["*"],
-        _=["*"],
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
 # Add rate limiting middleware

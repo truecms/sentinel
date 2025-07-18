@@ -3,11 +3,12 @@
 Test script to verify that sample data is loaded correctly.
 """
 
+import asyncio
 import os
 import sys
-import asyncio
-import asyncpg
 from pathlib import Path
+
+import asyncpg
 
 # Add the parent directory to the path so we can import from the app
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

@@ -13,6 +13,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import schemas
 from app.api import deps
 from app.api.v1.dependencies.rate_limit import check_rate_limit
 from app.core.config import settings
@@ -23,7 +24,6 @@ from app.models.user import User
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
 from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.site import SiteOverview, SitesOverviewResponse
-from app import schemas
 from app.schemas.site_module import (
     SiteModuleCreate,
     SiteModuleListResponse,

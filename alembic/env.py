@@ -6,17 +6,16 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-
 from app.core.config import settings
-from app.models.base import Base
-from app.models import (
-    User,
-    Organization,
-    Site,
+from app.models import (  # Import your models
     Module,
     ModuleVersion,
+    Organization,
+    Site,
     SiteModule,
-)  # Import your models
+    User,
+)
+from app.models.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -57,8 +56,8 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
-        _=True,
-        _={"paramstyle": "named"},
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
@@ -80,8 +79,8 @@ async def run_async_migrations() -> None:
     configuration["sqlalchemy.url"] = get_url()
     connectable = async_engine_from_config(
         configuration,
-        _="sqlalchemy.",
-        _=pool.NullPool,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
     )
 
     async with connectable.connect() as connection:

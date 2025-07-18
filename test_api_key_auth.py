@@ -1,11 +1,13 @@
 """Test script to verify API key authentication is working."""
 
 import asyncio
+
 import httpx
+
 from app.db.session import get_db
-from app.models.site import Site
 from app.models.api_key import ApiKey
 from app.models.organization import Organization
+from app.models.site import Site
 
 
 async def test_api_key_authentication():
