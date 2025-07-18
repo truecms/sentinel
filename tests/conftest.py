@@ -26,7 +26,7 @@ if os.getenv("TESTING") == "True":
     TEST_PASSWORD = settings.POSTGRES_PASSWORD
     TEST_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
 else:
-    # Local testing environment
+    # Local testing environment - use default test credentials
     TEST_DATABASE = "test_db"
     TEST_USER = "test_user"
     TEST_PASSWORD = "test_password"
