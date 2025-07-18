@@ -131,12 +131,9 @@ async def create_module_version(
     db_version = ModuleVersion(
         module_id=version.module_id,
         version_string=version.version_string,
-        semantic_version=version.semantic_version,
         release_date=version.release_date,
         is_security_update=version.is_security_update,
-        release_notes_link=(
-            str(version.release_notes_link) if version.release_notes_link else None
-        ),
+        release_notes=version.release_notes,
         drupal_core_compatibility=version.drupal_core_compatibility,
         created_by=created_by,
         updated_by=created_by,
@@ -160,8 +157,6 @@ async def update_module_version(
 
     update_data = version_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        if field == "release_notes_link" and value:
-            value = str(value)
         setattr(db_version, field, value)
 
     db_version.updated_by = updated_by
@@ -361,7 +356,7 @@ async def update_version_metadata(
     """
     Update version metadata using parser.
 
-    Updates semantic_version field and drupal_core_compatibility.
+    Updates drupal_core_compatibility based on version string parsing.
 
     Args:
         db: Database session
@@ -378,9 +373,6 @@ async def update_version_metadata(
     parser = DrupalVersionParser()
     try:
         parsed = parser.parse(version.version_string)
-
-        # Update semantic version
-        version.semantic_version = parsed.to_semantic()
 
         # Update drupal core compatibility if detected
         if parsed.drupal_core:

@@ -7,7 +7,7 @@ from httpx import AsyncClient
 
 from app.models.user import User
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_user_me(client: AsyncClient, user_token_headers: dict, test_user: User):
@@ -96,7 +96,7 @@ async def test_update_user_me_duplicate_email(
 
     response = await client.put(
         "/api/v1/users/me",
-        _=user_token_headers,
+        headers=user_token_headers,
         json={"email": admin_email},  # Try to use existing email
     )
     assert response.status_code == 400

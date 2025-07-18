@@ -17,12 +17,12 @@ from typing import Optional, Tuple
 class ReleaseType(Enum):
     """Types of releases ordered by precedence."""
 
-    _ = "dev"
-    _ = "alpha"
-    _ = "beta"
-    _ = "rc"
-    _ = "stable"
-    _ = "security"
+    DEV = "dev"
+    ALPHA = "alpha"
+    BETA = "beta"
+    RC = "rc"
+    STABLE = "stable"
+    SECURITY = "security"
 
     @property
     def precedence(self) -> int:
@@ -85,7 +85,7 @@ class DrupalVersionParser:
     """Parser for Drupal module versions."""
 
     # Regex patterns for different version formats
-    _ = {
+    patterns = {
         # Drupal contrib format: 8.x-1.0, 7.x-2.5-beta1, 8.x-1.0+5
         "drupal_contrib": re.compile(
             r"^(\d+)\.x-(\d+)\.(\d+)"

@@ -383,8 +383,8 @@ async def minimal_drupal_site(
     return await factory.create_minimal_site(
         organization=test_organization,
         user=test_user,
-        name="Minimal Test Site",
-        url="https://minimal-test.example.com",
+        site_name="Minimal Test Site",
+        site_url="https://minimal-test.example.com",
     )
 
 
@@ -409,7 +409,7 @@ async def bulk_test_data(
         organization=test_organization,
         user=test_user,
         num_sites=10,
-        num_modules=50,
+        modules_per_site=50,
     )
 
 
@@ -477,7 +477,7 @@ async def site_with_outdated_modules(
         # Create new version (available update)
         new_version = ModuleVersion(
             module_id=module.id,
-            version=module_data["new_version"],
+            version_string=module_data["new_version"],
             release_date=datetime.utcnow() - timedelta(days=30),
             is_security_update=False,
             created_by=test_user.id,
@@ -550,10 +550,10 @@ async def site_with_security_issues(
             site_module = SiteModule(
                 site_id=site.id,
                 module_id=module.id,
-                module_version_id=vulnerable_version.id,
-                is_enabled=True,
-                is_installed=True,
-                has_security_update=True,  # Mark as having security update
+                current_version_id=vulnerable_version.id,
+                enabled=True,
+                update_available=True,
+                security_update_available=True,  # Mark as having security update
                 created_by=test_user.id,
                 updated_by=test_user.id,
             )

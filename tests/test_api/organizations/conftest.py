@@ -49,11 +49,11 @@ async def test_deleted_organization(
 ) -> Organization:
     """Create a deleted test organization."""
     organization = Organization(
-        _="Deleted Organization",
-        _=test_user.id,
-        _=test_user.id,
-        _=True,
-        _=True,
+        name="Deleted Organization",
+        created_by=test_user.id,
+        updated_by=test_user.id,
+        is_active=True,
+        is_deleted=True,
     )
     db_session.add(organization)
     await db_session.commit()

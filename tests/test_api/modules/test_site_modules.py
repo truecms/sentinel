@@ -346,9 +346,9 @@ class TestSiteModuleUpdate:
         # Create a version for a different module
         other_version = ModuleVersion(
             module_id=org_test_custom_module.id,
-            _="1.0.0",
-            _=org_user.id,
-            _=org_user.id,
+            version_string="1.0.0",
+            created_by=org_user.id,
+            updated_by=org_user.id,
         )
         db_session.add(other_version)
         await db_session.commit()

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.site import Site
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_get_sites(
@@ -58,10 +58,10 @@ async def test_get_organization_sites(
         site = Site(
             name=f"Org Site {i}",
             url=f"https://orgsite{i}.example.com",
-            _=f"Organization site {i}",
-            _=test_organization.id,
+            description=f"Organization site {i}",
+            organization_id=test_organization.id,
             is_active=True,
-            _=False,
+            is_deleted=False,
         )
         db_session.add(site)
     await db_session.commit()

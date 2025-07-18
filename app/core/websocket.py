@@ -2,6 +2,9 @@
 
 import logging
 from datetime import datetime
+from typing import Any, Dict, List, Set
+
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
@@ -171,4 +174,4 @@ class ConnectionManager:
 
 
 # Global connection manager instance
-_ = ConnectionManager()
+manager = ConnectionManager()

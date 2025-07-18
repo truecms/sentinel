@@ -92,7 +92,7 @@ class TestModuleModel:
             machine_name="webform",
             display_name="Webform",
             drupal_org_link="https://www.drupal.org/project/webform",
-            _="Enables the creation of webforms and questionnaires.",
+            description="Enables the creation of webforms and questionnaires.",
         )
 
         db_session.add(module)

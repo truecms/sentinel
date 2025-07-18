@@ -1,6 +1,8 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import deps
@@ -8,6 +10,7 @@ from app.core.security import get_password_hash, verify_password
 from app.models.organization import Organization
 from app.models.user import User
 from app.models.user_organization import user_organization
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter()
 

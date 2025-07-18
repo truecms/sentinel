@@ -36,7 +36,7 @@ class TestDataIngestionWorkflow:
             },
             "modules": sample_drupal_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -55,7 +55,7 @@ class TestDataIngestionWorkflow:
         # For now, verify the test data structure is correct
         assert len(sync_data["modules"]) >= 4
         assert sync_data["sync_type"] == "full"
-        assert "drupal_version" in sync_data
+        assert "drupal_core_version" in sync_data
 
         # Verify module data structure
         for module in sync_data["modules"]:
@@ -95,7 +95,7 @@ class TestDataIngestionWorkflow:
             "site_info": {"name": site.name},
             "modules": updated_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "partial",
         }
@@ -137,7 +137,7 @@ class TestDataIngestionWorkflow:
             "site_info": {"name": site.name},
             "modules": remaining_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -186,7 +186,7 @@ class TestDataIngestionWorkflow:
             "site_info": {"name": site.name},
             "modules": updated_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "security",
         }
@@ -218,7 +218,7 @@ class TestDataIngestionWorkflow:
                 "site_info": {"name": site.name},
                 "modules": sample_drupal_modules,
                 "sync_timestamp": datetime.utcnow().isoformat(),
-                "drupal_version": "10.3.8",
+                "drupal_core_version": "10.3.8",
                 "php_version": "8.2.0",
                 "sync_type": "full",
             }
@@ -266,10 +266,10 @@ class TestModuleVersionManagement:
             version = ModuleVersion(
                 module_id=module.id,
                 version_string=module_data["version"],
-                _=datetime.utcnow(),
-                _=False,
-                _=test_user.id,
-                _=test_user.id,
+                created_at=datetime.utcnow(),
+                is_security_update=False,
+                created_by=test_user.id,
+                updated_by=test_user.id,
             )
             db_session.add(version)
             created_versions.append(version)
@@ -342,7 +342,7 @@ class TestErrorHandlingInSync:
             "site_info": {"name": test_site.name},
             "modules": malformed_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -383,7 +383,7 @@ class TestErrorHandlingInSync:
             "modules": sample_drupal_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
             "sync_id": "sync-001",
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -393,7 +393,7 @@ class TestErrorHandlingInSync:
             "modules": sample_drupal_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
             "sync_id": "sync-002",
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -428,7 +428,7 @@ class TestSyncDataValidation:
             "site_info": {"name": "Test Site"},
             "modules": sample_drupal_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            "drupal_version": "10.3.8",
+            "drupal_core_version": "10.3.8",
             "php_version": "8.2.0",
             "sync_type": "full",
         }
@@ -440,7 +440,7 @@ class TestSyncDataValidation:
         incomplete_data = {
             "modules": sample_drupal_modules,
             "sync_timestamp": datetime.utcnow().isoformat(),
-            # Missing site_info, drupal_version, etc.
+            # Missing site_info, drupal_core_version, etc.
         }
 
         assert self._validate_sync_data(incomplete_data) is False
@@ -451,7 +451,7 @@ class TestSyncDataValidation:
             "site_info",
             "modules",
             "sync_timestamp",
-            "drupal_version",
+            "drupal_core_version",
             "php_version",
             "sync_type",
         ]

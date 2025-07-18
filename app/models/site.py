@@ -19,11 +19,12 @@ class Site(Base):
     description = Column(String, nullable=True)
     uuid = Column(String(36), nullable=True)
     api_token = Column(String(255), nullable=True)
-    drupal_version = Column(String(50), nullable=True)
-    site_type = Column(String(50), nullable=True)
-    environment = Column(String(50), nullable=True)
-    hosting_provider = Column(String(50), nullable=True)
-    metadata = Column(JSON, nullable=True)
+    drupal_core_version = Column(String(50), nullable=True)
+    php_version = Column(String(50), nullable=True)
+    database_type = Column(String(50), nullable=True)
+    database_version = Column(String(50), nullable=True)
+    server_info = Column(JSON, nullable=True)
+    last_check = Column(DateTime, nullable=True)
     last_data_push = Column(DateTime, nullable=True)
 
     # Site overview tracking fields
@@ -31,7 +32,6 @@ class Site(Base):
     total_modules_count = Column(Integer, nullable=True, default=0)
     security_updates_count = Column(Integer, nullable=True, default=0)
     non_security_updates_count = Column(Integer, nullable=True, default=0)
-    last_checked = Column(DateTime, nullable=True)
     last_drupal_org_check = Column(DateTime, nullable=True)
 
     is_active = Column(Boolean(), default=True)

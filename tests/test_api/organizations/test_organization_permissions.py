@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_create_organization_non_superuser(

@@ -10,18 +10,18 @@ from pydantic import BaseModel
 class SeverityLevel(str, Enum):
     """Vulnerability severity levels."""
 
-    _ = "critical"
-    _ = "high"
-    _ = "medium"
-    _ = "low"
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
 class HealthStatus(str, Enum):
     """Site health status."""
 
-    _ = "healthy"
-    _ = "warning"
-    _ = "critical"
+    HEALTHY = "healthy"
+    WARNING = "warning"
+    CRITICAL = "critical"
 
 
 class VulnerabilityCount(BaseModel):

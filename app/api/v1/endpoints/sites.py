@@ -4,7 +4,6 @@ from typing import List, Optional, Union
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Depends,
     HTTPException,
     Query,

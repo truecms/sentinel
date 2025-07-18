@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_password_hash
 from app.models.user import User
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 TEST_PASSWORD = "test123"  # Match the password from conftest.py
 
@@ -50,8 +50,8 @@ async def test_login_inactive_user(client: AsyncClient, db_session: AsyncSession
     # Create an inactive user
     inactive_user = User(
         email="inactive@example.com",
-        _=get_password_hash(TEST_PASSWORD),
-        _=False,
+        hashed_password=get_password_hash(TEST_PASSWORD),
+        is_active=False,
     )
     db_session.add(inactive_user)
     await db_session.commit()

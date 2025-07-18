@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field
 
 
 class ModuleVersionBase(BaseModel):
@@ -10,17 +10,14 @@ class ModuleVersionBase(BaseModel):
     version_string: str = Field(
         ..., min_length=1, max_length=50, description="Version string (e.g., '2.1.3')"
     )
-    semantic_version: Optional[str] = Field(
-        None, max_length=50, description="Normalized semantic version for comparison"
-    )
     release_date: Optional[datetime] = Field(
         None, description="Date when this version was released"
     )
     is_security_update: bool = Field(
         False, description="Whether this version contains security fixes"
     )
-    release_notes_link: Optional[HttpUrl] = Field(
-        None, description="Link to release notes"
+    release_notes: Optional[str] = Field(
+        None, description="Release notes text"
     )
     drupal_core_compatibility: Optional[List[str]] = Field(
         None, description="Compatible Drupal core versions (e.g., ['9.x', '10.x'])"
@@ -36,10 +33,9 @@ class ModuleVersionCreate(ModuleVersionBase):
 class ModuleVersionUpdate(BaseModel):
     """Schema for updating an existing module version."""
 
-    semantic_version: Optional[str] = Field(None, max_length=50)
     release_date: Optional[datetime] = None
     is_security_update: Optional[bool] = None
-    release_notes_link: Optional[HttpUrl] = None
+    release_notes: Optional[str] = None
     drupal_core_compatibility: Optional[List[str]] = None
 
 

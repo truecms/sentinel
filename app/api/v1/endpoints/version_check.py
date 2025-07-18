@@ -2,6 +2,8 @@
 API endpoints for version checking and update detection.
 """
 
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +15,7 @@ from app.schemas.module_version import (
     VersionCheckRequest,
     VersionCheckResponse,
 )
+from app.services.update_detector import UpdateDetector
 from app.services.version_comparator import VersionComparator
 
 router = APIRouter()

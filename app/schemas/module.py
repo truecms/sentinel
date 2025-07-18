@@ -24,7 +24,6 @@ class ModuleBase(BaseModel):
         pattern="^(contrib|custom|core)$",
         description="Type of module",
     )
-    description: Optional[str] = Field(None, description="Module description")
 
 
 class ModuleCreate(ModuleBase):
@@ -38,7 +37,6 @@ class ModuleUpdate(BaseModel):
 
     display_name: Optional[str] = Field(None, min_length=1, max_length=255)
     drupal_org_link: Optional[HttpUrl] = None
-    description: Optional[str] = None
     module_type: Optional[str] = Field(None, pattern="^(contrib|custom|core)$")
 
 

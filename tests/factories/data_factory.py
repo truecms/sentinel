@@ -295,10 +295,10 @@ class TestDataFactory:
         """
         # Create site
         site = Site(
-            _=site_name,
-            _=site_url,
-            _=organization.id,
-            _=f"token_{random.randint(100000, 999999)}",
+            name=site_name,
+            url=site_url,
+            organization_id=organization.id,
+            api_token=f"token_{random.randint(100000, 999999)}",
             created_by=user.id,
             updated_by=user.id,
         )
@@ -376,34 +376,24 @@ class TestDataFactory:
             security_modules.append(module)
 
             # Create vulnerable version
-            vulnerable_version = ModuleVersion(
-                module_id=module.id,
+            vulnerable_version = await self._get_or_create_module_version(
+                module=module,
                 version_string=module_data["vulnerable_version"],
+                user=user,
                 release_date=datetime.utcnow() - timedelta(days=120),
                 is_security_update=False,
-                created_by=user.id,
-                updated_by=user.id,
             )
-            self.db_session.add(vulnerable_version)
 
             # Create secure version
-            secure_version = ModuleVersion(
-                module_id=module.id,
+            secure_version = await self._get_or_create_module_version(
+                module=module,
                 version_string=module_data["secure_version"],
+                user=user,
                 release_date=datetime.utcnow() - timedelta(days=30),
                 is_security_update=True,
-                created_by=user.id,
-                updated_by=user.id,
             )
-            self.db_session.add(secure_version)
 
             security_versions.extend([vulnerable_version, secure_version])
-
-        await self.db_session.commit()
-
-        # Refresh all objects
-        for version in security_versions:
-            await self.db_session.refresh(version)
 
         return {
             "security_modules": security_modules,
@@ -429,13 +419,54 @@ class TestDataFactory:
         all_modules = []
         all_site_modules = []
 
+        # Prepare modules to use
+        all_available_modules = self.core_modules + self.contrib_modules + self.custom_modules
+        
+        # Generate additional modules if needed to reach modules_per_site
+        if len(all_available_modules) < modules_per_site:
+            for i in range(len(all_available_modules), modules_per_site):
+                all_available_modules.append({
+                    "machine_name": f"bulk_module_{i}",
+                    "display_name": f"Bulk Module {i}",
+                    "module_type": "contrib" if i % 2 == 0 else "custom",
+                })
+
         for i in range(num_sites):
-            site_data = await self.create_standard_drupal_site(
-                organization=organization,
-                user=user,
-                _=f"Bulk Test Site {i+1}",
-                _=f"https://bulk-site-{i+1}.example.com",
+            # Create site
+            site = Site(
+                name=f"Bulk Test Site {i+1}",
+                url=f"https://bulk-site-{i+1}.example.com",
+                organization_id=organization.id,
+                api_token=f"token_{random.randint(100000, 999999)}",
+                created_by=user.id,
+                updated_by=user.id,
             )
+            self.db_session.add(site)
+            await self.db_session.commit()
+            await self.db_session.refresh(site)
+            
+            site_data = {
+                "site": site,
+                "modules": [],
+                "versions": [],
+                "site_modules": [],
+            }
+            
+            # Use the requested number of modules per site
+            modules_to_use = all_available_modules[:modules_per_site]
+            
+            for module_data in modules_to_use:
+                # Create module if it doesn't exist
+                module = await self._get_or_create_module(module_data, user)
+                site_data["modules"].append(module)
+
+                # Create version for this module
+                version = await self._create_module_version(module, user)
+                site_data["versions"].append(version)
+
+                # Create site-module association
+                site_module = await self._create_site_module(site, module, version, user)
+                site_data["site_modules"].append(site_module)
 
             created_sites.append(site_data["site"])
             all_modules.extend(site_data["modules"])
@@ -473,7 +504,7 @@ class TestDataFactory:
             machine_name=module_data["machine_name"],
             display_name=module_data["display_name"],
             module_type=module_data["module_type"],
-            _=module_data.get("drupal_org_link"),
+            drupal_org_link=module_data.get("drupal_org_link"),
             created_by=user.id,
             updated_by=user.id,
         )
@@ -482,6 +513,37 @@ class TestDataFactory:
         await self.db_session.refresh(module)
 
         return module
+
+    async def _get_or_create_module_version(
+        self, module: Module, version_string: str, user: User, **kwargs
+    ) -> ModuleVersion:
+        """Get existing module version or create new one."""
+        # Check if version already exists for this module
+        from sqlalchemy import select
+
+        stmt = select(ModuleVersion).where(
+            ModuleVersion.module_id == module.id,
+            ModuleVersion.version_string == version_string
+        )
+        result = await self.db_session.execute(stmt)
+        existing_version = result.scalar_one_or_none()
+
+        if existing_version:
+            return existing_version
+
+        # Create new version with provided kwargs
+        version = ModuleVersion(
+            module_id=module.id,
+            version_string=version_string,
+            created_by=user.id,
+            updated_by=user.id,
+            **kwargs
+        )
+        self.db_session.add(version)
+        await self.db_session.commit()
+        await self.db_session.refresh(version)
+
+        return version
 
     async def _create_module_version(self, module: Module, user: User) -> ModuleVersion:
         """Create a version for a module."""
@@ -498,11 +560,24 @@ class TestDataFactory:
                 f"{random.randint(1, 3)}.{random.randint(0, 10)}.{random.randint(0, 5)}"
             )
 
+        # Check if version already exists for this module
+        from sqlalchemy import select
+
+        stmt = select(ModuleVersion).where(
+            ModuleVersion.module_id == module.id,
+            ModuleVersion.version_string == version_string
+        )
+        result = await self.db_session.execute(stmt)
+        existing_version = result.scalar_one_or_none()
+
+        if existing_version:
+            return existing_version
+
         version = ModuleVersion(
             module_id=module.id,
-            _=version_string,
-            _=datetime.utcnow() - timedelta(days=random.randint(1, 365)),
-            _=False,
+            version_string=version_string,
+            release_date=datetime.utcnow() - timedelta(days=random.randint(1, 365)),
+            is_security_update=False,
             created_by=user.id,
             updated_by=user.id,
         )
@@ -517,14 +592,14 @@ class TestDataFactory:
     ) -> SiteModule:
         """Create a site-module association."""
         site_module = SiteModule(
-            _=site.id,
-            _=module.id,
-            _=version.id,
+            site_id=site.id,
+            module_id=module.id,
+            current_version_id=version.id,
             enabled=True,
-            _=random.choice([True, False]),
-            _=random.choice([True, False, False, False]),  # 25% chance
-            _=user.id,
-            _=user.id,
+            update_available=random.choice([True, False]),
+            security_update_available=random.choice([True, False, False, False]),  # 25% chance
+            created_by=user.id,
+            updated_by=user.id,
         )
         self.db_session.add(site_module)
         await self.db_session.commit()

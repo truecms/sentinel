@@ -67,7 +67,6 @@ async def get_modules(
         search_filter = or_(
             Module.machine_name.ilike(f"%{search}%"),
             Module.display_name.ilike(f"%{search}%"),
-            Module.description.ilike(f"%{search}%"),
         )
         query = query.filter(search_filter)
         count_query = count_query.filter(search_filter)
@@ -144,7 +143,6 @@ async def create_module(
         display_name=module.display_name,
         drupal_org_link=str(module.drupal_org_link) if module.drupal_org_link else None,
         module_type=module.module_type,
-        description=module.description,
         created_by=created_by,
         updated_by=created_by,
     )
@@ -252,14 +250,13 @@ async def get_modules_with_security_updates(
 async def search_modules(
     db: AsyncSession, search_term: str, skip: int = 0, limit: int = 100
 ) -> List[Module]:
-    """Search modules by name or description."""
+    """Search modules by name."""
     query = (
         select(Module)
         .filter(
             or_(
                 Module.machine_name.ilike(f"%{search_term}%"),
                 Module.display_name.ilike(f"%{search_term}%"),
-                Module.description.ilike(f"%{search_term}%"),
             ),
             not Module.is_deleted,
         )

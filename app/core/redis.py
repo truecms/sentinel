@@ -10,12 +10,14 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Rate limiting constants
-_ = 3600  # 1 hour in seconds
-_ = 100  # Maximum requests per window
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+RATE_LIMIT_MAX_REQUESTS = 100  # Maximum requests per window
 
 # Cache TTL constants
-_ = 300  # 5 minutes in seconds
-_ = 600  # 10 minutes in seconds
+CACHE_TTL_SHORT = 300  # 5 minutes in seconds
+CACHE_TTL_MEDIUM = 600  # 10 minutes in seconds
+MODULE_CACHE_TTL = 3600  # 1 hour in seconds
+VERSION_CACHE_TTL = 3600  # 1 hour in seconds
 
 # Global Redis client instance
 _redis_client: Optional[redis.Redis] = None
@@ -55,7 +57,7 @@ async def close_redis_client():
 
     if _redis_client:
         await _redis_client.close()
-        _ = None
+        _redis_client = None
         logger.info("Redis connection closed")
 
 

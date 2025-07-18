@@ -291,7 +291,7 @@ class TestSitesOverview:
         # Create another organization with a site
         other_org = Organization(
             name="Other Org",
-            _="Another organization",
+            description="Another organization",
             created_by=test_user.id,
         )
         db.add(other_org)
@@ -300,16 +300,16 @@ class TestSitesOverview:
 
         other_site = Site(
             name="Other Org Site",
-            _="https://other.example.com",
-            _=other_org.id,
-            _=80,
-            _=15,
-            _=0,
-            _=0,
-            _=test_user.id,
-            _=test_user.id,
-            _=True,
-            _=False,
+            url="https://other.example.com",
+            organization_id=other_org.id,
+            security_score=80,
+            total_modules_count=15,
+            security_updates_count=0,
+            non_security_updates_count=0,
+            created_by=test_user.id,
+            updated_by=test_user.id,
+            is_active=True,
+            is_deleted=False,
         )
         db.add(other_site)
         await db.commit()

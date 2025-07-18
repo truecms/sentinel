@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_password_hash
 from app.models.user import User
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_delete_user(
@@ -18,10 +18,10 @@ async def test_delete_user(
     """Test deleting a user."""
     # Create user to delete
     user = User(
-        _="todelete@example.com",
-        _=get_password_hash("testpass123"),
-        _=True,
-        _="user",
+        email="todelete@example.com",
+        hashed_password=get_password_hash("testpass123"),
+        is_active=True,
+        role="user",
     )
     db_session.add(user)
     await db_session.commit()

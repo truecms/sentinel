@@ -2,6 +2,7 @@ import logging
 import secrets
 import string
 from datetime import datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -225,7 +226,10 @@ async def forgot_password(
 
     # Always return success to prevent email enumeration
     return {
-        "message": "If an account exists with this email, reset instructions have been sent"
+        "message": (
+            "If an account exists with this email, "
+            "reset instructions have been sent"
+        )
     }
 
 

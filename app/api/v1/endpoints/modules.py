@@ -15,7 +15,6 @@ from app.models.site_module import SiteModule
 from app.models.user import User
 from app.schemas.base import PaginatedResponse, get_pagination_params
 from app.schemas.module import (
-    ModuleCreate,
     ModuleListResponse,
     ModuleResponse,
     ModuleStatusItem,

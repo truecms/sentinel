@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.site import Site
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_get_sites_pagination(
@@ -231,11 +231,11 @@ async def test_get_sites_sort(
         ),
         Site(
             name="Site B",
-            _="https://b.example.com",
-            _="Site B description",
-            _=test_organization.id,
-            _=True,
-            _=False,
+            url="https://b.example.com",
+            description="Site B description",
+            organization_id=test_organization.id,
+            is_active=True,
+            is_deleted=False,
         ),
     ]
     for site in sites:

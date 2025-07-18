@@ -271,10 +271,10 @@ class TestFactoryDirectUsage:
 
         # Create a custom site using the factory
         custom_site = await factory.create_standard_drupal_site(
-            _=test_organization,
-            _=test_user,
-            _="Custom Demo Site",
-            _="https://custom-demo.example.com",
+            organization=test_organization,
+            user=test_user,
+            name="Custom Demo Site",
+            url="https://custom-demo.example.com",
         )
 
         print(f"Created site: {custom_site['site'].name}")

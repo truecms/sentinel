@@ -107,7 +107,7 @@ class Role(Base):
 class Permission(Base):
     """Permission model for RBAC system."""
 
-    _ = "permissions"
+    __tablename__ = "permissions"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, nullable=False, index=True)
@@ -116,7 +116,7 @@ class Permission(Base):
     description = Column(Text, nullable=True)
 
     # Relationships
-    _ = relationship("Role", secondary=role_permissions, back_populates="permissions")
+    roles = relationship("Role", secondary=role_permissions, back_populates="permissions")
 
     def __repr__(self) -> str:
         """String representation of the permission."""

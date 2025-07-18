@@ -6,7 +6,7 @@ from app import crud
 from app.models.organization import Organization
 from app.models.user import User
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_create_site(
@@ -302,8 +302,8 @@ async def test_get_organization_sites(
     sites = []
     for i in range(3):
         site_in = SiteCreate(
-            _=f"Org Site {i}",
-            _=f"https://site{i}.example.com",
+            name=f"Org Site {i}",
+            url=f"https://site{i}.example.com",
             organization_id=test_organization.id,
         )
         site = await crud.create_site(db_session, site_in, test_user.id)
@@ -311,7 +311,7 @@ async def test_get_organization_sites(
 
     response = await client.get(
         f"/api/v1/organizations/{test_organization.id}/sites",
-        _=user_token_headers,
+        headers=user_token_headers,
     )
     assert response.status_code == 200
     data = response.json()

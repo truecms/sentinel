@@ -1,6 +1,7 @@
 """Permission checking service and decorators for RBAC system."""
 
 from functools import wraps
+from typing import Callable, Optional, Union
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession

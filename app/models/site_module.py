@@ -23,36 +23,36 @@ class SiteModule(Base):
     is currently installed, whether updates are available, and installation status.
     """
 
-    _ = "site_modules"
+    __tablename__ = "site_modules"
 
-    _ = Column(Integer, primary_key=True, index=True)
-    _ = Column(Integer, ForeignKey("sites.id"), nullable=False, index=True)
-    _ = Column(Integer, ForeignKey("modules.id"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    site_id = Column(Integer, ForeignKey("sites.id"), nullable=False, index=True)
+    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False, index=True)
     current_version_id = Column(
         Integer, ForeignKey("module_versions.id"), nullable=False
     )
 
     # Status fields
-    _ = Column(Boolean, default=True, nullable=False)
-    _ = Column(Boolean, default=False, nullable=False)
-    _ = Column(Boolean, default=False, nullable=False)
+    enabled = Column(Boolean, default=True, nullable=False)
+    update_available = Column(Boolean, default=False, nullable=False)
+    security_update_available = Column(Boolean, default=False, nullable=False)
     latest_version_id = Column(Integer, ForeignKey("module_versions.id"), nullable=True)
-    _ = Column(Boolean(), default=True)
-    _ = Column(Boolean(), default=False)
+    is_active = Column(Boolean(), default=True)
+    is_deleted = Column(Boolean(), default=False)
 
     # Tracking fields
-    _ = Column(DateTime, nullable=False, server_default=text("now()"))
-    _ = Column(DateTime, nullable=False, server_default=text("now()"))
-    _ = Column(DateTime, nullable=True)  # When version actually changed
+    first_seen = Column(DateTime, nullable=False, server_default=text("now()"))
+    last_seen = Column(DateTime, nullable=False, server_default=text("now()"))
+    last_updated = Column(DateTime, nullable=True)  # When version actually changed
 
     # Audit fields following existing pattern
-    _ = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(Integer, ForeignKey("users.id"))
-    _ = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = Column(Integer, ForeignKey("users.id"))
 
     # Composite unique constraint and performance indexes
-    _ = (
+    __table_args__ = (
         UniqueConstraint("site_id", "module_id", name="uq_site_module"),
         Index(
             "idx_site_module_updates",

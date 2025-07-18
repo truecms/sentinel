@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.organization import Organization
 from app.models.site import Site
 
-_ = pytest.mark.asyncio
+pytestmark = pytest.mark.asyncio
 
 
 async def test_update_site(
@@ -143,7 +143,7 @@ async def test_update_site_multiple_fields(
     """Test updating multiple site fields at once."""
     response = await client.put(
         f"/api/v1/sites/{test_site.id}",
-        _=superuser_token_headers,
+        headers=superuser_token_headers,
         json={
             "name": "Multi Update Site",
             "url": "https://multiupdate.example.com",
