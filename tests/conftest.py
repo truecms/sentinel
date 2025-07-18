@@ -29,9 +29,6 @@ def get_test_database_url():
         # Local testing environment - use default test credentials
         return f"postgresql+asyncpg://test_user:test_password@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/test_db"
 
-# Get the test database URL
-TEST_SQLALCHEMY_DATABASE_URL = get_test_database_url()
-
 # Create async engine for tests - moved to test_engine fixture for proper URL
 # Global engine is not needed as we use the fixture
 
@@ -54,7 +51,7 @@ def event_loop():
 async def test_engine():
     """Create a test engine and initialize the database with a superuser."""
     engine = create_async_engine(
-        TEST_SQLALCHEMY_DATABASE_URL,
+        get_test_database_url(),
         echo=True,
         future=True,
         isolation_level="READ COMMITTED",
