@@ -43,9 +43,7 @@ class Role(Base):
     _ = Column(DateTime, onupdate=func.now())
 
     # Relationships
-    _ = relationship(
-        "Permission", secondary=role_permissions, back_populates="roles"
-    )
+    _ = relationship("Permission", secondary=role_permissions, back_populates="roles")
     _ = relationship("UserRole", back_populates="role")
 
     def __repr__(self) -> str:
@@ -116,9 +114,7 @@ class Permission(Base):
     description = Column(Text, nullable=True)
 
     # Relationships
-    _ = relationship(
-        "Role", secondary=role_permissions, back_populates="permissions"
-    )
+    _ = relationship("Role", secondary=role_permissions, back_populates="permissions")
 
     def __repr__(self) -> str:
         """String representation of the permission."""

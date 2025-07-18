@@ -16,8 +16,10 @@ from app.models.api_key import ApiKey
 from app.models.site import Site
 from app.models.user import User
 
+
 class TokenData(BaseModel):
     sub: str
+
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/access-token",
@@ -26,6 +28,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 # Use the get_db from session.py
 get_db = get_db_session
+
 
 async def get_current_user(
     db: AsyncSession = Depends(get_db), token: str = Depends(oauth2_scheme)
@@ -70,6 +73,7 @@ async def get_current_user(
 
     return user
 
+
 def get_current_active_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
@@ -79,6 +83,7 @@ def get_current_active_superuser(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
     return current_user
+
 
 async def check_api_key_rate_limit(request: Request, api_key_hash: str) -> None:
     """Check rate limit for API key authentication attempts."""
@@ -120,6 +125,7 @@ async def check_api_key_rate_limit(request: Request, api_key_hash: str) -> None:
 
     # Set expiry on the key
     await redis_client.expire(rate_limit_key, 60)
+
 
 async def authenticate_api_key(
     db: AsyncSession, api_key: str, request: Optional[Request] = None
@@ -184,6 +190,7 @@ async def authenticate_api_key(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+
 async def get_current_user_or_site(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -205,6 +212,7 @@ async def get_current_user_or_site(
         detail="Authentication required",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
 
 async def get_current_site(
     request: Request,
@@ -259,6 +267,7 @@ async def get_current_site(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+
 async def get_current_user_flexible(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -275,6 +284,7 @@ async def get_current_user_flexible(
             detail="User authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
 
 def get_current_active_superuser_flexible(
     current_user: User = Depends(get_current_user_flexible),

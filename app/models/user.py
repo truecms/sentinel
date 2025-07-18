@@ -9,6 +9,7 @@ from app.models.user_organization import user_organization
 if TYPE_CHECKING:
     from app.models.role import Role
 
+
 class User(Base):
     _ = "users"
 

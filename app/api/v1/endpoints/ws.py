@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
 async def get_websocket_user(
     token: str = Query(...), db: AsyncSession = Depends(deps.get_db)
 ) -> Optional[User]:
@@ -41,6 +42,7 @@ async def get_websocket_user(
         return user
     except (jwt.JWTError, ValueError):
         return None
+
 
 def can_access_channel(user: User, channel: str) -> bool:
     """Check if user has permission to access a channel."""
@@ -72,6 +74,7 @@ def can_access_channel(user: User, channel: str) -> bool:
         return True
 
     return False
+
 
 @router.websocket("/dashboard")
 async def websocket_dashboard_endpoint(
@@ -136,6 +139,7 @@ async def websocket_dashboard_endpoint(
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         await manager.disconnect(websocket, str(user.id))
+
 
 @router.get("/status")
 async def get_websocket_status(

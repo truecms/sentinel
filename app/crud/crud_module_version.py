@@ -7,6 +7,7 @@ from app.schemas.module_version import ModuleVersionCreate, ModuleVersionUpdate
 from app.services.version_comparator import VersionComparator
 from app.services.version_parser import DrupalVersionParser
 
+
 async def get_module_version(
     db: AsyncSession, version_id: int
 ) -> Optional[ModuleVersion]:
@@ -18,6 +19,7 @@ async def get_module_version(
     )
     return result.scalar_one_or_none()
 
+
 async def get_module_version_with_module(
     db: AsyncSession, version_id: int
 ) -> Optional[ModuleVersion]:
@@ -28,6 +30,7 @@ async def get_module_version_with_module(
         .filter(ModuleVersion.id == version_id, not ModuleVersion.is_deleted)
     )
     return result.unique().scalar_one_or_none()
+
 
 async def get_module_versions(
     db: AsyncSession,
@@ -74,6 +77,7 @@ async def get_module_versions(
 
     return versions, total
 
+
 async def get_latest_version(
     db: AsyncSession, module_id: int
 ) -> Optional[ModuleVersion]:
@@ -85,6 +89,7 @@ async def get_latest_version(
         .limit(1)
     )
     return result.scalar_one_or_none()
+
 
 async def get_latest_security_version(
     db: AsyncSession, module_id: int
@@ -102,6 +107,7 @@ async def get_latest_security_version(
     )
     return result.scalar_one_or_none()
 
+
 async def get_version_by_module_and_string(
     db: AsyncSession, module_id: int, version_string: str
 ) -> Optional[ModuleVersion]:
@@ -114,6 +120,7 @@ async def get_version_by_module_and_string(
         )
     )
     return result.scalar_one_or_none()
+
 
 async def create_module_version(
     db: AsyncSession, version: ModuleVersionCreate, created_by: int
@@ -137,6 +144,7 @@ async def create_module_version(
     await db.refresh(db_version)
     return db_version
 
+
 async def update_module_version(
     db: AsyncSession,
     version_id: int,
@@ -159,6 +167,7 @@ async def update_module_version(
     await db.refresh(db_version)
     return db_version
 
+
 async def delete_module_version(
     db: AsyncSession, version_id: int, updated_by: int
 ) -> Optional[ModuleVersion]:
@@ -173,6 +182,7 @@ async def delete_module_version(
     await db.refresh(db_version)
     return db_version
 
+
 async def get_security_versions(
     db: AsyncSession, skip: int = 0, limit: int = 100
 ) -> List[ModuleVersion]:
@@ -186,6 +196,7 @@ async def get_security_versions(
         .limit(limit)
     )
     return result.unique().scalars().all()
+
 
 async def get_versions_by_drupal_core(
     db: AsyncSession, drupal_core: str, skip: int = 0, limit: int = 100
@@ -212,6 +223,7 @@ async def get_versions_by_drupal_core(
     )
     return result.unique().scalars().all()
 
+
 async def check_version_exists(
     db: AsyncSession, module_id: int, version_string: str
 ) -> bool:
@@ -224,6 +236,7 @@ async def check_version_exists(
         )
     )
     return result.scalar_one_or_none() is not None
+
 
 async def get_latest_version_using_comparator(
     db: AsyncSession, module_id: int, stable_only: bool = True
@@ -267,6 +280,7 @@ async def get_latest_version_using_comparator(
 
     return None
 
+
 async def compare_versions(db: AsyncSession, version1_id: int, version2_id: int) -> int:
     """
     Compare two versions.
@@ -292,6 +306,7 @@ async def compare_versions(db: AsyncSession, version1_id: int, version2_id: int)
 
     comparator = VersionComparator()
     return comparator.compare(version1.version_string, version2.version_string)
+
 
 async def get_versions_for_comparison(
     db: AsyncSession,
@@ -336,6 +351,7 @@ async def get_versions_for_comparison(
             compatible_versions.append(version)
 
     return compatible_versions
+
 
 async def update_version_metadata(
     db: AsyncSession, version_id: int, updated_by: str

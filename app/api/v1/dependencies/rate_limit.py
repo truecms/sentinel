@@ -6,6 +6,7 @@ from fastapi import HTTPException, Request, status
 
 from app.core.redis import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW, get_redis
 
+
 class RateLimitException(HTTPException):
     """Custom exception for rate limit exceeded."""
 
@@ -15,6 +16,7 @@ class RateLimitException(HTTPException):
             detail="Rate limit exceeded. Please try again later.",
         )
         self.retry_after = retry_after
+
 
 async def check_rate_limit(site_id: int, request: Request) -> dict:
     """
@@ -83,6 +85,7 @@ async def check_rate_limit(site_id: int, request: Request) -> dict:
         "remaining": remaining,
         "reset": reset_time,
     }
+
 
 async def rate_limit_middleware(request: Request, call_next):
     """

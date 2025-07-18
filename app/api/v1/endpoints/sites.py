@@ -2,6 +2,7 @@ import json
 from math import ceil
 from typing import List, Optional, Union
 
+from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
@@ -22,6 +23,7 @@ from app.models.user import User
 from app.schemas.drupal_sync import DrupalSiteSync, ModuleSyncResult
 from app.schemas.module_version import ModuleVersionResponse
 from app.schemas.site import SiteOverview, SitesOverviewResponse
+from app import schemas
 from app.schemas.site_module import (
     SiteModuleCreate,
     SiteModuleListResponse,
@@ -35,6 +37,7 @@ from app.tasks.sync_tasks import sync_site_modules_task
 
 router = APIRouter()
 
+
 @router.get("/", response_model=List[schemas.SiteResponse])
 async def read_sites(
     skip: int = 0,
@@ -45,6 +48,7 @@ async def read_sites(
     """Retrieve sites."""
     sites = await crud_site.get_sites(db, skip=skip, limit=limit)
     return sites
+
 
 @router.post(
     "/", response_model=schemas.SiteResponse, status_code=status.HTTP_201_CREATED
@@ -63,6 +67,7 @@ async def create_site(
         )
     site = await crud_site.create_site(db=db, site=site_in, created_by=current_user.id)
     return site
+
 
 @router.get("/overview", response_model=SitesOverviewResponse)
 async def get_sites_overview(
@@ -122,12 +127,12 @@ async def get_sites_overview(
             id=site.id,
             name=site.name,
             url=site.url,
-            _=site.security_score or 0,
-            _=site.total_modules_count or 0,
-            _=site.security_updates_count or 0,
-            _=site.non_security_updates_count or 0,
-            _=site.last_data_push,
-            _=site.last_drupal_org_check,
+            security_score=site.security_score or 0,
+            total_modules_count=site.total_modules_count or 0,
+            security_updates_count=site.security_updates_count or 0,
+            non_security_updates_count=site.non_security_updates_count or 0,
+            last_data_push=site.last_data_push,
+            last_drupal_org_check=site.last_drupal_org_check,
             status=status,
             organization_id=site.organization_id,
         )
@@ -146,6 +151,7 @@ async def get_sites_overview(
         sites=site_overviews, pagination=pagination, filters=response_filters
     )
 
+
 @router.get("/{site_id}", response_model=schemas.SiteResponse)
 async def read_site(
     site_id: int,
@@ -157,6 +163,7 @@ async def read_site(
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
     return site
+
 
 @router.put("/{site_id}", response_model=schemas.SiteResponse)
 async def update_site(
@@ -175,6 +182,7 @@ async def update_site(
     )
     return site
 
+
 @router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_site(
     *,
@@ -188,7 +196,9 @@ async def delete_site(
         raise HTTPException(status_code=404, detail="Site not found")
     await crud_site.delete_site(db=db, site_id=site_id, updated_by=current_user.id)
 
+
 # Site Module Endpoints
+
 
 @router.get("/{site_id}/modules", response_model=SiteModuleListResponse)
 async def get_site_modules(
@@ -235,8 +245,8 @@ async def get_site_modules(
         site_id=site_id,
         skip=skip,
         limit=limit,
-        _=updates_only,
-        _=security_only,
+        updates_only=updates_only,
+        security_only=security_only,
         enabled_only=enabled_only,
     )
 
@@ -317,6 +327,7 @@ async def get_site_modules(
     return SiteModuleListResponse(
         data=module_responses, total=total, page=page, per_page=limit, pages=pages
     )
+
 
 @router.post("/{site_id}/modules")
 async def sync_site_modules(
@@ -441,8 +452,8 @@ async def sync_site_modules(
                 module_create = schemas.ModuleCreate(
                     machine_name=module_info.machine_name,
                     display_name=module_info.display_name,
-                    _=module_info.module_type,
-                    _=module_info.description,
+                    module_type=module_info.module_type,
+                    description=module_info.description,
                 )
                 module = await crud_module.create_module(
                     db, module_create, current_user_id
@@ -541,9 +552,9 @@ async def sync_site_modules(
         current_modules, _ = await crud_site_module.get_site_modules(
             db=db,
             site_id=site_id,
-            _=0,
-            _=10000,  # Get all modules
-            _=False,
+            skip=0,
+            limit=10000,  # Get all modules
+            enabled_only=False,
         )
 
         # Create set of module IDs from payload
@@ -566,12 +577,13 @@ async def sync_site_modules(
     return ModuleSyncResult(
         site_id=site_id,
         modules_processed=modules_processed,
-        _=modules_created,
-        _=modules_updated,
-        _=modules_unchanged,
-        _=errors,
-        _=f"Successfully synced {modules_processed} modules",
+        modules_created=modules_created,
+        modules_updated=modules_updated,
+        modules_unchanged=modules_unchanged,
+        errors=errors,
+        message=f"Successfully synced {modules_processed} modules",
     )
+
 
 @router.put("/{site_id}/modules/{module_id}", response_model=SiteModuleResponse)
 async def update_site_module(
@@ -647,46 +659,47 @@ async def update_site_module(
         latest_version_response = ModuleVersionResponse(
             id=db_site_module.latest_version.id,
             module_id=db_site_module.latest_version.module_id,
-            _=db_site_module.latest_version.version_string,
-            _=db_site_module.latest_version.semantic_version,
-            _=db_site_module.latest_version.release_date,
-            _=db_site_module.latest_version.is_security_update,
-            _=db_site_module.latest_version.release_notes_link,
-            _=db_site_module.latest_version.drupal_core_compatibility,
+            version_string=db_site_module.latest_version.version_string,
+            semantic_version=db_site_module.latest_version.semantic_version,
+            release_date=db_site_module.latest_version.release_date,
+            is_security_update=db_site_module.latest_version.is_security_update,
+            release_notes_link=db_site_module.latest_version.release_notes_link,
+            drupal_core_compatibility=db_site_module.latest_version.drupal_core_compatibility,
             is_active=db_site_module.latest_version.is_active,
             is_deleted=db_site_module.latest_version.is_deleted,
             created_at=db_site_module.latest_version.created_at,
             updated_at=db_site_module.latest_version.updated_at,
             created_by=db_site_module.latest_version.created_by,
             updated_by=db_site_module.latest_version.updated_by,
-            _=db_site_module.module.display_name,
-            _=db_site_module.module.machine_name,
+            module_name=db_site_module.module.display_name,
+            module_machine_name=db_site_module.module.machine_name,
         )
 
     return SiteModuleResponse(
         id=db_site_module.id,
         site_id=db_site_module.site_id,
         module_id=db_site_module.module_id,
-        _=db_site_module.current_version_id,
-        _=db_site_module.enabled,
-        _=db_site_module.update_available,
-        _=db_site_module.security_update_available,
-        _=db_site_module.latest_version_id,
-        _=db_site_module.first_seen,
-        _=db_site_module.last_seen,
-        _=db_site_module.last_updated,
-        _=db_site_module.is_active,
-        _=db_site_module.is_deleted,
-        _=db_site_module.created_at,
-        _=db_site_module.updated_at,
-        _=db_site_module.created_by,
-        _=db_site_module.updated_by,
+        current_version_id=db_site_module.current_version_id,
+        enabled=db_site_module.enabled,
+        update_available=db_site_module.update_available,
+        security_update_available=db_site_module.security_update_available,
+        latest_version_id=db_site_module.latest_version_id,
+        first_seen=db_site_module.first_seen,
+        last_seen=db_site_module.last_seen,
+        last_updated=db_site_module.last_updated,
+        is_active=db_site_module.is_active,
+        is_deleted=db_site_module.is_deleted,
+        created_at=db_site_module.created_at,
+        updated_at=db_site_module.updated_at,
+        created_by=db_site_module.created_by,
+        updated_by=db_site_module.updated_by,
         module=db_site_module.module,
-        _=current_version_response,
-        _=latest_version_response,
-        _=db_site_module.site.name,
-        _=db_site_module.site.url,
+        current_version=current_version_response,
+        latest_version=latest_version_response,
+        site_name=db_site_module.site.name,
+        site_url=db_site_module.site.url,
     )
+
 
 @router.delete("/{site_id}/modules/{module_id}", status_code=204)
 async def remove_site_module(
@@ -723,6 +736,7 @@ async def remove_site_module(
             detail="Site-module association not found",
         )
 
+
 @router.get("/{site_id}/modules/stats", response_model=SiteModuleStatsResponse)
 async def get_site_module_stats(
     site_id: int,
@@ -745,7 +759,7 @@ async def get_site_module_stats(
         and current_user.organization_id != site.organization_id
     ):
         raise HTTPException(
-            _=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     stats = await crud_site_module.get_site_module_stats(db, site_id)

@@ -21,6 +21,7 @@ from .module_version import (
 )
 from .organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from .site import SiteCreate, SiteResponse, SiteUpdate
+from .site_module import (
     SiteModuleCreate,
     SiteModuleInDB,
     SiteModuleListResponse,
@@ -31,7 +32,7 @@ from .site import SiteCreate, SiteResponse, SiteUpdate
 )
 from .user import UserCreate, UserInDB, UserResponse, UserUpdate
 
-_ = [
+__all__ = [
     "UserCreate",
     "UserUpdate",
     "UserInDB",

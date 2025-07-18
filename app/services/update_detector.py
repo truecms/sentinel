@@ -14,6 +14,7 @@ from app.models.site_module import SiteModule
 from app.services.version_comparator import VersionComparator
 from app.services.version_parser import DrupalVersionParser
 
+
 class UpdateInfo:
     """Information about an available update."""
 
@@ -32,6 +33,7 @@ class UpdateInfo:
         self.update_available = update_available
         self.security_update_available = security_update_available
         self.version_lag = version_lag or {}
+
 
 class UpdateDetector:
     """Service for detecting module updates."""

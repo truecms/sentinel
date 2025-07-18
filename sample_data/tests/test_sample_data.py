@@ -54,14 +54,10 @@ async def test_sample_data():
             print("\n🔒 Test 2: Security updates")
 
             security_updates = await connection.fetchval(
-                "SELECT COUNT(*) FROM site_modules WHERE security_update_available = (
-                    true"
-                )
+                "SELECT COUNT(*) FROM site_modules WHERE security_update_available = true"
             )
             sites_with_security = await connection.fetchval(
-                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE security_update_available = (
-                    true"
-                )
+                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE security_update_available = true"
             )
 
             print(f"  Security updates needed: {security_updates}")
@@ -77,9 +73,7 @@ async def test_sample_data():
 
             total_sites = await connection.fetchval("SELECT COUNT(*) FROM sites")
             sites_with_updates = await connection.fetchval(
-                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE update_available = (
-                    true"
-                )
+                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE update_available = true"
             )
             compliant_sites = total_sites - sites_with_updates
             compliance_rate = (
@@ -125,12 +119,8 @@ async def test_sample_data():
                 SELECT 
                     s.name,
                     COUNT(sm.id) as total_modules,
-                    COUNT(CASE WHEN sm.update_available = (
-                        true THEN 1 END) as modules_needing_update,
-                    )
-                    COUNT(CASE WHEN sm.security_update_available = (
-                        true THEN 1 END) as security_updates
-                    )
+                    COUNT(CASE WHEN sm.update_available = true THEN 1 END) as modules_needing_update,
+                    COUNT(CASE WHEN sm.security_update_available = true THEN 1 END) as security_updates
                 FROM sites s
                 LEFT JOIN site_modules sm ON s.id = sm.site_id
                 GROUP BY s.id, s.name

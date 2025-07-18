@@ -12,6 +12,7 @@ from app.schemas.site_module import SiteModuleResponse
 
 router = APIRouter()
 
+
 @router.get("/{module_id}/sites", response_model=List[SiteResponse])
 async def get_module_sites(
     module_id: int,
@@ -65,6 +66,7 @@ async def get_module_sites(
         )
         for site in accessible_sites
     ]
+
 
 @router.get("/{module_id}/site-modules", response_model=List[SiteModuleResponse])
 async def get_module_site_modules(
