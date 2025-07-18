@@ -422,7 +422,9 @@ async def get_dashboard_module_status(
                 name=row.display_name or row.machine_name,
                 machine_name=row.machine_name,
                 module_type=row.module_type,
-                current_version=row.current_version_string,  # Use current version from query
+                current_version=(
+                    row.current_version_string
+                ),  # Use current version from query
                 latest_version=latest_version,
                 security_update=row.sites_with_security_updates > 0,
                 sites_affected=row.sites_needing_update,

@@ -112,7 +112,9 @@ async def get_module_site_modules(
                 release_date=site_module.current_version.release_date,
                 is_security_update=site_module.current_version.is_security_update,
                 release_notes_link=site_module.current_version.release_notes_link,
-                drupal_core_compatibility=site_module.current_version.drupal_core_compatibility,
+                drupal_core_compatibility=(
+                    site_module.current_version.drupal_core_compatibility
+                ),
                 is_active=site_module.current_version.is_active,
                 is_deleted=site_module.current_version.is_deleted,
                 created_at=site_module.current_version.created_at,
@@ -134,7 +136,9 @@ async def get_module_site_modules(
                     release_date=site_module.latest_version.release_date,
                     is_security_update=site_module.latest_version.is_security_update,
                     release_notes_link=site_module.latest_version.release_notes_link,
-                    drupal_core_compatibility=site_module.latest_version.drupal_core_compatibility,
+                    drupal_core_compatibility=(
+                        site_module.latest_version.drupal_core_compatibility
+                    ),
                     is_active=site_module.latest_version.is_active,
                     is_deleted=site_module.latest_version.is_deleted,
                     created_at=site_module.latest_version.created_at,

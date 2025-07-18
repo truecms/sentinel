@@ -111,7 +111,8 @@ async def get_sites_overview(
     # Convert to response format
     site_overviews = []
     for site in sites_data:
-        # Calculate status based on security score and updates using configurable thresholds
+        # Calculate status based on security score and updates using
+        # configurable thresholds
         status = "healthy"
         if site.security_updates_count > 0:
             status = "critical"
@@ -261,7 +262,9 @@ async def get_site_modules(
             release_date=site_module.current_version.release_date,
             is_security_update=site_module.current_version.is_security_update,
             release_notes_link=site_module.current_version.release_notes_link,
-            drupal_core_compatibility=site_module.current_version.drupal_core_compatibility,
+            drupal_core_compatibility=(
+                site_module.current_version.drupal_core_compatibility
+            ),
             is_active=site_module.current_version.is_active,
             is_deleted=site_module.current_version.is_deleted,
             created_at=site_module.current_version.created_at,
@@ -283,7 +286,9 @@ async def get_site_modules(
                 release_date=site_module.latest_version.release_date,
                 is_security_update=site_module.latest_version.is_security_update,
                 release_notes_link=site_module.latest_version.release_notes_link,
-                drupal_core_compatibility=site_module.latest_version.drupal_core_compatibility,
+                drupal_core_compatibility=(
+                    site_module.latest_version.drupal_core_compatibility
+                ),
                 is_active=site_module.latest_version.is_active,
                 is_deleted=site_module.latest_version.is_deleted,
                 created_at=site_module.latest_version.created_at,
@@ -340,9 +345,11 @@ async def sync_site_modules(
     request: Request,
 ):
     """
-    Sync module data from a Drupal site with rate limiting and performance optimizations.
+    Sync module data from a Drupal site with rate limiting and performance
+    optimizations.
 
-    This endpoint supports both user authentication (JWT) and site authentication (API key):
+    This endpoint supports both user authentication (JWT) and site authentication
+    (API key):
     - **User Authentication**: JWT token via Authorization header
     - **Site Authentication**: API key via X-API-Key or X-Site-Token header
 
@@ -641,7 +648,9 @@ async def update_site_module(
         release_date=db_site_module.current_version.release_date,
         is_security_update=db_site_module.current_version.is_security_update,
         release_notes_link=db_site_module.current_version.release_notes_link,
-        drupal_core_compatibility=db_site_module.current_version.drupal_core_compatibility,
+        drupal_core_compatibility=(
+            db_site_module.current_version.drupal_core_compatibility
+        ),
         is_active=db_site_module.current_version.is_active,
         is_deleted=db_site_module.current_version.is_deleted,
         created_at=db_site_module.current_version.created_at,
@@ -663,7 +672,9 @@ async def update_site_module(
             release_date=db_site_module.latest_version.release_date,
             is_security_update=db_site_module.latest_version.is_security_update,
             release_notes_link=db_site_module.latest_version.release_notes_link,
-            drupal_core_compatibility=db_site_module.latest_version.drupal_core_compatibility,
+            drupal_core_compatibility=(
+                db_site_module.latest_version.drupal_core_compatibility
+            ),
             is_active=db_site_module.latest_version.is_active,
             is_deleted=db_site_module.latest_version.is_deleted,
             created_at=db_site_module.latest_version.created_at,

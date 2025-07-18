@@ -322,7 +322,9 @@ class DashboardAggregator:
                         if row.has_security
                         else SeverityLevel.HIGH
                     ),
-                    action_required=f"Update {row.display_name} on {row.affected_sites} sites",
+                    action_required=(
+                        f"Update {row.display_name} on {row.affected_sites} sites"
+                    ),
                 )
             )
 
@@ -538,7 +540,10 @@ class DashboardAggregator:
                     id=f"security-update-{row.display_name}",
                     severity=SeverityLevel.CRITICAL,
                     title=f"Security update available for {row.display_name}",
-                    description=f"{row.display_name} has {row.update_count} security updates available",
+                    description=(
+                        f"{row.display_name} has {row.update_count} security "
+                        "updates available"
+                    ),
                     action=f"Update {row.display_name} to the latest version",
                 )
             )
