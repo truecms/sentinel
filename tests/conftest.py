@@ -18,22 +18,19 @@ from app.db.session import get_db
 from app.models.organization import Organization
 from app.models.user import User
 
-# Test database URL - use test database from environment, fallback to postgres DB
-if os.getenv("TESTING") == "True":
-    # In CI environment, use the same database settings as the main app
-    TEST_DATABASE = settings.POSTGRES_DB
-    TEST_USER = settings.POSTGRES_USER
-    TEST_PASSWORD = settings.POSTGRES_PASSWORD
-    TEST_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI
-else:
-    # Local testing environment - use default test credentials
-    TEST_DATABASE = "test_db"
-    TEST_USER = "test_user"
-    TEST_PASSWORD = "test_password"
-    TEST_SQLALCHEMY_DATABASE_URL = (
-        f"postgresql+asyncpg://{TEST_USER}:{TEST_PASSWORD}@"
-        f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{TEST_DATABASE}"
-    )
+# Test database URL - dynamically determine based on environment
+def get_test_database_url():
+    """Get the test database URL based on environment variables."""
+    if os.getenv("TESTING") == "True":
+        # In CI environment, use the same database settings as the main app
+        # Read directly from environment variables to avoid cached settings
+        return f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB')}"
+    else:
+        # Local testing environment - use default test credentials
+        return f"postgresql+asyncpg://test_user:test_password@{os.getenv('POSTGRES_SERVER', 'db')}:{os.getenv('POSTGRES_PORT', '5432')}/test_db"
+
+# Get the test database URL
+TEST_SQLALCHEMY_DATABASE_URL = get_test_database_url()
 
 # Create async engine for tests - moved to test_engine fixture for proper URL
 # Global engine is not needed as we use the fixture
