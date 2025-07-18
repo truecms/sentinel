@@ -43,7 +43,9 @@ class Role(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     # Relationships
-    permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
+    permissions = relationship(
+        "Permission", secondary=role_permissions, back_populates="roles"
+    )
     user_roles = relationship("UserRole", back_populates="role")
 
     def __repr__(self) -> str:

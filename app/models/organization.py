@@ -8,24 +8,24 @@ from app.models.user_organization import user_organization
 
 
 class Organization(Base):
-    _ = "organizations"
+    __tablename__ = "organizations"
 
-    _ = Column(Integer, primary_key=True, index=True)
-    _ = Column(String, index=True, nullable=False)
-    _ = Column(String, nullable=True)
-    _ = Column(Boolean(), default=True)
-    _ = Column(Boolean(), default=False)
-    _ = Column(DateTime, default=datetime.utcnow)
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, nullable=False)
+    description = Column(String, nullable=True)
+    is_active = Column(Boolean(), default=True)
+    is_deleted = Column(Boolean(), default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(Integer, ForeignKey("users.id"))
-    _ = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = Column(Integer, ForeignKey("users.id"))
 
     # Relationships
-    _ = relationship(
+    creator = relationship(
         "User", foreign_keys=[created_by], back_populates="created_organizations"
     )
-    _ = relationship("User", foreign_keys=[updated_by])
-    _ = relationship(
+    updater = relationship("User", foreign_keys=[updated_by])
+    users = relationship(
         "User", secondary=user_organization, back_populates="organizations"
     )
-    _ = relationship("Site", back_populates="organization")
+    sites = relationship("Site", back_populates="organization")
