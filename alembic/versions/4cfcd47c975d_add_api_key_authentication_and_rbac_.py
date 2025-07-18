@@ -226,19 +226,19 @@ def downgrade() -> None:
         op.f("modules_machine_name_key"),
         "modules",
         ["machine_name"],
-        postgresql_nulls_not_distinct=False,
+        _=False,
     )
     op.alter_column(
         "module_versions",
         "release_notes",
         existing_type=sa.String(),
-        type_=sa.TEXT(),
-        existing_nullable=True,
+        _=sa.TEXT(),
+        _=True,
     )
     op.alter_column(
         "module_versions",
         "is_security_update",
-        existing_type=sa.BOOLEAN(),
-        nullable=True,
+        _=sa.BOOLEAN(),
+        _=True,
     )
     # ### end Alembic commands ###

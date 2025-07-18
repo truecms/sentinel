@@ -295,10 +295,10 @@ class TestDataFactory:
         """
         # Create site
         site = Site(
-            name=site_name,
-            url=site_url,
-            organization_id=organization.id,
-            api_token=f"token_{random.randint(100000, 999999)}",
+            _=site_name,
+            _=site_url,
+            _=organization.id,
+            _=f"token_{random.randint(100000, 999999)}",
             created_by=user.id,
             updated_by=user.id,
         )
@@ -433,8 +433,8 @@ class TestDataFactory:
             site_data = await self.create_standard_drupal_site(
                 organization=organization,
                 user=user,
-                site_name=f"Bulk Test Site {i+1}",
-                site_url=f"https://bulk-site-{i+1}.example.com",
+                _=f"Bulk Test Site {i+1}",
+                _=f"https://bulk-site-{i+1}.example.com",
             )
 
             created_sites.append(site_data["site"])
@@ -473,7 +473,7 @@ class TestDataFactory:
             machine_name=module_data["machine_name"],
             display_name=module_data["display_name"],
             module_type=module_data["module_type"],
-            drupal_org_link=module_data.get("drupal_org_link"),
+            _=module_data.get("drupal_org_link"),
             created_by=user.id,
             updated_by=user.id,
         )
@@ -500,9 +500,9 @@ class TestDataFactory:
 
         version = ModuleVersion(
             module_id=module.id,
-            version_string=version_string,
-            release_date=datetime.utcnow() - timedelta(days=random.randint(1, 365)),
-            is_security_update=False,
+            _=version_string,
+            _=datetime.utcnow() - timedelta(days=random.randint(1, 365)),
+            _=False,
             created_by=user.id,
             updated_by=user.id,
         )
@@ -517,16 +517,14 @@ class TestDataFactory:
     ) -> SiteModule:
         """Create a site-module association."""
         site_module = SiteModule(
-            site_id=site.id,
-            module_id=module.id,
-            current_version_id=version.id,
+            _=site.id,
+            _=module.id,
+            _=version.id,
             enabled=True,
-            update_available=random.choice([True, False]),
-            security_update_available=random.choice(
-                [True, False, False, False]
-            ),  # 25% chance
-            created_by=user.id,
-            updated_by=user.id,
+            _=random.choice([True, False]),
+            _=random.choice([True, False, False, False]),  # 25% chance
+            _=user.id,
+            _=user.id,
         )
         self.db_session.add(site_module)
         await self.db_session.commit()

@@ -120,8 +120,8 @@ def upgrade() -> None:
         conn.execute(
             permissions_table.insert().values(
                 name=perm_name,
-                resource=resource,
-                action=action,
+                _ = resource,
+                _ = action,
                 description=description,
             )
         )
@@ -131,8 +131,8 @@ def upgrade() -> None:
         conn.execute(
             roles_table.insert().values(
                 name=role_name,
-                display_name=display_name,
-                description=description,
+                _ = display_name,
+                _ = description,
                 is_system=is_system,
             )
         )
@@ -188,7 +188,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     # Remove role-permission mappings
     op.execute(
-        "DELETE FROM role_permissions WHERE role_id IN (SELECT id FROM roles WHERE is_system = true)"
+        "DELETE FROM role_permissions WHERE role_id IN (SELECT id FROM roles WHERE is_system = (
+            true)"
+        )
     )
 
     # Remove system roles

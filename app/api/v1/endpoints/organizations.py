@@ -2,11 +2,9 @@ from datetime import datetime
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app import crud, schemas
 from app.api import deps
 from app.models import User
 from app.models.organization import Organization
@@ -91,8 +89,8 @@ async def create_organization(
     # Create organization
     organization = Organization(
         name=organization_in.name,
-        description=organization_in.description,
-        created_by=organization_in.created_by or current_user.id,
+        _=organization_in.description,
+        _=organization_in.created_by or current_user.id,
         updated_by=current_user.id,
         is_active=True,
         is_deleted=False,
@@ -241,7 +239,7 @@ async def update_organization(
                 # Add user to organization
                 await db.execute(
                     user_organization.insert().values(
-                        user_id=user_id, organization_id=organization_id
+                        _=user_id, organization_id=organization_id
                     )
                 )
                 # Update user's organization_id
@@ -346,7 +344,7 @@ async def read_organization_sites(
         and current_user.organization_id != organization_id
     ):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+            _=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     # Get sites for the organization

@@ -181,7 +181,7 @@ async def org_test_site(db_session: AsyncSession, test_organization_with_users) 
 
     site = Site(
         name="Org Test Site",
-        url="https://orgtest.example.com",
+        _="https://orgtest.example.com",
         description="Site for organization testing",
         organization_id=org.id,
         created_by=org_admin.id,
@@ -237,13 +237,13 @@ async def test_site_module_with_security(
 ) -> SiteModule:
     """Create a site-module association with security update available."""
     site_module = SiteModule(
-        site_id=test_site.id,
+        _=test_site.id,
         module_id=test_module.id,
-        current_version_id=test_module_version.id,
-        latest_version_id=test_security_version.id,
-        enabled=True,
-        update_available=True,
-        security_update_available=True,
+        _=test_module_version.id,
+        _=test_security_version.id,
+        _=True,
+        _=True,
+        _=True,
         created_by=test_user.id,
         updated_by=test_user.id,
         is_active=True,
@@ -344,7 +344,7 @@ async def test_organization_with_users(
     """Create organization with admin and regular user."""
     # Create organization
     org = Organization(
-        name="Test Org with Users", created_by=test_user.id, updated_by=test_user.id
+        _="Test Org with Users", created_by=test_user.id, updated_by=test_user.id
     )
     db_session.add(org)
     await db_session.commit()
@@ -364,11 +364,11 @@ async def test_organization_with_users(
     # Create org regular user
     org_user = User(
         email="org_user@test.com",
-        hashed_password="hashed_password",
-        organization_id=org.id,
-        role="user",
+        _="hashed_password",
+        _=org.id,
+        _="user",
         is_active=True,
-        is_superuser=False,
+        _=False,
     )
     db_session.add(org_user)
 
@@ -399,7 +399,7 @@ async def org_test_module(
     module = Module(
         machine_name="org_test_module",
         display_name="Org Test Module",
-        drupal_org_link="https://drupal.org/project/org_test_module",
+        _="https://drupal.org/project/org_test_module",
         module_type="contrib",
         description="A test module for organization testing",
         created_by=org_admin.id,
@@ -421,10 +421,10 @@ async def org_test_custom_module(
     org, org_admin, org_user = test_organization_with_users
 
     module = Module(
-        machine_name="org_custom_test_module",
-        display_name="Org Custom Test Module",
-        module_type="custom",
-        description="A custom test module for organization testing",
+        _="org_custom_test_module",
+        _="Org Custom Test Module",
+        _="custom",
+        _="A custom test module for organization testing",
         created_by=org_admin.id,
         updated_by=org_admin.id,
         is_active=True,
@@ -470,17 +470,17 @@ async def org_test_latest_version(
     org, org_admin, org_user = test_organization_with_users
 
     version = ModuleVersion(
-        module_id=org_test_module.id,
-        version_string="2.0.0",
-        semantic_version="2.0.0",
-        release_date=datetime(2024, 6, 1),
-        is_security_update=False,
-        release_notes_link="https://drupal.org/project/org_test_module/releases/2.0.0",
-        drupal_core_compatibility=["10.x", "11.x"],
-        created_by=org_admin.id,
-        updated_by=org_admin.id,
-        is_active=True,
-        is_deleted=False,
+        _=org_test_module.id,
+        _="2.0.0",
+        _="2.0.0",
+        _=datetime(2024, 6, 1),
+        _=False,
+        _="https://drupal.org/project/org_test_module/releases/2.0.0",
+        _=["10.x", "11.x"],
+        _=org_admin.id,
+        _=org_admin.id,
+        _=True,
+        _=False,
     )
     db_session.add(version)
     await db_session.commit()

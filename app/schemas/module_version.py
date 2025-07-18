@@ -56,7 +56,7 @@ class ModuleVersionInDB(ModuleVersionBase):
     updated_by: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class ModuleVersionResponse(ModuleVersionInDB):
@@ -99,9 +99,7 @@ class UpdateCheckResponse(BaseModel):
     security_update_available: bool = Field(
         False, description="Whether a security update is available"
     )
-    version_lag: Dict[str, int] = Field(
-        default_factory=dict, description="Version lag information"
-    )
+    version_lag: Dict[str, int] = Field(_=dict, description="Version lag information")
 
 
 class VersionCheckResponse(BaseModel):

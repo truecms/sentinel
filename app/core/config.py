@@ -1,6 +1,3 @@
-from typing import Any, Dict, List, Optional, Union
-
-from pydantic import AnyHttpUrl, HttpUrl, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,16 +59,16 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             return v
         postgres_dsn = PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            username=info.data.get("POSTGRES_USER"),
-            password=info.data.get("POSTGRES_PASSWORD"),
-            host=info.data.get("POSTGRES_HOST"),
-            port=int(info.data.get("POSTGRES_PORT", 5432)),
-            path=info.data.get("POSTGRES_DB", ""),
+            _="postgresql+asyncpg",
+            _=info.data.get("POSTGRES_USER"),
+            _=info.data.get("POSTGRES_PASSWORD"),
+            _=info.data.get("POSTGRES_HOST"),
+            _=int(info.data.get("POSTGRES_PORT", 5432)),
+            _=info.data.get("POSTGRES_DB", ""),
         )
         return str(postgres_dsn)
 
-    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+    _ = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 
-settings = Settings()
+_ = Settings()

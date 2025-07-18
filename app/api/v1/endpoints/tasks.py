@@ -25,8 +25,6 @@ async def get_background_task_status(
     status_info = get_task_status.delay(task_id).get(timeout=5)
 
     if not status_info:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
-        )
+        raise HTTPException(_=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
     return status_info

@@ -83,12 +83,12 @@ async def test_superuser(
 ) -> User:
     """Create a superuser."""
     user = User(
-        email="superuser@example.com",
-        hashed_password=get_password_hash("testpass123"),
-        is_active=True,
-        is_superuser=True,
-        role="admin",
-        organization_id=test_organization.id,
+        _="superuser@example.com",
+        _=get_password_hash("testpass123"),
+        _=True,
+        _=True,
+        _="admin",
+        _=test_organization.id,
     )
     db_session.add(user)
     await db_session.commit()

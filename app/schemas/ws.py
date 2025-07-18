@@ -11,38 +11,38 @@ class MessageType(str, Enum):
     """WebSocket message types."""
 
     # Connection
-    CONNECTED = "connected"
-    DISCONNECTED = "disconnected"
-    ERROR = "error"
+    _ = "connected"
+    _ = "disconnected"
+    _ = "error"
 
     # Subscription
-    SUBSCRIBE = "subscribe"
-    UNSUBSCRIBE = "unsubscribe"
-    SUBSCRIBED = "subscribed"
-    UNSUBSCRIBED = "unsubscribed"
+    _ = "subscribe"
+    _ = "unsubscribe"
+    _ = "subscribed"
+    _ = "unsubscribed"
 
     # Communication
-    PING = "ping"
-    PONG = "pong"
-    DIRECT = "direct"
-    BROADCAST = "broadcast"
+    _ = "ping"
+    _ = "pong"
+    _ = "direct"
+    _ = "broadcast"
 
 
 class ChannelType(str, Enum):
     """WebSocket channel types."""
 
     # Global channels
-    SECURITY_ALERTS = "security.alerts"
-    METRIC_UPDATES = "metrics.updates"
-    SYSTEM_STATUS = "system.status"
+    _ = "security.alerts"
+    _ = "metrics.updates"
+    _ = "system.status"
 
     # Organization-specific (use with org ID)
-    ORG_METRICS = "org.{}.metrics"
-    ORG_ACTIVITY = "org.{}.activity"
+    _ = "org.{}.metrics"
+    _ = "org.{}.activity"
 
     # Site-specific (use with site ID)
-    SITE_STATUS = "site.{}.status"
-    SITE_MODULES = "site.{}.modules"
+    _ = "site.{}.status"
+    _ = "site.{}.modules"
 
 
 class WebSocketMessage(BaseModel):

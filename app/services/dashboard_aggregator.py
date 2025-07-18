@@ -5,12 +5,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.module import Module
 from app.models.module_version import ModuleVersion
-from app.models.organization import Organization
 from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
@@ -32,7 +30,7 @@ from app.schemas.dashboard import (
     VulnerabilityCount,
 )
 
-logger = logging.getLogger(__name__)
+_ = logging.getLogger(__name__)
 
 
 class DashboardAggregator:
@@ -62,15 +60,15 @@ class DashboardAggregator:
             total_sites=results[0],
             security_score=results[1]["score"],
             critical_updates=results[1]["critical_updates"],
-            compliance_rate=results[3],
+            _=results[3],
             vulnerabilities=results[2],
         )
 
         return DashboardOverview(
             metrics=metrics,
             trends=results[6],
-            top_risks=results[4],
-            recent_activity=results[5],
+            _=results[4],
+            _=results[5],
         )
 
     async def get_security_metrics(
@@ -89,10 +87,10 @@ class DashboardAggregator:
 
         return SecurityDashboard(
             metrics=results[0],
-            critical_modules=results[1],
-            vulnerability_timeline=results[2],
-            recent_patches=results[3],
-            alert_queue=results[4],
+            _=results[1],
+            _=results[2],
+            _=results[3],
+            _=results[4],
         )
 
     async def get_site_metrics(self, site_id: int) -> SiteDashboard:
@@ -113,7 +111,7 @@ class DashboardAggregator:
 
         return SiteDashboard(
             site_id=site_id,
-            site_name=site.name,
+            _=site.name,
             health=results[0],
             modules=results[1],
             timeline=results[2],
@@ -316,14 +314,14 @@ class DashboardAggregator:
                 RiskItem(
                     id=f"module-{row.id}",
                     title=f"{row.display_name} needs security update",
-                    risk_score=min(row.affected_sites * 10, 100),
+                    _=min(row.affected_sites * 10, 100),
                     affected_sites=row.affected_sites,
                     severity=(
                         SeverityLevel.CRITICAL
                         if row.has_security
                         else SeverityLevel.HIGH
                     ),
-                    action_required=f"Update {row.display_name} on {row.affected_sites} sites",
+                    _=f"Update {row.display_name} on {row.affected_sites} sites",
                 )
             )
 
@@ -360,7 +358,7 @@ class DashboardAggregator:
 
             trends["compliance"].append(
                 TimeSeriesData(
-                    timestamp=timestamp,
+                    _=timestamp,
                     value=90 + (i % 5) - 2,  # Fluctuate between 88-93
                 )
             )
@@ -373,12 +371,12 @@ class DashboardAggregator:
         """Get security-specific statistics."""
         # TODO: Implement actual metrics
         return SecurityMetrics(
-            active_threats=0,
-            unpatched_vulnerabilities=0,
-            average_time_to_patch=24.5,
-            patches_applied_today=0,
-            pending_security_updates=0,
-            sla_compliance=95.5,
+            _=0,
+            _=0,
+            _=24.5,
+            _=0,
+            _=0,
+            _=95.5,
         )
 
     async def _get_critical_modules(
@@ -452,8 +450,8 @@ class DashboardAggregator:
 
         return SiteHealth(
             score=round(score, 1),
-            status=status,
-            last_sync=site.updated_at or datetime.utcnow(),
+            _=status,
+            _=site.updated_at or datetime.utcnow(),
         )
 
     async def _get_site_module_stats(self, site_id: int) -> SiteModuleStats:
@@ -500,8 +498,8 @@ class DashboardAggregator:
 
         return SiteModuleStats(
             total=stats.total or 0,
-            up_to_date=(stats.total or 0) - (stats.needs_update or 0),
-            needs_update=stats.needs_update or 0,
+            _=(stats.total or 0) - (stats.needs_update or 0),
+            _=stats.needs_update or 0,
             security_updates=stats.security_updates or 0,
         )
 
@@ -537,10 +535,10 @@ class DashboardAggregator:
             recommendations.append(
                 Recommendation(
                     id=f"security-update-{row.name}",
-                    priority=SeverityLevel.CRITICAL,
-                    title=f"Security update available for {row.name}",
-                    description=f"{row.name} has {row.update_count} security updates available",
-                    action=f"Update {row.name} to the latest version",
+                    _=SeverityLevel.CRITICAL,
+                    _=f"Security update available for {row.name}",
+                    _=f"{row.name} has {row.update_count} security updates available",
+                    _=f"Update {row.name} to the latest version",
                 )
             )
 
@@ -760,7 +758,7 @@ class DashboardAggregator:
                             ),
                             1,
                         ),
-                        else_=0,
+                        _=0,
                     )
                 ).label("non_security_updates"),
             )

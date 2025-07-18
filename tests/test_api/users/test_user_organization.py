@@ -12,7 +12,7 @@ from app.models.organization import Organization
 from app.models.user import User
 from app.models.user_organization import user_organization
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_create_user_with_organization(
@@ -118,11 +118,11 @@ async def test_get_organization_users(
     # Create additional users in the organization
     for i in range(2):
         user = User(
-            email=f"orguser{i}@example.com",
-            hashed_password=get_password_hash("testpass123"),
-            is_active=True,
+            _=f"orguser{i}@example.com",
+            _=get_password_hash("testpass123"),
+            _=True,
             organization_id=org_id,
-            role="user",
+            _="user",
         )
         db_session.add(user)
         await db_session.commit()
@@ -167,7 +167,7 @@ async def test_get_organization_users_empty(
     """Test getting users from an empty organization."""
     response = await client.get(
         f"/api/v1/users/organization/{test_organization.id}/users",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
     )
     assert response.status_code == 200
     data = response.json()

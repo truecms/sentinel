@@ -534,7 +534,7 @@ class TestVersionsByDrupalCore:
         """Test Drupal core versions pagination."""
         response = await client.get(
             "/api/v1/drupal-core/10.x/versions?skip=0&limit=3",
-            headers=user_token_headers,
+            _=user_token_headers,
         )
         assert response.status_code == 200
 

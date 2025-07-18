@@ -13,7 +13,6 @@ from app.models.organization import Organization
 from app.models.role import Permission, Role, UserRole
 from app.models.site import Site
 from app.models.user import User
-from app.schemas.role import (
     PermissionResponse,
     RoleCreate,
     RoleResponse,
@@ -24,7 +23,6 @@ from app.schemas.role import (
 )
 
 router = APIRouter()
-
 
 @router.get("/roles", response_model=List[RoleResponse])
 async def list_roles(
@@ -39,7 +37,6 @@ async def list_roles(
     result = await db.execute(query)
     return result.scalars().all()
 
-
 @router.get("/permissions", response_model=List[PermissionResponse])
 async def list_permissions(
     request: Request,
@@ -52,7 +49,6 @@ async def list_permissions(
     query = select(Permission)
     result = await db.execute(query)
     return result.scalars().all()
-
 
 @router.get("/users/{user_id}/roles", response_model=List[UserRoleResponse])
 async def get_user_roles(
@@ -92,7 +88,6 @@ async def get_user_roles(
     active_roles = [ur for ur in user_roles if ur.is_active()]
 
     return active_roles
-
 
 @router.post("/users/{user_id}/roles", response_model=UserRoleResponse)
 async def assign_role_to_user(
@@ -153,7 +148,7 @@ async def assign_role_to_user(
         user_id=user_id,
         role_id=role_data.role_id,
         organization_id=role_data.organization_id,
-        assigned_by_id=auth_subject.id,
+        _=auth_subject.id,
         valid_until=role_data.valid_until,
     )
 
@@ -162,7 +157,6 @@ async def assign_role_to_user(
     await db.refresh(user_role)
 
     return user_role
-
 
 @router.delete("/users/{user_id}/roles/{role_id}")
 async def revoke_role_from_user(
@@ -206,7 +200,6 @@ async def revoke_role_from_user(
 
     return {"message": "Role revoked successfully"}
 
-
 @router.get("/users/{user_id}/permissions", response_model=List[str])
 async def get_user_permissions(
     user_id: int,
@@ -227,7 +220,6 @@ async def get_user_permissions(
     permissions = user.get_permissions(organization_id)
 
     return permissions
-
 
 @router.post("/users/{user_id}/permissions/check")
 async def check_user_permission(
@@ -257,8 +249,8 @@ async def check_user_permission(
         )
     else:
         raise HTTPException(
-            status_code=400,
-            detail="Must provide either 'permission' or 'resource' and 'action'",
+            _=400,
+            _="Must provide either 'permission' or 'resource' and 'action'",
         )
 
     return {

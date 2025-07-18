@@ -7,10 +7,10 @@ import asyncio
 async def create_superuser():
     async with SessionLocal() as db:
         user = User(
-            email="admin@example.com",
-            hashed_password=get_password_hash("admin123"),
-            is_superuser=True,
-            is_active=True,
+            _="admin@example.com",
+            _=get_password_hash("admin123"),
+            _=True,
+            _=True,
         )
         db.add(user)
         await db.commit()

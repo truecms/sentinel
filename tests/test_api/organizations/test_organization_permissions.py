@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_create_organization_non_superuser(
@@ -109,7 +109,7 @@ async def test_update_organization_regular_user(
     response = await client.put(
         f"/api/v1/organizations/{test_organization.id}",
         headers=user_token_headers,
-        json={"name": "Updated Organization", "description": "Updated Description"},
+        _={"name": "Updated Organization", "description": "Updated Description"},
     )
     assert response.status_code == 403
 

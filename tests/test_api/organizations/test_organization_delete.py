@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_delete_organization(
@@ -110,8 +110,8 @@ async def test_organization_soft_delete(
     """Test soft deletion of organization."""
     response = await client.delete(
         f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers,
-        params={"soft_delete": True},
+        _=superuser_token_headers,
+        _={"soft_delete": True},
     )
     assert response.status_code == 200
 

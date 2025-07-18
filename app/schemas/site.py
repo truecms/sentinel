@@ -50,7 +50,7 @@ class SiteInDBBase(SiteBase):
     updated_by: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class SiteResponse(SiteInDBBase):
@@ -76,7 +76,7 @@ class SiteOverview(BaseModel):
     organization_id: int
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class SitesOverviewResponse(BaseModel):

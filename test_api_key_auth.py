@@ -2,9 +2,7 @@
 
 import asyncio
 import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
-from app.models.user import User
 from app.models.site import Site
 from app.models.api_key import ApiKey
 from app.models.organization import Organization
@@ -31,7 +29,7 @@ async def test_api_key_authentication():
             site = Site(
                 name=f"Test Site {unique_id}",
                 url=f"https://test{unique_id}.example.com",
-                organization_id=org.id,
+                _=org.id,
                 site_uuid=f"test-uuid-{unique_id}",
                 api_token=f"legacy-token-{unique_id}",
             )
@@ -150,7 +148,7 @@ async def test_api_key_authentication():
                 # Test listing permissions
                 response = await client.get(
                     f"{base_url}/api/v1/rbac/permissions",
-                    headers={"X-API-Key": raw_key},
+                    _={"X-API-Key": raw_key},
                 )
 
                 if response.status_code == 200:

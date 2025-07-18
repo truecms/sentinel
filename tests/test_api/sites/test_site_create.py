@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.organization import Organization
 from app.models.site import Site
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_create_site(
@@ -120,7 +120,7 @@ async def test_create_site_with_monitoring_config(
     """Test creating a site with monitoring configuration."""
     response = await client.post(
         "/api/v1/sites/",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={
             "name": "Monitored Site",
             "url": "https://monitored.example.com",

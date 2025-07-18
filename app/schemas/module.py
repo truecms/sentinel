@@ -20,7 +20,7 @@ class ModuleBase(BaseModel):
         None, description="Link to Drupal.org project page"
     )
     module_type: str = Field(
-        default="contrib",
+        _="contrib",
         pattern="^(contrib|custom|core)$",
         description="Type of module",
     )
@@ -54,7 +54,7 @@ class ModuleInDB(ModuleBase):
     updated_by: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class ModuleResponse(ModuleInDB):

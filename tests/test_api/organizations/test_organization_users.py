@@ -6,7 +6,7 @@ from app.core.security import get_password_hash
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_get_organizations_as_org_admin(
@@ -23,10 +23,10 @@ async def test_get_organizations_as_org_admin(
     # Create an organization admin user
     org_admin = User(
         email="orgadmin@example.com",
-        hashed_password=get_password_hash("testpass123"),
+        _=get_password_hash("testpass123"),
         organization_id=org_id,
-        role="organization_admin",
-        is_active=True,
+        _="organization_admin",
+        _=True,
     )
     db_session.add(org_admin)
     await db_session.commit()
@@ -72,8 +72,8 @@ async def test_list_organizations_regular_user(
     # Create another organization
     other_org = Organization(
         name="Other Organization",
-        created_by=test_regular_user.id,
-        updated_by=test_regular_user.id,
+        _=test_regular_user.id,
+        _=test_regular_user.id,
     )
     db_session.add(other_org)
     await db_session.commit()
@@ -125,7 +125,7 @@ async def test_update_organization_with_users(
     """Test updating organization with user associations."""
     response = await client.put(
         f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={
             "name": "Updated Organization",
             "description": "Updated Description",

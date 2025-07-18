@@ -1,4 +1,3 @@
-from math import ceil
 from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -12,7 +11,6 @@ from app.schemas.site import SiteResponse
 from app.schemas.site_module import SiteModuleResponse
 
 router = APIRouter()
-
 
 @router.get("/{module_id}/sites", response_model=List[SiteResponse])
 async def get_module_sites(
@@ -67,7 +65,6 @@ async def get_module_sites(
         )
         for site in accessible_sites
     ]
-
 
 @router.get("/{module_id}/site-modules", response_model=List[SiteModuleResponse])
 async def get_module_site_modules(

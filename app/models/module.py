@@ -14,29 +14,27 @@ class Module(Base):
     Tracks basic module information and relationships to versions and site installations.
     """
 
-    __tablename__ = "modules"
+    _ = "modules"
 
-    id = Column(Integer, primary_key=True, index=True)
-    machine_name = Column(String(255), unique=True, nullable=False, index=True)
-    display_name = Column(String(255), nullable=False)
-    drupal_org_link = Column(String(500), nullable=True)
-    module_type = Column(
-        String(50), nullable=False, default="contrib"
-    )  # contrib, custom, core
-    is_covered = Column(Boolean(), default=False)
-    is_active = Column(Boolean(), default=True)
-    is_deleted = Column(Boolean(), default=False)
+    _ = Column(Integer, primary_key=True, index=True)
+    _ = Column(String(255), unique=True, nullable=False, index=True)
+    _ = Column(String(255), nullable=False)
+    _ = Column(String(500), nullable=True)
+    _ = Column(String(50), nullable=False, default="contrib")  # contrib, custom, core
+    _ = Column(Boolean(), default=False)
+    _ = Column(Boolean(), default=True)
+    _ = Column(Boolean(), default=False)
 
     # Audit fields following existing pattern
-    created_at = Column(DateTime, default=datetime.utcnow)
+    _ = Column(DateTime, default=datetime.utcnow)
     created_by = Column(Integer, ForeignKey("users.id"))
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    _ = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = Column(Integer, ForeignKey("users.id"))
 
     # Relationships
-    versions = relationship(
+    _ = relationship(
         "ModuleVersion", back_populates="module", cascade="all, delete-orphan"
     )
-    site_modules = relationship("SiteModule", back_populates="module")
-    creator = relationship("User", foreign_keys=[created_by])
-    updater = relationship("User", foreign_keys=[updated_by])
+    _ = relationship("SiteModule", back_populates="module")
+    _ = relationship("User", foreign_keys=[created_by])
+    _ = relationship("User", foreign_keys=[updated_by])

@@ -1,20 +1,14 @@
 """Dashboard API endpoints for real-time data."""
 
 import json
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import deps
 from app.core.redis import get_redis
-from app.models.module import Module
-from app.models.module_version import ModuleVersion
-from app.models.organization import Organization
 from app.models.site import Site
-from app.models.site_module import SiteModule
 from app.models.user import User
 from app.schemas.dashboard import (
     ActivityItem,
@@ -29,7 +23,6 @@ from app.schemas.dashboard import (
 from app.services.dashboard_aggregator import DashboardAggregator
 
 router = APIRouter()
-
 
 @router.get("/dashboard/overview", response_model=DashboardOverview)
 async def get_dashboard_overview(
@@ -62,7 +55,6 @@ async def get_dashboard_overview(
 
     return metrics
 
-
 @router.get("/dashboard/security", response_model=SecurityDashboard)
 async def get_security_dashboard(
     org_id: Optional[int] = Query(None, description="Filter by organization ID"),
@@ -87,7 +79,6 @@ async def get_security_dashboard(
         await redis.setex(cache_key, 30, json.dumps(security_data.dict()))
 
     return security_data
-
 
 @router.get("/dashboard/site/{site_id}", response_model=SiteDashboard)
 async def get_site_dashboard(
@@ -124,7 +115,6 @@ async def get_site_dashboard(
 
     return site_data
 
-
 @router.get("/dashboard/activity")
 async def get_recent_activity(
     org_id: Optional[int] = Query(None, description="Filter by organization ID"),
@@ -136,7 +126,6 @@ async def get_recent_activity(
     aggregator = DashboardAggregator(db)
     activities = await aggregator.get_recent_activities(current_user, org_id, limit)
     return activities
-
 
 @router.get("/dashboard/trends/{metric}")
 async def get_metric_trends(
@@ -160,7 +149,6 @@ async def get_metric_trends(
         metric, period, points, current_user, org_id
     )
     return trends
-
 
 @router.get("/risk-matrix", response_model=Dict[str, Any])
 async def get_risk_matrix(

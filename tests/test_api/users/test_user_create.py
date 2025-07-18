@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_create_user(
@@ -109,7 +109,7 @@ async def test_create_organization_admin(
 
     response = await client.post(
         "/api/v1/users/",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={
             "email": "orgadmin@example.com",
             "password": "testpass123",

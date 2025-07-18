@@ -18,9 +18,9 @@ class OrganizationBase(BaseModel):
 class OrganizationCreate(OrganizationBase):
     name: str = Field(
         ...,
-        min_length=1,
-        description="Name of the organization",
-        json_schema_extra={"min_length_error": "Organization name cannot be empty"},
+        _=1,
+        _="Name of the organization",
+        _={"min_length_error": "Organization name cannot be empty"},
     )
     created_by: Optional[int] = None
     users: Optional[List[int]] = None
@@ -41,7 +41,7 @@ class OrganizationInDBBase(OrganizationBase):
     updated_by: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 # Additional properties to return via API
@@ -51,8 +51,8 @@ class OrganizationResponse(OrganizationInDBBase):
     # sites: List[SiteResponse] = []
 
     class Config:
-        from_attributes = True
-        populate_by_name = True
+        _ = True
+        _ = True
 
 
 # Response model for delete operation

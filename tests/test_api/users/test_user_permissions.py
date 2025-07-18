@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_regular_user_cant_create_user(
@@ -132,7 +132,7 @@ async def test_superuser_can_manage_all_users(
     response = await client.put(
         f"/api/v1/users/{user_id}",
         headers=superuser_token_headers,
-        json={"email": "updated@example.com", "is_active": True},
+        _={"email": "updated@example.com", "is_active": True},
     )
     assert response.status_code == 200
 

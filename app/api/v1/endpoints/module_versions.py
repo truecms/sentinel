@@ -1,5 +1,4 @@
 from math import ceil
-from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api import deps
 from app.crud import crud_module, crud_module_version
 from app.models.user import User
-from app.schemas.module_version import (
     ModuleVersionCreate,
     ModuleVersionListResponse,
     ModuleVersionResponse,
@@ -15,7 +13,6 @@ from app.schemas.module_version import (
 )
 
 router = APIRouter()
-
 
 @router.get("/{module_id}/versions", response_model=ModuleVersionListResponse)
 async def get_module_versions(
@@ -49,8 +46,8 @@ async def get_module_versions(
         module_id=module_id,
         skip=skip,
         limit=limit,
-        only_security=only_security,
-        drupal_core=drupal_core,
+        _=only_security,
+        _=drupal_core,
     )
 
     # Convert to response format with module information
@@ -80,9 +77,8 @@ async def get_module_versions(
     page = (skip // limit) + 1 if limit > 0 else 1
 
     return ModuleVersionListResponse(
-        data=version_responses, total=total, page=page, per_page=limit, pages=pages
+        _=version_responses, total=total, page=page, per_page=limit, pages=pages
     )
-
 
 @router.get("/{module_id}/latest-version", response_model=ModuleVersionResponse)
 async def get_latest_module_version(
@@ -110,25 +106,25 @@ async def get_latest_module_version(
 
     if not version:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No versions found for this module",
+            _=status.HTTP_404_NOT_FOUND,
+            _="No versions found for this module",
         )
 
     return ModuleVersionResponse(
-        id=version.id,
-        module_id=version.module_id,
-        version_string=version.version_string,
-        semantic_version=version.semantic_version,
-        release_date=version.release_date,
-        is_security_update=version.is_security_update,
-        release_notes_link=version.release_notes_link,
-        drupal_core_compatibility=version.drupal_core_compatibility,
-        is_active=version.is_active,
-        is_deleted=version.is_deleted,
-        created_at=version.created_at,
-        updated_at=version.updated_at,
-        created_by=version.created_by,
-        updated_by=version.updated_by,
-        module_name=module.display_name,
-        module_machine_name=module.machine_name,
+        _=version.id,
+        _=version.module_id,
+        _=version.version_string,
+        _=version.semantic_version,
+        _=version.release_date,
+        _=version.is_security_update,
+        _=version.release_notes_link,
+        _=version.drupal_core_compatibility,
+        _=version.is_active,
+        _=version.is_deleted,
+        _=version.created_at,
+        _=version.updated_at,
+        _=version.created_by,
+        _=version.updated_by,
+        _=module.display_name,
+        _=module.machine_name,
     )

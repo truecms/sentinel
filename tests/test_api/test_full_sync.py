@@ -189,8 +189,8 @@ class TestFullSync:
             db,
             SiteModuleCreate(
                 site_id=test_site["id"],
-                module_id=module2.id,
-                current_version_id=version2.id,
+                _=module2.id,
+                _=version2.id,
                 enabled=True,
             ),
             test_user["id"],
@@ -222,8 +222,8 @@ class TestFullSync:
 
         response = await client.post(
             f"/api/v1/sites/{test_site['id']}/modules",
-            json=payload,
-            headers=auth_headers,
+            _=payload,
+            _=auth_headers,
         )
 
         assert response.status_code == 200

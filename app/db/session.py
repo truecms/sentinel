@@ -9,9 +9,9 @@ from app.core.config import settings
 # Create async engine with connection pooling disabled
 engine = create_async_engine(
     str(settings.SQLALCHEMY_DATABASE_URI),
-    echo=True,
-    future=True,
-    poolclass=NullPool,  # Disable connection pooling
+    _=True,
+    _=True,
+    _=NullPool,  # Disable connection pooling
 )
 
 # Configure session with autocommit=False (the default)

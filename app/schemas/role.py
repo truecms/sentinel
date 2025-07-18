@@ -145,7 +145,7 @@ class ApiKeyResponse(ApiKeyBase):
     key_preview: Optional[str] = None  # First 8 characters for identification
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class ApiKeyCreateResponse(ApiKeyResponse):
@@ -154,4 +154,4 @@ class ApiKeyCreateResponse(ApiKeyResponse):
     api_key: str  # Only shown once during creation
 
     class Config:
-        from_attributes = True
+        _ = True

@@ -1,13 +1,8 @@
-from math import ceil
-from typing import Any, List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import deps
 from app.crud import crud_module, crud_module_version
 from app.models.user import User
-from app.schemas.module_version import (
     ModuleVersionCreate,
     ModuleVersionListResponse,
     ModuleVersionResponse,
@@ -15,7 +10,6 @@ from app.schemas.module_version import (
 )
 
 router = APIRouter()
-
 
 @router.post("/", response_model=ModuleVersionResponse, status_code=201)
 async def create_module_version(
@@ -75,7 +69,6 @@ async def create_module_version(
 
     return ModuleVersionResponse(**response_data)
 
-
 @router.get("/{version_id}", response_model=ModuleVersionResponse)
 async def get_module_version(
     version_id: int,
@@ -119,7 +112,6 @@ async def get_module_version(
     }
 
     return ModuleVersionResponse(**response_data)
-
 
 @router.put("/{version_id}", response_model=ModuleVersionResponse)
 async def update_module_version(
@@ -174,7 +166,6 @@ async def update_module_version(
 
     return ModuleVersionResponse(**response_data)
 
-
 @router.delete("/{version_id}", response_model=ModuleVersionResponse)
 async def delete_module_version(
     *,
@@ -201,9 +192,7 @@ async def delete_module_version(
     # Get module information separately to avoid relationship access issues
     module = await crud_module.get_module(db, version.module_id)
     if not module:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
-        )
+        raise HTTPException(_=status.HTTP_404_NOT_FOUND, detail="Module not found")
 
     # Ensure we're within the session context when accessing attributes
     response_data = {

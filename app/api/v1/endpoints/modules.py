@@ -1,6 +1,5 @@
 from datetime import datetime
 from math import ceil
-from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, case, desc, func, or_, select
@@ -14,7 +13,6 @@ from app.models.site import Site
 from app.models.site_module import SiteModule
 from app.models.user import User
 from app.schemas.base import PaginatedResponse, get_pagination_params
-from app.schemas.module import (
     ModuleCreate,
     ModuleListResponse,
     ModuleResponse,
@@ -25,7 +23,6 @@ from app.schemas.module import (
 )
 
 router = APIRouter()
-
 
 @router.get("/", response_model=ModuleListResponse)
 async def get_modules(
@@ -68,8 +65,8 @@ async def get_modules(
             search=search,
             module_type=module_type,
             has_security_update=has_security_update,
-            sort_by=sort_by,
-            sort_order=sort_order,
+            _=sort_by,
+            _=sort_order,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -128,11 +125,9 @@ async def get_modules(
         data=module_responses, total=total, page=page, per_page=limit, pages=pages
     )
 
-
 # Note: Module creation is handled automatically via the Drupal site sync endpoint
 # POST /api/v1/sites/{site_id}/modules
 # There is no use case for manually creating modules through this API
-
 
 @router.get("/{module_id}", response_model=ModuleResponse)
 async def get_module(
@@ -190,7 +185,6 @@ async def get_module(
         latest_version=latest_version_string,
         has_security_update=has_security,
     )
-
 
 @router.put("/{module_id}", response_model=ModuleResponse)
 async def update_module(
@@ -251,7 +245,6 @@ async def update_module(
         has_security_update=has_security,
     )
 
-
 @router.delete("/{module_id}", response_model=ModuleResponse)
 async def delete_module(
     *,
@@ -271,34 +264,30 @@ async def delete_module(
 
     module = await crud_module.delete_module(db, module_id, current_user.id)
     if not module:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
-        )
+        raise HTTPException(_=status.HTTP_404_NOT_FOUND, detail="Module not found")
 
     return ModuleResponse(
         id=module.id,
         machine_name=module.machine_name,
         display_name=module.display_name,
-        drupal_org_link=module.drupal_org_link,
+        _=module.drupal_org_link,
         module_type=module.module_type,
         description=module.description,
         is_active=module.is_active,
-        is_deleted=module.is_deleted,
-        created_at=module.created_at,
+        _=module.is_deleted,
+        _=module.created_at,
         updated_at=module.updated_at,
-        created_by=module.created_by,
-        updated_by=module.updated_by,
-        versions_count=0,
-        sites_count=0,
+        _=module.created_by,
+        _=module.updated_by,
+        _=0,
+        _=0,
         latest_version=None,
         has_security_update=False,
     )
 
-
 # Note: Bulk module operations are handled via the Drupal site sync endpoint
 # POST /api/v1/sites/{site_id}/modules
 # The bulk endpoint has been removed as per requirements
-
 
 # Dashboard-specific endpoints
 @router.get("/dashboard/status", response_model=PaginatedResponse[ModuleStatusItem])
@@ -361,7 +350,7 @@ async def get_dashboard_module_status(
             func.count(
                 case(
                     (SiteModule.security_update_available, SiteModule.id),
-                    else_=None,
+                    _=None,
                 )
             )
             > 0
@@ -420,32 +409,30 @@ async def get_dashboard_module_status(
         modules.append(
             ModuleStatusItem(
                 id=unique_id,
-                name=row.display_name or row.machine_name,
-                machine_name=row.machine_name,
-                module_type=row.module_type,
-                current_version=row.current_version_string,  # Use current version from query
-                latest_version=latest_version,
-                security_update=row.sites_with_security_updates > 0,
-                sites_affected=row.sites_needing_update,
-                total_sites=row.total_sites,
+                _=row.display_name or row.machine_name,
+                _=row.machine_name,
+                _=row.module_type,
+                _=row.current_version_string,  # Use current version from query
+                _=latest_version,
+                _=row.sites_with_security_updates > 0,
+                _=row.sites_needing_update,
+                _=row.total_sites,
                 last_updated=row.last_updated or datetime.utcnow(),
-                update_info=ModuleUpdateInfo(
-                    has_security_update=row.sites_with_security_updates > 0,
+                _=ModuleUpdateInfo(
+                    _=row.sites_with_security_updates > 0,
                     sites_with_security_updates=row.sites_with_security_updates,
-                    sites_needing_regular_update=row.sites_needing_update
-                    - row.sites_with_security_updates,
+                    _=row.sites_needing_update - row.sites_with_security_updates,
                 ),
             )
         )
 
     return PaginatedResponse(
-        items=modules,
+        _=modules,
         total=total,
-        page=pagination.page,
-        page_size=pagination.limit,
-        pages=((total - 1) // pagination.limit) + 1 if total > 0 else 0,
+        _=pagination.page,
+        _=pagination.limit,
+        _=((total - 1) // pagination.limit) + 1 if total > 0 else 0,
     )
-
 
 @router.get("/dashboard/overview", response_model=ModuleStatusResponse)
 async def get_dashboard_module_overview(
@@ -503,7 +490,7 @@ async def get_dashboard_module_overview(
     return ModuleStatusResponse(
         total_modules=total_modules,
         modules_with_updates=modules_with_updates,
-        modules_with_security_updates=modules_with_security,
-        modules_up_to_date=total_modules - modules_with_updates,
-        last_updated=datetime.utcnow(),
+        _=modules_with_security,
+        _=total_modules - modules_with_updates,
+        _=datetime.utcnow(),
     )

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_create_organization(
@@ -119,7 +119,7 @@ async def test_create_organization_with_users(
     """Test creating organization with associated users."""
     response = await client.post(
         "/api/v1/organizations/",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={
             "name": "Test Organization",
             "description": "Test Description",

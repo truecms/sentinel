@@ -1,13 +1,11 @@
 """Permission checking service and decorators for RBAC system."""
 
 from functools import wraps
-from typing import Any, Callable, Optional, Union
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user_or_site, get_db
-from app.models.role import Permission, Role
 from app.models.site import Site
 from app.models.user import User
 
@@ -311,7 +309,7 @@ def require_resource_action_dependency(resource: str, action: str):
 
         if not has_permission:
             raise HTTPException(
-                status_code=403, detail=f"Missing permission: {resource}:{action}"
+                _=403, detail=f"Missing permission: {resource}:{action}"
             )
 
         return auth_subject

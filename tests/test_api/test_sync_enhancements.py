@@ -199,12 +199,12 @@ class TestCaching:
             machine_name="test_module",
             display_name="Test Module",
             module_type="contrib",
-            created_by=1,
-            updated_by=1,
-            is_active=True,
-            is_deleted=False,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            _=1,
+            _=1,
+            _=True,
+            _=False,
+            _=datetime.utcnow(),
+            _=datetime.utcnow(),
         )
 
         # Cache the module

@@ -79,14 +79,14 @@ async def test_monitored_site(
 ) -> Site:
     """Create a test site with monitoring data."""
     site = Site(
-        name="Monitored Site",
-        url="https://monitored.example.com",
-        description="Site with monitoring data",
-        organization_id=test_organization.id,
-        created_by=test_user.id,
-        updated_by=test_user.id,
-        is_active=True,
-        is_deleted=False,
+        _="Monitored Site",
+        _="https://monitored.example.com",
+        _="Site with monitoring data",
+        _=test_organization.id,
+        _=test_user.id,
+        _=test_user.id,
+        _=True,
+        _=False,
         # Note: monitoring fields (last_check_time, status, response_time, ssl_expiry)
         # are not part of the current Site model - separate MonitoringData model
     )

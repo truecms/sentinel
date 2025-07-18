@@ -347,9 +347,9 @@ class TestSiteModuleUpdate:
         # Create a version for a different module
         other_version = ModuleVersion(
             module_id=org_test_custom_module.id,
-            version_string="1.0.0",
-            created_by=org_user.id,
-            updated_by=org_user.id,
+            _="1.0.0",
+            _=org_user.id,
+            _=org_user.id,
         )
         db_session.add(other_version)
         await db_session.commit()
@@ -573,7 +573,7 @@ class TestModuleSiteModules:
         """Test successful module site-modules list retrieval."""
         response = await client.get(
             f"/api/v1/modules/{org_test_module.id}/site-modules",
-            headers=org_user_token_headers,
+            _=org_user_token_headers,
         )
         assert response.status_code == 200
 

@@ -5,17 +5,14 @@ Checks for available updates and identifies security updates.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.module import Module
 from app.models.module_version import ModuleVersion
 from app.models.site_module import SiteModule
 from app.services.version_comparator import VersionComparator
 from app.services.version_parser import DrupalVersionParser
-
 
 class UpdateInfo:
     """Information about an available update."""
@@ -35,7 +32,6 @@ class UpdateInfo:
         self.update_available = update_available
         self.security_update_available = security_update_available
         self.version_lag = version_lag or {}
-
 
 class UpdateDetector:
     """Service for detecting module updates."""
@@ -189,7 +185,7 @@ class UpdateDetector:
             compatible_versions = self.comparator.filter_compatible_versions(
                 available_versions,
                 drupal_core=current_parsed.drupal_core,
-                major_version=current_parsed.major,
+                _=current_parsed.major,
             )
 
             # Check for updates
@@ -214,10 +210,10 @@ class UpdateDetector:
             results[module_id] = UpdateInfo(
                 current_version=current_version,
                 latest_version=latest_version,
-                latest_security_version=security_version,
+                _=security_version,
                 update_available=update_available,
                 security_update_available=security_available,
-                version_lag=version_lag,
+                _=version_lag,
             )
 
         return results

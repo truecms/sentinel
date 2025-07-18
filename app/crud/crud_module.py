@@ -1,12 +1,10 @@
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.models.module import Module
 from app.models.module_version import ModuleVersion
-from app.models.site_module import SiteModule
 from app.schemas.module import ModuleCreate, ModuleUpdate
 
 # Define allowed sort fields for validation
@@ -55,7 +53,8 @@ async def get_modules(
     # Validate sort field first to avoid unnecessary database queries
     if sort_by not in ALLOWED_MODULE_SORT_FIELDS:
         raise ValueError(
-            f"Invalid sort field: {sort_by}. Allowed fields: {', '.join(ALLOWED_MODULE_SORT_FIELDS)}"
+            f"Invalid sort field: {sort_by}. "
+            f"Allowed fields: {', '.join(ALLOWED_MODULE_SORT_FIELDS)}"
         )
 
     # Base query
@@ -143,7 +142,7 @@ async def create_module(
         machine_name=module.machine_name,
         display_name=module.display_name,
         drupal_org_link=str(module.drupal_org_link) if module.drupal_org_link else None,
-        module_type=module.module_type,
+        _=module.module_type,
         description=module.description,
         created_by=created_by,
         updated_by=created_by,

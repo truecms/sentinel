@@ -10,16 +10,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import deps
-from app.core import security
 from app.core.config import settings
 from app.core.websocket import manager
 from app.models.user import User
-from app.schemas.ws import ChannelType, WebSocketMessage
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
 
 async def get_websocket_user(
     token: str = Query(...), db: AsyncSession = Depends(deps.get_db)
@@ -45,7 +42,6 @@ async def get_websocket_user(
     except (jwt.JWTError, ValueError):
         return None
 
-
 def can_access_channel(user: User, channel: str) -> bool:
     """Check if user has permission to access a channel."""
     # Parse channel type and ID
@@ -61,7 +57,7 @@ def can_access_channel(user: User, channel: str) -> bool:
 
     # Organization-specific channels
     if channel_type == "org" and len(parts) >= 3:
-        org_id = parts[1]
+        _ = parts[1]
         # Check if user belongs to this organization
         # For now, we'll allow access if user is authenticated
         # TODO: Implement proper organization membership check
@@ -69,14 +65,13 @@ def can_access_channel(user: User, channel: str) -> bool:
 
     # Site-specific channels
     if channel_type == "site" and len(parts) >= 3:
-        site_id = parts[1]
+        _ = parts[1]
         # Check if user has access to this site
         # For now, we'll allow access if user is authenticated
         # TODO: Implement proper site access check
         return True
 
     return False
-
 
 @router.websocket("/dashboard")
 async def websocket_dashboard_endpoint(
@@ -141,7 +136,6 @@ async def websocket_dashboard_endpoint(
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         await manager.disconnect(websocket, str(user.id))
-
 
 @router.get("/status")
 async def get_websocket_status(

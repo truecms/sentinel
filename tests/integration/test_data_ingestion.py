@@ -266,10 +266,10 @@ class TestModuleVersionManagement:
             version = ModuleVersion(
                 module_id=module.id,
                 version_string=module_data["version"],
-                release_date=datetime.utcnow(),
-                is_security_update=False,
-                created_by=test_user.id,
-                updated_by=test_user.id,
+                _=datetime.utcnow(),
+                _=False,
+                _=test_user.id,
+                _=test_user.id,
             )
             db_session.add(version)
             created_versions.append(version)

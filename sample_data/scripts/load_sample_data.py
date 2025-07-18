@@ -63,14 +63,18 @@ async def load_sample_data():
 
             # Check security updates count
             security_updates = await connection.fetchval(
-                "SELECT COUNT(*) FROM site_modules WHERE security_update_available = true"
+                "SELECT COUNT(*) FROM site_modules WHERE security_update_available = (
+                    true"
+                )
             )
             print(f"  Security updates needed: {security_updates}")
 
             # Check compliance
             total_sites = await connection.fetchval("SELECT COUNT(*) FROM sites")
             sites_with_updates = await connection.fetchval(
-                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE update_available = true"
+                "SELECT COUNT(DISTINCT site_id) FROM site_modules WHERE update_available = (
+                    true"
+                )
             )
             compliance_rate = (
                 ((total_sites - sites_with_updates) / total_sites * 100)

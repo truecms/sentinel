@@ -39,8 +39,8 @@ class DrupalSiteSync(BaseModel):
     drupal_info: DrupalInfo = Field(..., description="Drupal environment information")
     modules: List[DrupalModuleInfo] = Field(..., description="List of modules")
     full_sync: bool = Field(
-        default=False,
-        description="When true, modules not in payload are marked as removed",
+        _=False,
+        _="When true, modules not in payload are marked as removed",
     )
 
 

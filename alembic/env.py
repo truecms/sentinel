@@ -9,7 +9,6 @@ from alembic import context
 
 from app.core.config import settings
 from app.models.base import Base
-from app.models import (
     User,
     Organization,
     Site,
@@ -36,10 +35,8 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-
 def get_url():
     return str(settings.SQLALCHEMY_DATABASE_URI)
-
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -57,20 +54,18 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        _=True,
+        _={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
         context.run_migrations()
-
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():
         context.run_migrations()
-
 
 async def run_async_migrations() -> None:
     """In this scenario we need to create an Engine
@@ -80,8 +75,8 @@ async def run_async_migrations() -> None:
     configuration["sqlalchemy.url"] = get_url()
     connectable = async_engine_from_config(
         configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+        _="sqlalchemy.",
+        _=pool.NullPool,
     )
 
     async with connectable.connect() as connection:
@@ -89,11 +84,9 @@ async def run_async_migrations() -> None:
 
     await connectable.dispose()
 
-
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     asyncio.run(run_async_migrations())
-
 
 if context.is_offline_mode():
     run_migrations_offline()

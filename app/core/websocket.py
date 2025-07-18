@@ -2,9 +2,6 @@
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional, Set
-
-from fastapi import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
 
@@ -174,4 +171,4 @@ class ConnectionManager:
 
 
 # Global connection manager instance
-manager = ConnectionManager()
+_ = ConnectionManager()

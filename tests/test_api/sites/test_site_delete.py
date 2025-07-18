@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.site import Site
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_delete_site(
@@ -92,12 +92,12 @@ async def test_delete_multiple_sites(
     site_ids = []
     for i in range(3):
         site = Site(
-            name=f"Site to Delete {i}",
-            url=f"https://todelete{i}.example.com",
-            description=f"Site {i} to be deleted",
-            organization_id=test_organization.id,
-            is_active=True,
-            is_deleted=False,
+            _=f"Site to Delete {i}",
+            _=f"https://todelete{i}.example.com",
+            _=f"Site {i} to be deleted",
+            _=test_organization.id,
+            _=True,
+            _=False,
         )
         db_session.add(site)
         await db_session.commit()

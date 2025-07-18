@@ -7,50 +7,46 @@ from sqlalchemy.orm import relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
-    from app.models.api_key import ApiKey
-
 
 class Site(Base):
-    __tablename__ = "sites"
+    _ = "sites"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, nullable=False)
-    url = Column(String, unique=True, nullable=False)
-    description = Column(String, nullable=True)
-    site_uuid = Column(String(36), nullable=True)
-    api_token = Column(String(255), nullable=True)
-    drupal_core_version = Column(String(50), nullable=True)
-    php_version = Column(String(50), nullable=True)
-    database_type = Column(String(50), nullable=True)
-    database_version = Column(String(50), nullable=True)
-    server_info = Column(JSON, nullable=True)
-    last_check = Column(DateTime, nullable=True)
+    _ = Column(String, index=True, nullable=False)
+    _ = Column(String, unique=True, nullable=False)
+    _ = Column(String, nullable=True)
+    _ = Column(String(36), nullable=True)
+    _ = Column(String(255), nullable=True)
+    _ = Column(String(50), nullable=True)
+    _ = Column(String(50), nullable=True)
+    _ = Column(String(50), nullable=True)
+    _ = Column(String(50), nullable=True)
+    _ = Column(JSON, nullable=True)
+    _ = Column(DateTime, nullable=True)
 
     # Site overview tracking fields
-    security_score = Column(Integer, nullable=True, default=0)
-    total_modules_count = Column(Integer, nullable=True, default=0)
-    security_updates_count = Column(Integer, nullable=True, default=0)
-    non_security_updates_count = Column(Integer, nullable=True, default=0)
-    last_data_push = Column(DateTime, nullable=True)
-    last_drupal_org_check = Column(DateTime, nullable=True)
+    _ = Column(Integer, nullable=True, default=0)
+    _ = Column(Integer, nullable=True, default=0)
+    _ = Column(Integer, nullable=True, default=0)
+    _ = Column(Integer, nullable=True, default=0)
+    _ = Column(DateTime, nullable=True)
+    _ = Column(DateTime, nullable=True)
 
-    is_active = Column(Boolean(), default=True)
-    is_deleted = Column(Boolean(), default=False)
+    _ = Column(Boolean(), default=True)
+    _ = Column(Boolean(), default=False)
 
     # Ownership and timestamps
-    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    _ = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    _ = Column(DateTime, default=datetime.utcnow)
     created_by = Column(Integer, ForeignKey("users.id"))
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    _ = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     updated_by = Column(Integer, ForeignKey("users.id"))
 
     # Relationships
-    organization = relationship("Organization", back_populates="sites")
-    creator = relationship("User", foreign_keys=[created_by])
-    updater = relationship("User", foreign_keys=[updated_by])
-    modules = relationship(
-        "SiteModule", back_populates="site", cascade="all, delete-orphan"
-    )
+    _ = relationship("Organization", back_populates="sites")
+    _ = relationship("User", foreign_keys=[created_by])
+    _ = relationship("User", foreign_keys=[updated_by])
+    _ = relationship("SiteModule", back_populates="site", cascade="all, delete-orphan")
     api_keys = relationship("ApiKey", back_populates="site")
 
     def get_active_api_key(self) -> Optional["ApiKey"]:

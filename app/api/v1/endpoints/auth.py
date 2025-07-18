@@ -2,14 +2,12 @@ import logging
 import secrets
 import string
 from datetime import datetime, timedelta
-from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.api import deps
 from app.core import security
@@ -27,13 +25,11 @@ router = APIRouter()
 # In-memory storage for password reset tokens (in production, use Redis or database)
 password_reset_tokens = {}
 
-
 class UserRegister(BaseModel):
     email: str
     password: str
     full_name: str
     organization_name: str
-
 
 @router.post("/register", response_model=UserResponse)
 async def register(
@@ -93,7 +89,6 @@ async def register(
     logger.info(f"User registered successfully: {user_data.email}")
     return UserResponse.model_validate(user)
 
-
 @router.post("/access-token")
 async def login_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -143,17 +138,14 @@ async def login_access_token(
         "user": UserResponse.model_validate(user),
     }
 
-
 @router.post("/test-token", response_model=UserResponse)
 async def test_token(current_user: User = Depends(deps.get_current_user)) -> Any:
     """Test access token."""
     return UserResponse.model_validate(current_user)
 
-
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str
-
 
 @router.post("/change-password")
 async def change_password(
@@ -182,17 +174,14 @@ async def change_password(
     logger.info(f"Password changed successfully for user: {current_user.email}")
     return {"message": "Password changed successfully"}
 
-
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(current_user: User = Depends(deps.get_current_user)) -> Any:
     """Get current user details."""
     logger.info(f"Getting details for user: {current_user.email}")
     return UserResponse.model_validate(current_user)
 
-
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
-
 
 @router.post("/forgot-password")
 async def forgot_password(
@@ -230,10 +219,8 @@ async def forgot_password(
         "message": "If an account exists with this email, reset instructions have been sent"
     }
 
-
 class VerifyResetTokenRequest(BaseModel):
     token: str
-
 
 @router.post("/verify-reset-token")
 async def verify_reset_token(request: VerifyResetTokenRequest) -> Any:
@@ -247,11 +234,9 @@ async def verify_reset_token(request: VerifyResetTokenRequest) -> Any:
 
     return {"valid": True}
 
-
 class ResetPasswordRequest(BaseModel):
     token: str
     password: str
-
 
 @router.post("/reset-password")
 async def reset_password(
@@ -285,7 +270,6 @@ async def reset_password(
 
     logger.info(f"Password reset successful for user: {user.email}")
     return {"message": "Password reset successfully"}
-
 
 @router.post("/logout")
 async def logout(current_user: User = Depends(deps.get_current_user)) -> Any:

@@ -17,12 +17,12 @@ from typing import Optional, Tuple
 class ReleaseType(Enum):
     """Types of releases ordered by precedence."""
 
-    DEV = "dev"
-    ALPHA = "alpha"
-    BETA = "beta"
-    RC = "rc"
-    STABLE = "stable"
-    SECURITY = "security"
+    _ = "dev"
+    _ = "alpha"
+    _ = "beta"
+    _ = "rc"
+    _ = "stable"
+    _ = "security"
 
     @property
     def precedence(self) -> int:
@@ -85,7 +85,7 @@ class DrupalVersionParser:
     """Parser for Drupal module versions."""
 
     # Regex patterns for different version formats
-    PATTERNS = {
+    _ = {
         # Drupal contrib format: 8.x-1.0, 7.x-2.5-beta1, 8.x-1.0+5
         "drupal_contrib": re.compile(
             r"^(\d+)\.x-(\d+)\.(\d+)"
@@ -164,8 +164,8 @@ class DrupalVersionParser:
                 minor=int(minor),
                 patch=int(patch),
                 release_type=cls._parse_release_type(release_type),
-                release_number=int(release_num) if release_num else None,
-                extra=extra,
+                _=int(release_num) if release_num else None,
+                _=extra,
                 original=version_string,
             )
 
@@ -198,11 +198,11 @@ class DrupalVersionParser:
         if match:
             major, minor, patch = match.groups()
             return ParsedVersion(
-                major=int(major),
-                minor=int(minor),
-                patch=int(patch),
-                release_type=ReleaseType.STABLE,
-                original=version_string,
+                _=int(major),
+                _=int(minor),
+                _=int(patch),
+                _=ReleaseType.STABLE,
+                _=version_string,
             )
 
         # If no pattern matches, raise an error

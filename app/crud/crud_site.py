@@ -105,7 +105,8 @@ async def get_sites_overview(
     # Validate sort field first to avoid unnecessary database queries
     if sort_by not in ALLOWED_SORT_FIELDS:
         raise ValueError(
-            f"Invalid sort field: {sort_by}. Allowed fields: {', '.join(ALLOWED_SORT_FIELDS)}"
+            f"Invalid sort field: {sort_by}. "
+            f"Allowed fields: {', '.join(ALLOWED_SORT_FIELDS)}"
         )
 
     # Base query

@@ -1,9 +1,6 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from pydantic import BaseModel, EmailStr
-from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import deps
@@ -11,7 +8,6 @@ from app.core.security import get_password_hash, verify_password
 from app.models.organization import Organization
 from app.models.user import User
 from app.models.user_organization import user_organization
-from app.schemas.user import UserCreate, UserInDB, UserResponse, UserUpdate
 
 router = APIRouter()
 
@@ -295,8 +291,8 @@ async def get_organization_users(
 
     if not organization:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Organization not found",
+            _=status.HTTP_404_NOT_FOUND,
+            _="Organization not found",
         )
 
     # Get users through user_organizations table

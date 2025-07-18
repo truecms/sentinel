@@ -9,49 +9,47 @@ from app.models.user_organization import user_organization
 if TYPE_CHECKING:
     from app.models.role import Role
 
-
 class User(Base):
-    __tablename__ = "users"
+    _ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    full_name = Column(String, nullable=True)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean(), default=True)
-    is_superuser = Column(Boolean(), default=False)
-    created_at = Column(DateTime, nullable=False, server_default=text("now()"))
-    updated_at = Column(DateTime, nullable=False, server_default=text("now()"))
-    last_login = Column(DateTime, nullable=True)
+    _ = Column(Integer, primary_key=True, index=True)
+    _ = Column(String, unique=True, index=True, nullable=False)
+    _ = Column(String, nullable=True)
+    _ = Column(String, nullable=False)
+    _ = Column(Boolean(), default=True)
+    _ = Column(Boolean(), default=False)
+    _ = Column(DateTime, nullable=False, server_default=text("now()"))
+    _ = Column(DateTime, nullable=False, server_default=text("now()"))
+    _ = Column(DateTime, nullable=True)
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
     role = Column(String, nullable=True)
 
     # Relationships
-    organization = relationship(
+    _ = relationship(
         "Organization", foreign_keys=[organization_id], back_populates="users"
     )
-    organizations = relationship(
+    _ = relationship(
         "Organization", secondary=user_organization, back_populates="users"
     )
-    created_organizations = relationship(
+    _ = relationship(
         "Organization",
         back_populates="creator",
         foreign_keys="[Organization.created_by]",
     )
 
     # API Keys and RBAC relationships
-    api_keys = relationship("ApiKey", back_populates="user")
-    user_roles = relationship(
+    _ = relationship("ApiKey", back_populates="user")
+    _ = relationship(
         "UserRole", back_populates="user", foreign_keys="[UserRole.user_id]"
     )
-    assigned_roles = relationship(
+    _ = relationship(
         "UserRole",
-        back_populates="assigned_by",
-        foreign_keys="[UserRole.assigned_by_id]",
+        _="assigned_by",
+        _="[UserRole.assigned_by_id]",
     )
 
     def get_roles(self, organization_id: Optional[int] = None) -> List["Role"]:
         """Get user's roles, optionally filtered by organization."""
-        from app.models.role import Role
 
         roles = []
         for user_role in self.user_roles:

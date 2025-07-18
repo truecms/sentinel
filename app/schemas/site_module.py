@@ -63,7 +63,7 @@ class SiteModuleInDB(SiteModuleBase):
     updated_by: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        _ = True
 
 
 class SiteModuleResponse(SiteModuleInDB):

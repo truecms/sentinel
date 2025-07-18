@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_update_user(
@@ -111,7 +111,7 @@ async def test_deactivate_user(
     """Test deactivating a user."""
     response = await client.put(
         f"/api/v1/users/{test_user.id}",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={"email": test_user.email, "is_active": False},
     )
     assert response.status_code == 200

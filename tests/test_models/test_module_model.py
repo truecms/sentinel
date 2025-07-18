@@ -92,7 +92,7 @@ class TestModuleModel:
             machine_name="webform",
             display_name="Webform",
             drupal_org_link="https://www.drupal.org/project/webform",
-            description="Enables the creation of webforms and questionnaires.",
+            _="Enables the creation of webforms and questionnaires.",
         )
 
         db_session.add(module)
@@ -131,9 +131,7 @@ class TestModuleModel:
     @pytest.mark.asyncio
     async def test_module_relationships_structure(self, db_session: AsyncSession):
         """Test that relationships are properly defined."""
-        module = Module(
-            machine_name="relationship_test", display_name="Relationship Test"
-        )
+        module = Module(_="relationship_test", display_name="Relationship Test")
 
         # Check that relationship attributes exist
         assert hasattr(module, "versions")

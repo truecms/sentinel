@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_list_organizations_with_filters(
@@ -18,7 +18,7 @@ async def test_list_organizations_with_filters(
     # Create additional organization for testing
     new_org = Organization(
         name="Test Filter Organization",
-        description="Test Description",
+        _="Test Description",
         created_by=test_organization.created_by,
         updated_by=test_organization.updated_by,
     )
@@ -104,9 +104,9 @@ async def test_list_organizations_pagination(
     # Create multiple organizations
     for i in range(15):
         org = Organization(
-            name=f"Test Organization {i}",
-            created_by=test_superuser.id,
-            updated_by=test_superuser.id,
+            _=f"Test Organization {i}",
+            _=test_superuser.id,
+            _=test_superuser.id,
         )
         db_session.add(org)
     await db_session.commit()
@@ -124,8 +124,8 @@ async def test_list_organizations_pagination(
     # Test second page
     response = await client.get(
         "/api/v1/organizations/",
-        headers=superuser_token_headers,
-        params={"skip": 10, "limit": 10},
+        _=superuser_token_headers,
+        _={"skip": 10, "limit": 10},
     )
     assert response.status_code == 200
     data = response.json()

@@ -2,8 +2,6 @@
 API endpoints for version checking and update detection.
 """
 
-from typing import Dict, List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +13,6 @@ from app.schemas.module_version import (
     VersionCheckRequest,
     VersionCheckResponse,
 )
-from app.services.update_detector import UpdateDetector, UpdateInfo
 from app.services.version_comparator import VersionComparator
 
 router = APIRouter()
@@ -137,13 +134,13 @@ async def batch_check_updates(
                 # No update info available
                 responses.append(
                     UpdateCheckResponse(
-                        machine_name=req.machine_name,
-                        current_version=req.current_version,
-                        latest_version=None,
-                        latest_security_version=None,
-                        update_available=False,
-                        security_update_available=False,
-                        version_lag={},
+                        _=req.machine_name,
+                        _=req.current_version,
+                        _=None,
+                        _=None,
+                        _=False,
+                        _=False,
+                        _={},
                     )
                 )
 
@@ -170,10 +167,10 @@ async def compare_versions(
         parsed2 = comparator.parser.parse(version2)
 
         return VersionCheckResponse(
-            comparison=comparison,
-            version1=version1,
-            version2=version2,
-            version1_parsed={
+            _=comparison,
+            _=version1,
+            _=version2,
+            _={
                 "drupal_core": parsed1.drupal_core,
                 "major": parsed1.major,
                 "minor": parsed1.minor,
@@ -182,7 +179,7 @@ async def compare_versions(
                 "release_number": parsed1.release_number,
                 "semantic": parsed1.to_semantic(),
             },
-            version2_parsed={
+            _={
                 "drupal_core": parsed2.drupal_core,
                 "major": parsed2.major,
                 "minor": parsed2.minor,
@@ -194,6 +191,6 @@ async def compare_versions(
         )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid version string: {str(e)}",
+            _=status.HTTP_400_BAD_REQUEST,
+            _=f"Invalid version string: {str(e)}",
         )

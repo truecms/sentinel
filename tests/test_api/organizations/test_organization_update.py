@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_update_organization(
@@ -100,7 +100,7 @@ async def test_update_organization_with_users(
     """Test updating organization with user associations."""
     response = await client.put(
         f"/api/v1/organizations/{test_organization.id}",
-        headers=superuser_token_headers,
+        _=superuser_token_headers,
         json={
             "name": "Updated Organization",
             "description": "Updated Description",

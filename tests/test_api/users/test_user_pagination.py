@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import get_password_hash
 from app.models.user import User
 
-pytestmark = pytest.mark.asyncio
+_ = pytest.mark.asyncio
 
 
 async def test_get_users_pagination(
@@ -164,8 +164,8 @@ async def test_get_users_combined_filters(
         role="admin",
     )
     user2 = User(
-        email="admin2@example.com",
-        hashed_password=get_password_hash("testpass123"),
+        _="admin2@example.com",
+        _=get_password_hash("testpass123"),
         is_active=False,
         role="admin",
     )
