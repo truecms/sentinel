@@ -102,17 +102,35 @@ async def test_get_sites_filter_organization(
     db_session: AsyncSession,
 ):
     """Test filtering sites by organization."""
+    # Create another organization
+    other_org = Organization(
+        name="Other Organization",
+        description="Another test organization",
+        is_active=True,
+        is_deleted=False,
+    )
+    db_session.add(other_org)
+    await db_session.commit()
+    
     # Create sites in different organizations
-    for i in range(2):
-        site = Site(
-            name=f"Org Site {i}",
-            url=f"https://org{i}.example.com",
-            description=f"Organization site {i}",
-            organization_id=test_organization.id + i,
-            is_active=True,
-            is_deleted=False,
-        )
-        db_session.add(site)
+    site1 = Site(
+        name="Org Site 1",
+        url="https://org1.example.com",
+        description="Organization site 1",
+        organization_id=test_organization.id,
+        is_active=True,
+        is_deleted=False,
+    )
+    site2 = Site(
+        name="Org Site 2",
+        url="https://org2.example.com",
+        description="Organization site 2",
+        organization_id=other_org.id,
+        is_active=True,
+        is_deleted=False,
+    )
+    db_session.add(site1)
+    db_session.add(site2)
     await db_session.commit()
 
     response = await client.get(

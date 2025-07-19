@@ -20,17 +20,30 @@ async def test_get_organizations_as_org_admin(
     org_id = test_organization.id
     superuser_id = test_superuser.id
 
-    # Create an organization admin user
+    # Create an organization admin user (without setting organization_id initially to avoid FK constraint)
     org_admin = User(
         email="orgadmin@example.com",
         hashed_password=get_password_hash("testpass123"),
-        organization_id=org_id,
-        _="organization_admin",
+        role="organization_admin",
         is_active=True,
     )
     db_session.add(org_admin)
     await db_session.commit()
     await db_session.refresh(org_admin)
+    
+    # Now set the organization_id after user is created
+    org_admin.organization_id = org_id
+    db_session.add(org_admin)
+    await db_session.commit()
+
+    # Add user to organization junction table
+    from app.models.user_organization import user_organization
+    await db_session.execute(
+        user_organization.insert().values(
+            user_id=org_admin.id, organization_id=org_id
+        )
+    )
+    await db_session.commit()
 
     # Create another organization that shouldn't be visible
     other_org = Organization(
@@ -69,6 +82,20 @@ async def test_list_organizations_regular_user(
     db_session: AsyncSession,
 ):
     """Test listing organizations as regular user."""
+    # Assign test_regular_user to test_organization
+    test_regular_user.organization_id = test_organization.id
+    db_session.add(test_regular_user)
+    await db_session.commit()
+    
+    # Add user to organization junction table
+    from app.models.user_organization import user_organization
+    await db_session.execute(
+        user_organization.insert().values(
+            user_id=test_regular_user.id, organization_id=test_organization.id
+        )
+    )
+    await db_session.commit()
+    
     # Create another organization
     other_org = Organization(
         name="Other Organization",
@@ -102,7 +129,7 @@ async def test_create_organization_with_users(
         json={
             "name": "Test Organization",
             "description": "Test Description",
-            "user_ids": [test_user.id],
+            "users": [test_user.id],
         },
     )
     assert response.status_code == 200
@@ -129,7 +156,7 @@ async def test_update_organization_with_users(
         json={
             "name": "Updated Organization",
             "description": "Updated Description",
-            "user_ids": [test_user.id],
+            "users": [test_user.id],
         },
     )
     assert response.status_code == 200

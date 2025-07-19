@@ -20,8 +20,21 @@ class TestModuleVersionsList:
         user_token_headers: dict,
     ):
         """Test successful module versions list retrieval."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/versions", headers=user_token_headers
+            f"/api/v1/modules/{test_module_id}/versions", headers=user_token_headers
         )
         assert response.status_code == 200
 
@@ -52,8 +65,21 @@ class TestModuleVersionsList:
         user_token_headers: dict,
     ):
         """Test filtering versions by security updates only."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/versions?only_security=true",
+            f"/api/v1/modules/{test_module_id}/versions?only_security=true",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -73,8 +99,21 @@ class TestModuleVersionsList:
         user_token_headers: dict,
     ):
         """Test filtering versions by Drupal core compatibility."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/versions?drupal_core=10.x",
+            f"/api/v1/modules/{test_module_id}/versions?drupal_core=10.x",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -92,8 +131,21 @@ class TestModuleVersionsList:
         user_token_headers: dict,
     ):
         """Test module versions pagination."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/versions?skip=0&limit=1",
+            f"/api/v1/modules/{test_module_id}/versions?skip=0&limit=1",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -116,7 +168,8 @@ class TestModuleVersionsList:
         self, client: AsyncClient, test_module: Module
     ):
         """Test that module versions list requires authentication."""
-        response = await client.get(f"/api/v1/modules/{test_module.id}/versions")
+        # Use a fixed module ID for this test since we can't access fixture attributes
+        response = await client.get("/api/v1/modules/1/versions")
         assert response.status_code == 401
 
 
@@ -127,12 +180,24 @@ class TestModuleVersionCreate:
         self, client: AsyncClient, test_module: Module, superuser_token_headers: dict
     ):
         """Test successful module version creation."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=superuser_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         version_data = {
-            "module_id": test_module.id,
+            "module_id": test_module_id,
             "version_string": "3.0.0",
-            "semantic_version": "3.0.0",
             "is_security_update": False,
-            "release_notes_link": (
+            "release_notes": (
                 "https://drupal.org/project/test_module/releases/3.0.0"
             ),
             "drupal_core_compatibility": ["10.x", "11.x"],
@@ -156,7 +221,20 @@ class TestModuleVersionCreate:
         self, client: AsyncClient, test_module: Module, superuser_token_headers: dict
     ):
         """Test version creation with minimal required data."""
-        version_data = {"module_id": test_module.id, "version_string": "4.0.0"}
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=superuser_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        version_data = {"module_id": test_module_id, "version_string": "4.0.0"}
 
         response = await client.post(
             "/api/v1/module-versions",
@@ -173,18 +251,44 @@ class TestModuleVersionCreate:
         self,
         client: AsyncClient,
         test_module: Module,
-        test_module_version: ModuleVersion,
         superuser_token_headers: dict,
     ):
         """Test creating duplicate version for same module."""
-        version_data = {
-            "module_id": test_module.id,
-            "version_string": test_module_version.version_string,
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=superuser_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # First, create a module version via the API
+        first_version_data = {
+            "module_id": test_module_id,
+            "version_string": "1.0.0",
+        }
+        
+        first_response = await client.post(
+            "/api/v1/module-versions",
+            json=first_version_data,
+            headers=superuser_token_headers,
+        )
+        assert first_response.status_code == 201
+        
+        # Now try to create a duplicate version
+        duplicate_version_data = {
+            "module_id": test_module_id,
+            "version_string": "1.0.0",  # Same version string
         }
 
         response = await client.post(
             "/api/v1/module-versions",
-            json=version_data,
+            json=duplicate_version_data,
             headers=superuser_token_headers,
         )
         assert response.status_code == 400
@@ -207,7 +311,20 @@ class TestModuleVersionCreate:
         self, client: AsyncClient, test_module: Module, user_token_headers: dict
     ):
         """Test that version creation requires superuser permissions."""
-        version_data = {"module_id": test_module.id, "version_string": "unauthorized"}
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        version_data = {"module_id": test_module_id, "version_string": "unauthorized"}
 
         response = await client.post(
             "/api/v1/module-versions", json=version_data, headers=user_token_headers
@@ -218,7 +335,8 @@ class TestModuleVersionCreate:
         self, client: AsyncClient, test_module: Module
     ):
         """Test that version creation requires authentication."""
-        version_data = {"module_id": test_module.id, "version_string": "no_auth"}
+        # Use a fixed module ID for this test since we can't access fixture attributes
+        version_data = {"module_id": 1, "version_string": "no_auth"}
 
         response = await client.post("/api/v1/module-versions", json=version_data)
         assert response.status_code == 401
@@ -234,8 +352,34 @@ class TestModuleVersionDetail:
         user_token_headers: dict,
     ):
         """Test successful module version detail retrieval."""
+        # Get module ID from API response to find the test module version
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # Get the versions for this module to find the test version
+        versions_response = await client.get(
+            f"/api/v1/modules/{test_module_id}/versions", headers=user_token_headers
+        )
+        versions_data = versions_response.json()
+        test_version_id = None
+        for version in versions_data["data"]:
+            if version["version_string"] == "1.0.0":
+                test_version_id = version["id"]
+                break
+
+        assert test_version_id is not None, "Test version not found"
+
         response = await client.get(
-            f"/api/v1/module-versions/{test_module_version.id}",
+            f"/api/v1/module-versions/{test_version_id}",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -264,7 +408,8 @@ class TestModuleVersionDetail:
         self, client: AsyncClient, test_module_version: ModuleVersion
     ):
         """Test that version detail requires authentication."""
-        response = await client.get(f"/api/v1/module-versions/{test_module_version.id}")
+        # Use a fixed version ID for this test since we can't access fixture attributes
+        response = await client.get("/api/v1/module-versions/1")
         assert response.status_code == 401
 
 
@@ -278,24 +423,49 @@ class TestModuleVersionUpdate:
         superuser_token_headers: dict,
     ):
         """Test successful module version update."""
-        update_data = {"semantic_version": "1.0.1", "is_security_update": True}
+        # Get module ID from API response to find the test module version
+        module_response = await client.get(
+            "/api/v1/modules", headers=superuser_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # Get the versions for this module to find the test version
+        versions_response = await client.get(
+            f"/api/v1/modules/{test_module_id}/versions", headers=superuser_token_headers
+        )
+        versions_data = versions_response.json()
+        test_version_id = None
+        for version in versions_data["data"]:
+            if version["version_string"] == "1.0.0":
+                test_version_id = version["id"]
+                break
+
+        assert test_version_id is not None, "Test version not found"
+
+        update_data = {"is_security_update": True}
 
         response = await client.put(
-            f"/api/v1/module-versions/{test_module_version.id}",
+            f"/api/v1/module-versions/{test_version_id}",
             json=update_data,
             headers=superuser_token_headers,
         )
         assert response.status_code == 200
 
         data = response.json()
-        assert data["semantic_version"] == update_data["semantic_version"]
         assert data["is_security_update"] == update_data["is_security_update"]
 
     async def test_update_module_version_not_found(
         self, client: AsyncClient, superuser_token_headers: dict
     ):
         """Test updating non-existent version."""
-        update_data = {"semantic_version": "1.0.1"}
+        update_data = {"is_security_update": True}
 
         response = await client.put(
             "/api/v1/module-versions/99999",
@@ -311,10 +481,36 @@ class TestModuleVersionUpdate:
         user_token_headers: dict,
     ):
         """Test that version update requires superuser permissions."""
-        update_data = {"semantic_version": "1.0.1"}
+        # Get module ID from API response to find the test module version
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # Get the versions for this module to find the test version
+        versions_response = await client.get(
+            f"/api/v1/modules/{test_module_id}/versions", headers=user_token_headers
+        )
+        versions_data = versions_response.json()
+        test_version_id = None
+        for version in versions_data["data"]:
+            if version["version_string"] == "1.0.0":
+                test_version_id = version["id"]
+                break
+
+        assert test_version_id is not None, "Test version not found"
+
+        update_data = {"is_security_update": True}
 
         response = await client.put(
-            f"/api/v1/module-versions/{test_module_version.id}",
+            f"/api/v1/module-versions/{test_version_id}",
             json=update_data,
             headers=user_token_headers,
         )
@@ -324,10 +520,11 @@ class TestModuleVersionUpdate:
         self, client: AsyncClient, test_module_version: ModuleVersion
     ):
         """Test that version update requires authentication."""
-        update_data = {"semantic_version": "1.0.1"}
+        update_data = {"is_security_update": True}
 
+        # Use a fixed version ID for this test since we can't access fixture attributes
         response = await client.put(
-            f"/api/v1/module-versions/{test_module_version.id}", json=update_data
+            "/api/v1/module-versions/1", json=update_data
         )
         assert response.status_code == 401
 
@@ -342,8 +539,34 @@ class TestModuleVersionDelete:
         superuser_token_headers: dict,
     ):
         """Test successful module version deletion (soft delete)."""
+        # Get module ID from API response to find the test module version
+        module_response = await client.get(
+            "/api/v1/modules", headers=superuser_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # Get the versions for this module to find the test version
+        versions_response = await client.get(
+            f"/api/v1/modules/{test_module_id}/versions", headers=superuser_token_headers
+        )
+        versions_data = versions_response.json()
+        test_version_id = None
+        for version in versions_data["data"]:
+            if version["version_string"] == "1.0.0":
+                test_version_id = version["id"]
+                break
+
+        assert test_version_id is not None, "Test version not found"
+
         response = await client.delete(
-            f"/api/v1/module-versions/{test_module_version.id}",
+            f"/api/v1/module-versions/{test_version_id}",
             headers=superuser_token_headers,
         )
         assert response.status_code == 200
@@ -369,8 +592,34 @@ class TestModuleVersionDelete:
         user_token_headers: dict,
     ):
         """Test that version deletion requires superuser permissions."""
+        # Get module ID from API response to find the test module version
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
+        # Get the versions for this module to find the test version
+        versions_response = await client.get(
+            f"/api/v1/modules/{test_module_id}/versions", headers=user_token_headers
+        )
+        versions_data = versions_response.json()
+        test_version_id = None
+        for version in versions_data["data"]:
+            if version["version_string"] == "1.0.0":
+                test_version_id = version["id"]
+                break
+
+        assert test_version_id is not None, "Test version not found"
+
         response = await client.delete(
-            f"/api/v1/module-versions/{test_module_version.id}",
+            f"/api/v1/module-versions/{test_version_id}",
             headers=user_token_headers,
         )
         assert response.status_code == 403
@@ -379,8 +628,9 @@ class TestModuleVersionDelete:
         self, client: AsyncClient, test_module_version: ModuleVersion
     ):
         """Test that version deletion requires authentication."""
+        # Use a fixed version ID for this test since we can't access fixture attributes
         response = await client.delete(
-            f"/api/v1/module-versions/{test_module_version.id}"
+            "/api/v1/module-versions/1"
         )
         assert response.status_code == 401
 
@@ -430,8 +680,21 @@ class TestModuleLatestVersion:
         user_token_headers: dict,
     ):
         """Test getting latest security version for module."""
+        # Get module ID from API response since we can't access fixture attributes
+        module_response = await client.get(
+            "/api/v1/modules", headers=user_token_headers
+        )
+        modules_data = module_response.json()
+        test_module_id = None
+        for module in modules_data["data"]:
+            if module["machine_name"] == "test_module":
+                test_module_id = module["id"]
+                break
+
+        assert test_module_id is not None, "Test module not found"
+
         response = await client.get(
-            f"/api/v1/modules/{test_module.id}/latest-version?security_only=true",
+            f"/api/v1/modules/{test_module_id}/latest-version?security_only=true",
             headers=user_token_headers,
         )
         assert response.status_code == 200
@@ -452,7 +715,8 @@ class TestModuleLatestVersion:
         self, client: AsyncClient, test_module: Module
     ):
         """Test that latest version requires authentication."""
-        response = await client.get(f"/api/v1/modules/{test_module.id}/latest-version")
+        # Use a fixed module ID for this test since we can't access fixture attributes
+        response = await client.get("/api/v1/modules/1/latest-version")
         assert response.status_code == 401
 
 

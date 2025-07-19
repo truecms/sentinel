@@ -109,7 +109,7 @@ async def test_update_organization_regular_user(
     response = await client.put(
         f"/api/v1/organizations/{test_organization.id}",
         headers=user_token_headers,
-        _={"name": "Updated Organization", "description": "Updated Description"},
+        json={"name": "Updated Organization", "description": "Updated Description"},
     )
     assert response.status_code == 403
 

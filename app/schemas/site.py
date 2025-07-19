@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 from app.schemas.organization import OrganizationResponse
 
 
 class SiteBase(BaseModel):
-    url: str
+    url: HttpUrl
     name: str
     description: Optional[str] = None
     organization_id: int
@@ -18,7 +18,7 @@ class SiteCreate(SiteBase):
 
 
 class SiteUpdate(BaseModel):
-    url: Optional[str] = None
+    url: Optional[HttpUrl] = None
     name: Optional[str] = None
     description: Optional[str] = None
     organization_id: Optional[int] = None

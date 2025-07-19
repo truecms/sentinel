@@ -15,6 +15,7 @@ from app.models.site_module import SiteModule
 from app.models.user import User
 from app.schemas.base import PaginatedResponse, get_pagination_params
 from app.schemas.module import (
+    ModuleCreate,
     ModuleListResponse,
     ModuleResponse,
     ModuleStatusItem,
@@ -106,7 +107,6 @@ async def get_modules(
             display_name=module.display_name,
             drupal_org_link=module.drupal_org_link,
             module_type=module.module_type,
-            description=module.description,
             is_active=module.is_active,
             is_deleted=module.is_deleted,
             created_at=module.created_at,
@@ -128,9 +128,78 @@ async def get_modules(
     )
 
 
-# Note: Module creation is handled automatically via the Drupal site sync endpoint
+@router.post("/", response_model=ModuleResponse, status_code=status.HTTP_201_CREATED)
+async def create_module(
+    module: ModuleCreate,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Create a new module.
+    
+    Only superusers can create modules.
+    """
+    # Check if module with same machine_name already exists
+    existing_module = await crud_module.get_module_by_machine_name(db, module.machine_name)
+    if existing_module:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Module with machine name '{module.machine_name}' already exists"
+        )
+    
+    # Create the module
+    db_module = await crud_module.create_module(db, module, current_user.id)
+    
+    # Return response with counts (new module has 0 versions and sites)
+    return ModuleResponse(
+        id=db_module.id,
+        machine_name=db_module.machine_name,
+        display_name=db_module.display_name,
+        drupal_org_link=db_module.drupal_org_link,
+        module_type=db_module.module_type,
+        is_active=db_module.is_active,
+        is_deleted=db_module.is_deleted,
+        created_at=db_module.created_at,
+        updated_at=db_module.updated_at,
+        created_by=db_module.created_by,
+        updated_by=db_module.updated_by,
+        versions_count=0,
+        sites_count=0,
+        latest_version_string=None,
+        has_security_update=False,
+    )
+
+
+@router.post("/bulk", status_code=status.HTTP_200_OK)
+async def bulk_create_modules(
+    modules: list[dict],
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Bulk create or update modules.
+    
+    Only superusers can create modules in bulk.
+    Maximum 1000 modules per request.
+    """
+    # Validate module count limit
+    if len(modules) > 1000:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot process more than 1000 modules in a single request"
+        )
+    
+    result = await crud_module.bulk_upsert_modules(db, modules, current_user.id)
+    
+    # Add total_processed for test compatibility
+    result["total_processed"] = result["created"] + result["updated"] + result["failed"]
+    
+    return result
+
+
+# Note: Module creation is primarily handled automatically via the Drupal site sync endpoint
 # POST /api/v1/sites/{site_id}/modules
-# There is no use case for manually creating modules through this API
+# However, manual module creation is supported for testing and administrative purposes
 
 
 @router.get("/{module_id}", response_model=ModuleResponse)
@@ -177,7 +246,6 @@ async def get_module(
         display_name=module.display_name,
         drupal_org_link=module.drupal_org_link,
         module_type=module.module_type,
-        description=module.description,
         is_active=module.is_active,
         is_deleted=module.is_deleted,
         created_at=module.created_at,
@@ -237,7 +305,6 @@ async def update_module(
         display_name=module.display_name,
         drupal_org_link=module.drupal_org_link,
         module_type=module.module_type,
-        description=module.description,
         is_active=module.is_active,
         is_deleted=module.is_deleted,
         created_at=module.created_at,
@@ -280,7 +347,6 @@ async def delete_module(
         display_name=module.display_name,
         drupal_org_link=module.drupal_org_link,
         module_type=module.module_type,
-        description=module.description,
         is_active=module.is_active,
         is_deleted=module.is_deleted,
         created_at=module.created_at,

@@ -295,7 +295,7 @@ class TestDatabaseQueries:
         assert len(security_versions) >= 3  # Should have security versions
 
         # Query vulnerable versions
-        stmt = select(not ModuleVersion).where(ModuleVersion.is_security_update)
+        stmt = select(ModuleVersion).where(~ModuleVersion.is_security_update)
         result = await db_session.execute(stmt)
         vulnerable_versions = result.scalars().all()
 

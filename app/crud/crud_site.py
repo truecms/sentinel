@@ -23,23 +23,92 @@ ALLOWED_SORT_FIELDS = [
 
 
 async def get_site(db: AsyncSession, site_id: int) -> Optional[Site]:
+    result = await db.execute(
+        select(Site).filter(Site.id == site_id, ~Site.is_deleted)
+    )
+    return result.scalar_one_or_none()
+
+
+async def get_site_include_deleted(db: AsyncSession, site_id: int) -> Optional[Site]:
+    """Get site including deleted ones - used for deletion operations."""
     result = await db.execute(select(Site).filter(Site.id == site_id))
     return result.scalar_one_or_none()
 
 
-async def get_site_by_url(db: AsyncSession, url: str) -> Optional[Site]:
-    result = await db.execute(select(Site).filter(Site.url == url))
-    return result.scalar_one_or_none()
+async def get_site_by_url(db: AsyncSession, url) -> Optional[Site]:
+    # Convert HttpUrl to string if needed
+    url_str = str(url) if hasattr(url, '__str__') else url
+    result = await db.execute(select(Site).filter(Site.url == url_str))
+    site = result.scalar_one_or_none()
+    return site
 
 
 async def get_sites(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Site]:
-    result = await db.execute(select(Site).offset(skip).limit(limit))
+    result = await db.execute(select(Site).filter(~Site.is_deleted).offset(skip).limit(limit))
+    return result.scalars().all()
+
+
+async def get_sites_filtered(
+    db: AsyncSession,
+    skip: int = 0,
+    limit: int = 100,
+    is_active: Optional[bool] = None,
+    organization_id: Optional[int] = None,
+    search: Optional[str] = None,
+    sort: Optional[str] = None,
+    current_user = None,
+) -> List[Site]:
+    """Get sites with filtering and sorting options."""
+    # Base query - exclude deleted sites
+    query = select(Site).filter(~Site.is_deleted)
+    
+    # Apply filters
+    if is_active is not None:
+        query = query.filter(Site.is_active == is_active)
+    
+    if organization_id is not None:
+        query = query.filter(Site.organization_id == organization_id)
+    
+    # Apply organization filter for non-superusers
+    if current_user and not current_user.is_superuser and current_user.organization_id:
+        query = query.filter(Site.organization_id == current_user.organization_id)
+    
+    # Apply search filter
+    if search:
+        search_filter = or_(
+            Site.name.ilike(f"%{search}%"), 
+            Site.url.ilike(f"%{search}%")
+        )
+        query = query.filter(search_filter)
+    
+    # Apply sorting
+    if sort:
+        if sort.startswith('-'):
+            # Descending order
+            sort_field = sort[1:]
+            if hasattr(Site, sort_field):
+                sort_column = getattr(Site, sort_field)
+                query = query.order_by(sort_column.desc())
+        else:
+            # Ascending order
+            if hasattr(Site, sort):
+                sort_column = getattr(Site, sort)
+                query = query.order_by(sort_column.asc())
+    else:
+        # Default sort by name
+        query = query.order_by(Site.name.asc())
+    
+    # Apply pagination
+    query = query.offset(skip).limit(limit)
+    
+    # Execute query
+    result = await db.execute(query)
     return result.scalars().all()
 
 
 async def create_site(db: AsyncSession, site: SiteCreate, created_by: int) -> Site:
     db_site = Site(
-        url=site.url,
+        url=str(site.url),  # Convert HttpUrl to string
         name=site.name,
         description=site.description,
         organization_id=site.organization_id,
@@ -58,7 +127,22 @@ async def update_site(
     db_site = await get_site(db, site_id)
     if db_site:
         if site.url:
-            db_site.url = site.url
+            # Check if the new URL already exists (excluding the current site)
+            normalized_url = str(site.url).rstrip('/')
+            result = await db.execute(
+                select(Site).where(
+                    and_(
+                        Site.url == normalized_url,
+                        Site.id != site_id,
+                        Site.is_deleted == False
+                    )
+                )
+            )
+            existing_site = result.scalar_one_or_none()
+            if existing_site:
+                raise ValueError("URL already exists")
+            
+            db_site.url = normalized_url  # Convert HttpUrl to string and remove trailing slash
         if site.name:
             db_site.name = site.name
         if site.description:

@@ -111,7 +111,6 @@ async def test_organization_soft_delete(
     response = await client.delete(
         f"/api/v1/organizations/{test_organization.id}",
         headers=superuser_token_headers,
-        _={"soft_delete": True},
     )
     assert response.status_code == 200
 

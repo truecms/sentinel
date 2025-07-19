@@ -34,6 +34,13 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db), token: str = Depends(oauth2_scheme)
 ) -> User:
     """Get current user based on JWT token."""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -71,6 +78,47 @@ async def get_current_user(
     # Ensure all attributes are loaded
     await db.refresh(user)
 
+    return user
+
+
+async def _authenticate_jwt_token(db: AsyncSession, token: str) -> User:
+    """Authenticate JWT token and return user."""
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        token_data = TokenData(sub=payload.get("sub"))
+    except (jwt.JWTError, ValidationError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Query for user by email with all relationships loaded
+    query = (
+        select(User)
+        .where(User.email == token_data.sub)
+        .options(selectinload(User.organizations))
+    )
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Ensure all attributes are loaded
+    await db.refresh(user)
     return user
 
 
@@ -205,7 +253,7 @@ async def get_current_user_or_site(
 
     # Fall back to JWT authentication
     if token:
-        return await get_current_user(db, token)
+        return await _authenticate_jwt_token(db, token)
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

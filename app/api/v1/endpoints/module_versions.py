@@ -54,15 +54,19 @@ async def get_module_versions(
     # Convert to response format with module information
     version_responses = []
     for version in versions:
+        # Convert database string to list for API response
+        compatibility_list = []
+        if version.drupal_core_compatibility:
+            compatibility_list = version.drupal_core_compatibility.split(",")
+        
         version_response = ModuleVersionResponse(
             id=version.id,
             module_id=version.module_id,
             version_string=version.version_string,
-            semantic_version=version.semantic_version,
             release_date=version.release_date,
             is_security_update=version.is_security_update,
-            release_notes_link=version.release_notes_link,
-            drupal_core_compatibility=version.drupal_core_compatibility,
+            release_notes=version.release_notes,
+            drupal_core_compatibility=compatibility_list,
             is_active=version.is_active,
             is_deleted=version.is_deleted,
             created_at=version.created_at,
@@ -112,15 +116,19 @@ async def get_latest_module_version(
             detail="No versions found for this module",
         )
 
+    # Convert database string to list for API response
+    compatibility_list = []
+    if version.drupal_core_compatibility:
+        compatibility_list = version.drupal_core_compatibility.split(",")
+    
     return ModuleVersionResponse(
         id=version.id,
         module_id=version.module_id,
         version_string=version.version_string,
-        semantic_version=version.semantic_version,
         release_date=version.release_date,
         is_security_update=version.is_security_update,
-        release_notes_link=version.release_notes_link,
-        drupal_core_compatibility=version.drupal_core_compatibility,
+        release_notes=version.release_notes,
+        drupal_core_compatibility=compatibility_list,
         is_active=version.is_active,
         is_deleted=version.is_deleted,
         created_at=version.created_at,

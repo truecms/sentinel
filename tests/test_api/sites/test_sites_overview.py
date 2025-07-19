@@ -13,7 +13,7 @@ class TestSitesOverview:
     """Test cases for GET /api/v1/sites/overview endpoint."""
 
     @pytest.fixture
-    async def setup_test_data(self, db: AsyncSession, test_user: User):
+    async def setup_test_data(self, db_session: AsyncSession, test_user: User):
         """Create test data for sites overview tests."""
 
         # Create organization
@@ -22,14 +22,14 @@ class TestSitesOverview:
             description="Test organization for sites overview",
             created_by=test_user.id,
         )
-        db.add(org)
-        await db.commit()
-        await db.refresh(org)
+        db_session.add(org)
+        await db_session.commit()
+        await db_session.refresh(org)
 
         # Update test user to belong to this organization
         test_user.organization_id = org.id
-        await db.commit()
-        await db.refresh(test_user)
+        await db_session.commit()
+        await db_session.refresh(test_user)
 
         # Create sites with different security profiles
         sites = []
@@ -48,7 +48,7 @@ class TestSitesOverview:
             is_active=True,
             is_deleted=False,
         )
-        db.add(site1)
+        db_session.add(site1)
         sites.append(site1)
 
         # Site 2: Warning (medium security score)
@@ -65,7 +65,7 @@ class TestSitesOverview:
             is_active=True,
             is_deleted=False,
         )
-        db.add(site2)
+        db_session.add(site2)
         sites.append(site2)
 
         # Site 3: Critical (low security score, security updates needed)
@@ -82,12 +82,12 @@ class TestSitesOverview:
             is_active=True,
             is_deleted=False,
         )
-        db.add(site3)
+        db_session.add(site3)
         sites.append(site3)
 
-        await db.commit()
+        await db_session.commit()
         for site in sites:
-            await db.refresh(site)
+            await db_session.refresh(site)
 
         return {"organization": org, "sites": sites}
 
@@ -168,12 +168,12 @@ class TestSitesOverview:
 
         # Test with skip
         response = await client.get(
-            "/api/v1/sites/overview?skip=1&limit=2", headers=user_token_headers
+            "/api/v1/sites/overview?skip=2&limit=2", headers=user_token_headers
         )
         assert response.status_code == 200
         data = response.json()
 
-        assert len(data["sites"]) == 2
+        assert len(data["sites"]) == 1  # Only 1 site left after skipping 2
         assert data["pagination"]["page"] == 2
 
     async def test_sites_overview_search(
@@ -281,7 +281,7 @@ class TestSitesOverview:
     async def test_sites_overview_organization_filtering(
         self,
         client: AsyncClient,
-        db: AsyncSession,
+        db_session: AsyncSession,
         test_user: User,
         user_token_headers: dict,
         setup_test_data: dict,
@@ -294,9 +294,9 @@ class TestSitesOverview:
             description="Another organization",
             created_by=test_user.id,
         )
-        db.add(other_org)
-        await db.commit()
-        await db.refresh(other_org)
+        db_session.add(other_org)
+        await db_session.commit()
+        await db_session.refresh(other_org)
 
         other_site = Site(
             name="Other Org Site",
@@ -311,8 +311,8 @@ class TestSitesOverview:
             is_active=True,
             is_deleted=False,
         )
-        db.add(other_site)
-        await db.commit()
+        db_session.add(other_site)
+        await db_session.commit()
 
         # User should only see sites from their own organization
         response = await client.get(

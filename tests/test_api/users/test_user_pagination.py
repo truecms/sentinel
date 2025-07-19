@@ -89,7 +89,7 @@ async def test_get_users_filter_role(
     """Test filtering users by role."""
     # Create users with different roles
     admin_user = User(
-        email="admin@example.com",
+        email="admin_role_test@example.com",
         hashed_password=get_password_hash("testpass123"),
         is_active=True,
         role="admin",

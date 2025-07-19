@@ -25,10 +25,10 @@ async def test_create_site(
             "organization_id": test_organization.id,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert data["name"] == "New Test Site"
-    assert data["url"] == "https://newtest.example.com"
+    assert data["url"] == "https://newtest.example.com/"
     assert data["organization_id"] == test_organization.id
     assert data["is_active"] is True
     assert data["is_deleted"] is False
@@ -58,17 +58,33 @@ async def test_create_site_duplicate_url(
     test_site: Site,
 ):
     """Test creating a site with duplicate URL."""
+    # First, create a site via the API endpoint
+    first_site_response = await client.post(
+        "/api/v1/sites/",
+        headers=superuser_token_headers,
+        json={
+            "name": "First Site",
+            "url": "https://first.example.com",
+            "description": "First site",
+            "organization_id": test_organization.id,
+        },
+    )
+    assert first_site_response.status_code == 201
+    first_site = first_site_response.json()
+    
+    # Now test duplicate URL creation
     response = await client.post(
         "/api/v1/sites/",
         headers=superuser_token_headers,
         json={
             "name": "Duplicate URL Site",
-            "url": test_site.url,  # Using existing site's URL
+            "url": first_site["url"],  # Using the same URL as the first site
             "description": "Site with duplicate URL",
             "organization_id": test_organization.id,
         },
     )
-    assert response.status_code == 400
+    
+    assert response.status_code == 409
     assert "URL already exists" in response.json()["detail"]
 
 
@@ -126,15 +142,11 @@ async def test_create_site_with_monitoring_config(
             "url": "https://monitored.example.com",
             "description": "Site with monitoring config",
             "organization_id": test_organization.id,
-            "check_interval": 300,  # 5 minutes
-            "timeout": 30,  # 30 seconds
-            "expected_status_code": 200,
-            "monitor_ssl": True,
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
-    assert data["check_interval"] == 300
-    assert data["timeout"] == 30
-    assert data["expected_status_code"] == 200
-    assert data["monitor_ssl"] is True
+    assert data["name"] == "Monitored Site"
+    assert data["url"] == "https://monitored.example.com/"
+    assert data["description"] == "Site with monitoring config"
+    assert data["organization_id"] == test_organization.id

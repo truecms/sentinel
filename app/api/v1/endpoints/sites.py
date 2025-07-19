@@ -1,6 +1,6 @@
 import json
 from math import ceil
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from fastapi import (
     APIRouter,
@@ -41,11 +41,25 @@ router = APIRouter()
 async def read_sites(
     skip: int = 0,
     limit: int = 100,
+    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    organization_id: Optional[int] = Query(None, description="Filter by organization ID"),
+    search: Optional[str] = Query(None, description="Search by site name or URL"),
+    sort: Optional[str] = Query(None, description="Sort by field (e.g., 'name', '-name' for desc)"),
     db: AsyncSession = Depends(deps.get_db),
     current_user: schemas.UserResponse = Depends(deps.get_current_user),
 ):
-    """Retrieve sites."""
-    sites = await crud_site.get_sites(db, skip=skip, limit=limit)
+    """Retrieve sites with optional filtering and sorting."""
+    # Use the filtered version for all requests to maintain consistency
+    sites = await crud_site.get_sites_filtered(
+        db=db, 
+        skip=skip, 
+        limit=limit,
+        is_active=is_active,
+        organization_id=organization_id,
+        search=search,
+        sort=sort,
+        current_user=current_user
+    )
     return sites
 
 
@@ -59,6 +73,21 @@ async def create_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user),
 ):
     """Create new site."""
+    # Check permissions: Only admins and superusers can create sites
+    if current_user.role not in ["admin", "superuser"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    
+    # Check if organization exists
+    from app.crud import crud_organization
+    organization = await crud_organization.get_organization(db, site_in.organization_id)
+    if not organization:
+        raise HTTPException(
+            status_code=404, detail="Organization not found"
+        )
+    
     site = await crud_site.get_site_by_url(db, url=site_in.url)
     if site:
         raise HTTPException(
@@ -174,12 +203,24 @@ async def update_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user),
 ):
     """Update a site."""
+    # Check permissions: Only admins and superusers can update sites
+    if current_user.role not in ["admin", "superuser"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    
     site = await crud_site.get_site(db, site_id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
-    site = await crud_site.update_site(
-        db=db, site_id=site_id, site=site_in, updated_by=current_user.id
-    )
+    
+    try:
+        site = await crud_site.update_site(
+            db=db, site_id=site_id, site=site_in, updated_by=current_user.id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
     return site
 
 
@@ -191,10 +232,21 @@ async def delete_site(
     current_user: schemas.UserResponse = Depends(deps.get_current_user),
 ):
     """Delete a site."""
-    site = await crud_site.get_site(db, site_id=site_id)
+    site = await crud_site.get_site_include_deleted(db, site_id=site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
+    
+    # Check organization access (non-superusers can only access their org's sites)
+    if (
+        not current_user.is_superuser
+        and current_user.organization_id != site.organization_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+    
     await crud_site.delete_site(db=db, site_id=site_id, updated_by=current_user.id)
+    return None
 
 
 # Site Module Endpoints
@@ -258,12 +310,12 @@ async def get_site_modules(
             id=site_module.current_version.id,
             module_id=site_module.current_version.module_id,
             version_string=site_module.current_version.version_string,
-            semantic_version=site_module.current_version.semantic_version,
             release_date=site_module.current_version.release_date,
             is_security_update=site_module.current_version.is_security_update,
-            release_notes_link=site_module.current_version.release_notes_link,
+            release_notes=site_module.current_version.release_notes,
             drupal_core_compatibility=(
-                site_module.current_version.drupal_core_compatibility
+                site_module.current_version.drupal_core_compatibility.split(",") 
+                if site_module.current_version.drupal_core_compatibility else []
             ),
             is_active=site_module.current_version.is_active,
             is_deleted=site_module.current_version.is_deleted,
@@ -282,12 +334,12 @@ async def get_site_modules(
                 id=site_module.latest_version.id,
                 module_id=site_module.latest_version.module_id,
                 version_string=site_module.latest_version.version_string,
-                semantic_version=site_module.latest_version.semantic_version,
                 release_date=site_module.latest_version.release_date,
                 is_security_update=site_module.latest_version.is_security_update,
-                release_notes_link=site_module.latest_version.release_notes_link,
+                release_notes=site_module.latest_version.release_notes,
                 drupal_core_compatibility=(
-                    site_module.latest_version.drupal_core_compatibility
+                    site_module.latest_version.drupal_core_compatibility.split(",") 
+                    if site_module.latest_version.drupal_core_compatibility else []
                 ),
                 is_active=site_module.latest_version.is_active,
                 is_deleted=site_module.latest_version.is_deleted,
@@ -333,7 +385,147 @@ async def get_site_modules(
     )
 
 
-@router.post("/{site_id}/modules")
+@router.post("/{site_id}/modules", response_model=SiteModuleResponse, status_code=status.HTTP_201_CREATED)
+async def create_site_module(
+    site_id: int,
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    site_module_data: SiteModuleCreate,
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """
+    Create a new site-module association.
+    
+    Creates a relationship between a site and a module with a specific version.
+    """
+    # Check if site exists and user has access
+    site = await crud_site.get_site(db, site_id)
+    if not site:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Site not found"
+        )
+
+    # Check organization access
+    if (
+        not current_user.is_superuser
+        and current_user.organization_id != site.organization_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+
+    # Validate that site_id in URL matches site_id in payload
+    if site_module_data.site_id != site_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Site ID in URL must match site ID in payload"
+        )
+
+    # Check if module exists
+    module = await crud_module.get_module(db, site_module_data.module_id)
+    if not module:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
+        )
+
+    # Check if version exists and belongs to the module
+    version = await crud_module_version.get_module_version(
+        db, site_module_data.current_version_id
+    )
+    if not version or version.module_id != site_module_data.module_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid version for this module"
+        )
+
+    # Check if association already exists
+    existing_association = await crud_site_module.get_site_module_by_site_and_module(
+        db, site_id, site_module_data.module_id
+    )
+    if existing_association:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Site-module association already exists"
+        )
+
+    # Create the site-module association
+    db_site_module = await crud_site_module.create_site_module(
+        db, site_module_data, current_user.id
+    )
+
+    # Create current version response
+    current_version_response = ModuleVersionResponse(
+        id=db_site_module.current_version.id,
+        module_id=db_site_module.current_version.module_id,
+        version_string=db_site_module.current_version.version_string,
+        release_date=db_site_module.current_version.release_date,
+        is_security_update=db_site_module.current_version.is_security_update,
+        release_notes=db_site_module.current_version.release_notes,
+        drupal_core_compatibility=(
+            db_site_module.current_version.drupal_core_compatibility.split(",") 
+            if db_site_module.current_version.drupal_core_compatibility else []
+        ),
+        is_active=db_site_module.current_version.is_active,
+        is_deleted=db_site_module.current_version.is_deleted,
+        created_at=db_site_module.current_version.created_at,
+        updated_at=db_site_module.current_version.updated_at,
+        created_by=db_site_module.current_version.created_by,
+        updated_by=db_site_module.current_version.updated_by,
+        module_name=db_site_module.module.display_name,
+        module_machine_name=db_site_module.module.machine_name,
+    )
+
+    # Create latest version response if exists
+    latest_version_response = None
+    if db_site_module.latest_version:
+        latest_version_response = ModuleVersionResponse(
+            id=db_site_module.latest_version.id,
+            module_id=db_site_module.latest_version.module_id,
+            version_string=db_site_module.latest_version.version_string,
+            release_date=db_site_module.latest_version.release_date,
+            is_security_update=db_site_module.latest_version.is_security_update,
+            release_notes=db_site_module.latest_version.release_notes,
+            drupal_core_compatibility=(
+                db_site_module.latest_version.drupal_core_compatibility.split(",") 
+                if db_site_module.latest_version.drupal_core_compatibility else []
+            ),
+            is_active=db_site_module.latest_version.is_active,
+            is_deleted=db_site_module.latest_version.is_deleted,
+            created_at=db_site_module.latest_version.created_at,
+            updated_at=db_site_module.latest_version.updated_at,
+            created_by=db_site_module.latest_version.created_by,
+            updated_by=db_site_module.latest_version.updated_by,
+            module_name=db_site_module.module.display_name,
+            module_machine_name=db_site_module.module.machine_name,
+        )
+
+    return SiteModuleResponse(
+        id=db_site_module.id,
+        site_id=db_site_module.site_id,
+        module_id=db_site_module.module_id,
+        current_version_id=db_site_module.current_version_id,
+        enabled=db_site_module.enabled,
+        update_available=db_site_module.update_available,
+        security_update_available=db_site_module.security_update_available,
+        latest_version_id=db_site_module.latest_version_id,
+        first_seen=db_site_module.first_seen,
+        last_seen=db_site_module.last_seen,
+        last_updated=db_site_module.last_updated,
+        is_active=db_site_module.is_active,
+        is_deleted=db_site_module.is_deleted,
+        created_at=db_site_module.created_at,
+        updated_at=db_site_module.updated_at,
+        created_by=db_site_module.created_by,
+        updated_by=db_site_module.updated_by,
+        module=db_site_module.module,
+        current_version=current_version_response,
+        latest_version=latest_version_response,
+        site_name=db_site_module.site.name,
+        site_url=db_site_module.site.url,
+    )
+
+
+@router.post("/{site_id}/modules/sync")
 async def sync_site_modules(
     site_id: int,
     *,
@@ -644,12 +836,12 @@ async def update_site_module(
         id=db_site_module.current_version.id,
         module_id=db_site_module.current_version.module_id,
         version_string=db_site_module.current_version.version_string,
-        semantic_version=db_site_module.current_version.semantic_version,
         release_date=db_site_module.current_version.release_date,
         is_security_update=db_site_module.current_version.is_security_update,
-        release_notes_link=db_site_module.current_version.release_notes_link,
+        release_notes=db_site_module.current_version.release_notes,
         drupal_core_compatibility=(
-            db_site_module.current_version.drupal_core_compatibility
+            db_site_module.current_version.drupal_core_compatibility.split(",") 
+            if db_site_module.current_version.drupal_core_compatibility else []
         ),
         is_active=db_site_module.current_version.is_active,
         is_deleted=db_site_module.current_version.is_deleted,
@@ -668,12 +860,12 @@ async def update_site_module(
             id=db_site_module.latest_version.id,
             module_id=db_site_module.latest_version.module_id,
             version_string=db_site_module.latest_version.version_string,
-            semantic_version=db_site_module.latest_version.semantic_version,
             release_date=db_site_module.latest_version.release_date,
             is_security_update=db_site_module.latest_version.is_security_update,
-            release_notes_link=db_site_module.latest_version.release_notes_link,
+            release_notes=db_site_module.latest_version.release_notes,
             drupal_core_compatibility=(
-                db_site_module.latest_version.drupal_core_compatibility
+                db_site_module.latest_version.drupal_core_compatibility.split(",") 
+                if db_site_module.latest_version.drupal_core_compatibility else []
             ),
             is_active=db_site_module.latest_version.is_active,
             is_deleted=db_site_module.latest_version.is_deleted,

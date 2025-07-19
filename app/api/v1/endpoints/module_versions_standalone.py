@@ -51,16 +51,20 @@ async def create_module_version(
         db, version, current_user.id
     )
 
+    # Convert database string to list for API response
+    compatibility_list = []
+    if db_version.drupal_core_compatibility:
+        compatibility_list = db_version.drupal_core_compatibility.split(",")
+    
     # Ensure we're within the session context when accessing attributes
     response_data = {
         "id": db_version.id,
         "module_id": db_version.module_id,
         "version_string": db_version.version_string,
-        "semantic_version": db_version.semantic_version,
         "release_date": db_version.release_date,
         "is_security_update": db_version.is_security_update,
-        "release_notes_link": db_version.release_notes_link,
-        "drupal_core_compatibility": db_version.drupal_core_compatibility,
+        "release_notes": db_version.release_notes,
+        "drupal_core_compatibility": compatibility_list,
         "is_active": db_version.is_active,
         "is_deleted": db_version.is_deleted,
         "created_at": db_version.created_at,
@@ -96,16 +100,20 @@ async def get_module_version(
             status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
         )
 
+    # Convert database string to list for API response
+    compatibility_list = []
+    if version.drupal_core_compatibility:
+        compatibility_list = version.drupal_core_compatibility.split(",")
+
     # Ensure we're within the session context when accessing attributes
     response_data = {
         "id": version.id,
         "module_id": version.module_id,
         "version_string": version.version_string,
-        "semantic_version": version.semantic_version,
         "release_date": version.release_date,
         "is_security_update": version.is_security_update,
-        "release_notes_link": version.release_notes_link,
-        "drupal_core_compatibility": version.drupal_core_compatibility,
+        "release_notes": version.release_notes,
+        "drupal_core_compatibility": compatibility_list,
         "is_active": version.is_active,
         "is_deleted": version.is_deleted,
         "created_at": version.created_at,
@@ -150,16 +158,20 @@ async def update_module_version(
             status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
         )
 
+    # Convert database string to list for API response
+    compatibility_list = []
+    if version.drupal_core_compatibility:
+        compatibility_list = version.drupal_core_compatibility.split(",")
+
     # Ensure we're within the session context when accessing attributes
     response_data = {
         "id": version.id,
         "module_id": version.module_id,
         "version_string": version.version_string,
-        "semantic_version": version.semantic_version,
         "release_date": version.release_date,
         "is_security_update": version.is_security_update,
-        "release_notes_link": version.release_notes_link,
-        "drupal_core_compatibility": version.drupal_core_compatibility,
+        "release_notes": version.release_notes,
+        "drupal_core_compatibility": compatibility_list,
         "is_active": version.is_active,
         "is_deleted": version.is_deleted,
         "created_at": version.created_at,
@@ -203,16 +215,20 @@ async def delete_module_version(
             status_code=status.HTTP_404_NOT_FOUND, detail="Module not found"
         )
 
+    # Convert database string to list for API response
+    compatibility_list = []
+    if version.drupal_core_compatibility:
+        compatibility_list = version.drupal_core_compatibility.split(",")
+
     # Ensure we're within the session context when accessing attributes
     response_data = {
         "id": version.id,
         "module_id": version.module_id,
         "version_string": version.version_string,
-        "semantic_version": version.semantic_version,
         "release_date": version.release_date,
         "is_security_update": version.is_security_update,
-        "release_notes_link": version.release_notes_link,
-        "drupal_core_compatibility": version.drupal_core_compatibility,
+        "release_notes": version.release_notes,
+        "drupal_core_compatibility": compatibility_list,
         "is_active": version.is_active,
         "is_deleted": version.is_deleted,
         "created_at": version.created_at,

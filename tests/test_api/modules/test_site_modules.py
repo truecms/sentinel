@@ -232,7 +232,7 @@ class TestSiteModuleCreate:
             headers=org_user_token_headers,
         )
         assert response.status_code == 400
-        assert "already associated" in response.json()["detail"]
+        assert "already exists" in response.json()["detail"]
 
     async def test_add_site_module_invalid_version(
         self,
@@ -572,7 +572,7 @@ class TestModuleSiteModules:
         """Test successful module site-modules list retrieval."""
         response = await client.get(
             f"/api/v1/modules/{org_test_module.id}/site-modules",
-            _=org_user_token_headers,
+            headers=org_user_token_headers,
         )
         assert response.status_code == 200
 

@@ -125,7 +125,7 @@ async def test_list_organizations_pagination(
     response = await client.get(
         "/api/v1/organizations/",
         headers=superuser_token_headers,
-        _={"skip": 10, "limit": 10},
+        params={"skip": 10, "limit": 10},
     )
     assert response.status_code == 200
     data = response.json()

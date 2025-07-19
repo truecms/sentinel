@@ -16,7 +16,7 @@ async def get_module_version(
     """Get module version by ID."""
     result = await db.execute(
         select(ModuleVersion).filter(
-            ModuleVersion.id == version_id, not ModuleVersion.is_deleted
+            ModuleVersion.id == version_id, ~ModuleVersion.is_deleted
         )
     )
     return result.scalar_one_or_none()
@@ -29,7 +29,7 @@ async def get_module_version_with_module(
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
-        .filter(ModuleVersion.id == version_id, not ModuleVersion.is_deleted)
+        .filter(ModuleVersion.id == version_id, ~ModuleVersion.is_deleted)
     )
     return result.unique().scalar_one_or_none()
 
@@ -46,11 +46,11 @@ async def get_module_versions(
 
     # Base query and count query
     query = select(ModuleVersion).filter(
-        ModuleVersion.module_id == module_id, not ModuleVersion.is_deleted
+        ModuleVersion.module_id == module_id, ~ModuleVersion.is_deleted
     )
 
     count_query = select(func.count(ModuleVersion.id)).filter(
-        ModuleVersion.module_id == module_id, not ModuleVersion.is_deleted
+        ModuleVersion.module_id == module_id, ~ModuleVersion.is_deleted
     )
 
     # Apply security filter
@@ -60,12 +60,10 @@ async def get_module_versions(
 
     # Apply Drupal core compatibility filter
     if drupal_core:
-        # Use PostgreSQL's JSONB ? operator for JSON array containment
-        from sqlalchemy import text
-
-        json_filter = text(f"drupal_core_compatibility::jsonb ? '{drupal_core}'")
-        query = query.filter(json_filter)
-        count_query = count_query.filter(json_filter)
+        # Use string matching since drupal_core_compatibility is stored as comma-separated string
+        compatibility_filter = ModuleVersion.drupal_core_compatibility.like(f"%{drupal_core}%")
+        query = query.filter(compatibility_filter)
+        count_query = count_query.filter(compatibility_filter)
 
     # Order by release date descending (newest first)
     query = query.order_by(desc(ModuleVersion.release_date)).offset(skip).limit(limit)
@@ -86,7 +84,7 @@ async def get_latest_version(
     """Get the latest version for a module."""
     result = await db.execute(
         select(ModuleVersion)
-        .filter(ModuleVersion.module_id == module_id, not ModuleVersion.is_deleted)
+        .filter(ModuleVersion.module_id == module_id, ~ModuleVersion.is_deleted)
         .order_by(desc(ModuleVersion.release_date))
         .limit(1)
     )
@@ -102,7 +100,7 @@ async def get_latest_security_version(
         .filter(
             ModuleVersion.module_id == module_id,
             ModuleVersion.is_security_update,
-            not ModuleVersion.is_deleted,
+            ~ModuleVersion.is_deleted,
         )
         .order_by(desc(ModuleVersion.release_date))
         .limit(1)
@@ -118,7 +116,7 @@ async def get_version_by_module_and_string(
         select(ModuleVersion).filter(
             ModuleVersion.module_id == module_id,
             ModuleVersion.version_string == version_string,
-            not ModuleVersion.is_deleted,
+            ~ModuleVersion.is_deleted,
         )
     )
     return result.scalar_one_or_none()
@@ -128,19 +126,23 @@ async def create_module_version(
     db: AsyncSession, version: ModuleVersionCreate, created_by: int
 ) -> ModuleVersion:
     """Create a new module version."""
+    # Convert list to comma-separated string for database storage
+    compatibility_str = None
+    if version.drupal_core_compatibility:
+        compatibility_str = ",".join(version.drupal_core_compatibility)
+    
     db_version = ModuleVersion(
         module_id=version.module_id,
         version_string=version.version_string,
         release_date=version.release_date,
         is_security_update=version.is_security_update,
         release_notes=version.release_notes,
-        drupal_core_compatibility=version.drupal_core_compatibility,
+        drupal_core_compatibility=compatibility_str,
         created_by=created_by,
         updated_by=created_by,
     )
     db.add(db_version)
-    await db.commit()
-    await db.refresh(db_version)
+    await db.flush()  # Flush to get the ID, but don't commit
     return db_version
 
 
@@ -157,11 +159,13 @@ async def update_module_version(
 
     update_data = version_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
+        if field == "drupal_core_compatibility" and isinstance(value, list):
+            # Convert list to comma-separated string for database storage
+            value = ",".join(value) if value else None
         setattr(db_version, field, value)
 
     db_version.updated_by = updated_by
-    await db.commit()
-    await db.refresh(db_version)
+    await db.flush()  # Flush changes, but don't commit
     return db_version
 
 
@@ -175,8 +179,7 @@ async def delete_module_version(
 
     db_version.is_deleted = True
     db_version.updated_by = updated_by
-    await db.commit()
-    await db.refresh(db_version)
+    await db.flush()  # Flush changes, but don't commit
     return db_version
 
 
@@ -187,7 +190,7 @@ async def get_security_versions(
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
-        .filter(ModuleVersion.is_security_update, not ModuleVersion.is_deleted)
+        .filter(ModuleVersion.is_security_update, ~ModuleVersion.is_deleted)
         .order_by(desc(ModuleVersion.release_date))
         .offset(skip)
         .limit(limit)
@@ -199,19 +202,15 @@ async def get_versions_by_drupal_core(
     db: AsyncSession, drupal_core: str, skip: int = 0, limit: int = 100
 ) -> List[ModuleVersion]:
     """Get versions compatible with specific Drupal core version."""
-    from sqlalchemy import text
-
-    # Use raw SQL with PostgreSQL JSON operators for more reliable querying
-    # This approach handles JSON arrays of any length
+    # Use string matching since drupal_core_compatibility is stored as comma-separated string
     result = await db.execute(
         select(ModuleVersion)
         .options(joinedload(ModuleVersion.module))
         .filter(
             and_(
-                # Check if the JSON array contains the drupal_core version
-                # Using PostgreSQL's ? operator which works with JSON type
-                text(f"drupal_core_compatibility::jsonb ? '{drupal_core}'"),
-                not ModuleVersion.is_deleted,
+                # Check if the string contains the drupal_core version
+                ModuleVersion.drupal_core_compatibility.like(f"%{drupal_core}%"),
+                ~ModuleVersion.is_deleted,
             )
         )
         .order_by(desc(ModuleVersion.release_date))
@@ -229,10 +228,12 @@ async def check_version_exists(
         select(ModuleVersion.id).filter(
             ModuleVersion.module_id == module_id,
             ModuleVersion.version_string == version_string,
-            not ModuleVersion.is_deleted,
+            ~ModuleVersion.is_deleted,
         )
     )
-    return result.scalar_one_or_none() is not None
+    found = result.scalar_one_or_none() is not None
+    print(f"DEBUG: check_version_exists for module_id={module_id}, version_string={version_string} -> {found}")
+    return found
 
 
 async def get_latest_version_using_comparator(
@@ -252,7 +253,7 @@ async def get_latest_version_using_comparator(
     # Get all versions for the module
     result = await db.execute(
         select(ModuleVersion).filter(
-            ModuleVersion.module_id == module_id, not ModuleVersion.is_deleted
+            ModuleVersion.module_id == module_id, ~ModuleVersion.is_deleted
         )
     )
     versions = result.scalars().all()
@@ -326,7 +327,7 @@ async def get_versions_for_comparison(
     # Get all versions
     result = await db.execute(
         select(ModuleVersion).filter(
-            ModuleVersion.module_id == module_id, not ModuleVersion.is_deleted
+            ModuleVersion.module_id == module_id, ~ModuleVersion.is_deleted
         )
     )
     all_versions = result.scalars().all()

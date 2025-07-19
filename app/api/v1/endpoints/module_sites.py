@@ -108,12 +108,12 @@ async def get_module_site_modules(
                 id=site_module.current_version.id,
                 module_id=site_module.current_version.module_id,
                 version_string=site_module.current_version.version_string,
-                semantic_version=site_module.current_version.semantic_version,
                 release_date=site_module.current_version.release_date,
                 is_security_update=site_module.current_version.is_security_update,
-                release_notes_link=site_module.current_version.release_notes_link,
+                release_notes=site_module.current_version.release_notes,
                 drupal_core_compatibility=(
-                    site_module.current_version.drupal_core_compatibility
+                    site_module.current_version.drupal_core_compatibility.split(",") 
+                    if site_module.current_version.drupal_core_compatibility else []
                 ),
                 is_active=site_module.current_version.is_active,
                 is_deleted=site_module.current_version.is_deleted,
@@ -132,12 +132,12 @@ async def get_module_site_modules(
                     id=site_module.latest_version.id,
                     module_id=site_module.latest_version.module_id,
                     version_string=site_module.latest_version.version_string,
-                    semantic_version=site_module.latest_version.semantic_version,
                     release_date=site_module.latest_version.release_date,
                     is_security_update=site_module.latest_version.is_security_update,
-                    release_notes_link=site_module.latest_version.release_notes_link,
+                    release_notes=site_module.latest_version.release_notes,
                     drupal_core_compatibility=(
-                        site_module.latest_version.drupal_core_compatibility
+                        site_module.latest_version.drupal_core_compatibility.split(",") 
+                        if site_module.latest_version.drupal_core_compatibility else []
                     ),
                     is_active=site_module.latest_version.is_active,
                     is_deleted=site_module.latest_version.is_deleted,

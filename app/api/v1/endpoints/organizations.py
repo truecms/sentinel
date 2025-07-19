@@ -42,7 +42,7 @@ async def read_organizations(
         query = query.where(Organization.is_active == is_active)
 
     # Always exclude soft-deleted organizations unless explicitly requested
-    query = query.where(not Organization.is_deleted)
+    query = query.where(~Organization.is_deleted)
 
     # For non-superusers, only show organizations they belong to
     if not current_user.is_superuser:
@@ -77,7 +77,7 @@ async def create_organization(
 
     # Check if organization exists
     query = select(Organization).where(
-        Organization.name == organization_in.name, not Organization.is_deleted
+        Organization.name == organization_in.name, ~Organization.is_deleted
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
@@ -148,7 +148,7 @@ async def read_organization(
         .where(
             Organization.id == organization_id,
             Organization.is_active,
-            not Organization.is_deleted,
+            ~Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -194,7 +194,7 @@ async def update_organization(
         .where(
             Organization.id == organization_id,
             Organization.is_active,
-            not Organization.is_deleted,
+            ~Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -277,7 +277,7 @@ async def delete_organization(
         .where(
             Organization.id == organization_id,
             Organization.is_active,
-            not Organization.is_deleted,
+            ~Organization.is_deleted,
         )
     )
     result = await db.execute(query)
@@ -330,7 +330,7 @@ async def read_organization_sites(
     query = select(Organization).where(
         Organization.id == organization_id,
         Organization.is_active,
-        not Organization.is_deleted,
+        ~Organization.is_deleted,
     )
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
@@ -355,7 +355,7 @@ async def read_organization_sites(
         .where(
             Site.organization_id == organization_id,
             Site.is_active,
-            not Site.is_deleted,
+            ~Site.is_deleted,
         )
         .offset(skip)
         .limit(limit)

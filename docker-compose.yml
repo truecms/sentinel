@@ -52,6 +52,7 @@ services:
       - PYTHONPATH=/app
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - TESTING=${TESTING:-True}
     depends_on:
       db:
         condition: service_healthy

@@ -22,7 +22,7 @@ ALLOWED_MODULE_SORT_FIELDS = [
 async def get_module(db: AsyncSession, module_id: int) -> Optional[Module]:
     """Get module by ID."""
     result = await db.execute(
-        select(Module).filter(Module.id == module_id, not Module.is_deleted)
+        select(Module).filter(Module.id == module_id, Module.is_deleted == False)
     )
     return result.scalar_one_or_none()
 
@@ -33,7 +33,7 @@ async def get_module_by_machine_name(
     """Get module by machine name."""
     result = await db.execute(
         select(Module).filter(
-            Module.machine_name == machine_name, not Module.is_deleted
+            Module.machine_name == machine_name, Module.is_deleted == False
         )
     )
     return result.scalar_one_or_none()
@@ -59,8 +59,8 @@ async def get_modules(
         )
 
     # Base query
-    query = select(Module).filter(not Module.is_deleted)
-    count_query = select(func.count(Module.id)).filter(not Module.is_deleted)
+    query = select(Module).filter(Module.is_deleted == False)
+    count_query = select(func.count(Module.id)).filter(Module.is_deleted == False)
 
     # Apply search filter
     if search:
@@ -122,7 +122,7 @@ async def get_module_with_details(
     include_sites: bool = False,
 ) -> Optional[Module]:
     """Get module with optional nested data."""
-    query = select(Module).filter(Module.id == module_id, not Module.is_deleted)
+    query = select(Module).filter(Module.id == module_id, Module.is_deleted == False)
 
     if include_versions:
         query = query.options(joinedload(Module.versions))
@@ -238,7 +238,7 @@ async def get_modules_with_security_updates(
 
     query = (
         select(Module)
-        .filter(Module.id.in_(security_modules_subquery), not Module.is_deleted)
+        .filter(Module.id.in_(security_modules_subquery), Module.is_deleted == False)
         .offset(skip)
         .limit(limit)
     )
@@ -258,7 +258,7 @@ async def search_modules(
                 Module.machine_name.ilike(f"%{search_term}%"),
                 Module.display_name.ilike(f"%{search_term}%"),
             ),
-            not Module.is_deleted,
+            Module.is_deleted == False,
         )
         .offset(skip)
         .limit(limit)
@@ -276,7 +276,7 @@ async def get_modules_by_machine_names(
         return []
 
     query = select(Module).filter(
-        Module.machine_name.in_(machine_names), not Module.is_deleted
+        Module.machine_name.in_(machine_names), Module.is_deleted == False
     )
 
     result = await db.execute(query)

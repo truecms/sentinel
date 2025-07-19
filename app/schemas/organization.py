@@ -41,7 +41,7 @@ class OrganizationInDBBase(OrganizationBase):
     updated_by: Optional[int] = None
 
     class Config:
-        _ = True
+        from_attributes = True
 
 
 # Additional properties to return via API
@@ -51,8 +51,7 @@ class OrganizationResponse(OrganizationInDBBase):
     # sites: List[SiteResponse] = []
 
     class Config:
-        _ = True
-        _ = True
+        from_attributes = True
 
 
 # Response model for delete operation

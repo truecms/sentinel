@@ -19,7 +19,7 @@ async def test_delete_site(
     response = await client.delete(
         f"/api/v1/sites/{test_site.id}", headers=superuser_token_headers
     )
-    assert response.status_code == 200
+    assert response.status_code == 204
 
     # Verify site is deleted
     response = await client.get(
@@ -56,7 +56,7 @@ async def test_delete_monitored_site(
     response = await client.delete(
         f"/api/v1/sites/{test_monitored_site.id}", headers=superuser_token_headers
     )
-    assert response.status_code == 200
+    assert response.status_code == 204
 
     # Verify site and its monitoring data are deleted
     response = await client.get(
@@ -72,7 +72,7 @@ async def test_delete_inactive_site(
     response = await client.delete(
         f"/api/v1/sites/{test_inactive_site.id}", headers=superuser_token_headers
     )
-    assert response.status_code == 200
+    assert response.status_code == 204
 
     # Verify site is deleted
     response = await client.get(
@@ -109,7 +109,7 @@ async def test_delete_multiple_sites(
         response = await client.delete(
             f"/api/v1/sites/{site_id}", headers=superuser_token_headers
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     # Verify all sites are deleted
     for site_id in site_ids:
@@ -141,7 +141,7 @@ async def test_delete_multiple_sites(
 #     response = await client.delete(
 #         f"/api/v1/sites/{test_monitored_site.id}", headers=superuser_token_headers
 #     )
-#     assert response.status_code == 200
+#     assert response.status_code == 204
 #
 #     # Verify monitoring data is also deleted
 #     monitoring_data = await db_session.execute(

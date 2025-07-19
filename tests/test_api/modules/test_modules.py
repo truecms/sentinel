@@ -195,7 +195,6 @@ class TestModuleCreate:
             "display_name": "New Test Module",
             "drupal_org_link": "https://drupal.org/project/new_test_module",
             "module_type": "contrib",
-            "description": "A new test module",
         }
 
         response = await client.post(
@@ -207,7 +206,6 @@ class TestModuleCreate:
         assert data["machine_name"] == module_data["machine_name"]
         assert data["display_name"] == module_data["display_name"]
         assert data["module_type"] == module_data["module_type"]
-        assert data["description"] == module_data["description"]
         assert data["versions_count"] == 0
         assert data["sites_count"] == 0
 
@@ -363,7 +361,6 @@ class TestModuleUpdate:
         """Test successful module update."""
         update_data = {
             "display_name": "Updated Test Module",
-            "description": "Updated description",
         }
 
         # Get module ID from response since we can't access test_module.id
@@ -390,7 +387,6 @@ class TestModuleUpdate:
 
         data = response.json()
         assert data["display_name"] == update_data["display_name"]
-        assert data["description"] == update_data["description"]
         assert (
             data["machine_name"] == "test_module"
         )  # Unchanged, known value from fixture
@@ -526,7 +522,6 @@ class TestModuleBulkOperations:
             {
                 "machine_name": test_module.machine_name,
                 "display_name": "Updated via Bulk",
-                "description": "Updated description",
             }
         ]
 

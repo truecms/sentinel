@@ -25,10 +25,23 @@ async def read_users(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    is_active: bool | None = None,
+    role: str | None = None,
+    search: str | None = None,
     current_user: UserResponse = Depends(deps.get_current_user),
 ) -> Any:
     """Retrieve users."""
-    query = select(User).offset(skip).limit(limit)
+    query = select(User)
+    
+    # Apply filters
+    if is_active is not None:
+        query = query.where(User.is_active == is_active)
+    if role is not None:
+        query = query.where(User.role == role)
+    if search is not None:
+        query = query.where(User.email.ilike(f"%{search}%"))
+    
+    query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     users = result.scalars().all()
     return users
@@ -266,6 +279,13 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
+        )
+
+    # Prevent deletion of superusers
+    if user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete superuser",
         )
 
     # Delete user-organization associations first

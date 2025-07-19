@@ -129,43 +129,61 @@ async def db_session(test_engine) -> AsyncSession:
         superuser_id = superuser.id if superuser else None
 
         # Delete all data from tables in correct order to handle foreign keys
+        # First, remove all associations
         await session.execute(text("DELETE FROM user_organizations"))
-        await session.execute(
-            text("DELETE FROM site_modules")
-        )  # Delete site-module associations first
+        await session.execute(text("DELETE FROM site_modules"))
+        
+        # Clear foreign key references in dependent tables
+        await session.execute(text("UPDATE sites SET created_by = NULL, updated_by = NULL"))
+        await session.execute(text("UPDATE modules SET created_by = NULL, updated_by = NULL"))
+        await session.execute(text("UPDATE module_versions SET created_by = NULL, updated_by = NULL"))
+        await session.execute(text("UPDATE organizations SET created_by = NULL, updated_by = NULL"))
+        await session.commit()  # Commit the updates before deletes
+        
+        # Delete in reverse dependency order
         await session.execute(text("DELETE FROM sites"))
-        await session.execute(
-            text("DELETE FROM module_versions")
-        )  # Delete versions before modules
-        await session.execute(text("DELETE FROM modules"))  # Delete modules
-        # First set created_by and updated_by to NULL in organizations
-        await session.execute(
-            text("UPDATE organizations SET created_by = NULL, updated_by = NULL")
-        )
+        await session.execute(text("DELETE FROM module_versions"))
+        await session.execute(text("DELETE FROM modules"))
+        await session.commit()  # Commit the deletes before user operations
+        
+        # Clear user-organization references before deleting
+        await session.execute(text("UPDATE users SET organization_id = NULL"))
+        
         # Delete all users except superuser
         if superuser_id:
             await session.execute(text(f"DELETE FROM users WHERE id != {superuser_id}"))
         else:
             await session.execute(text("DELETE FROM users"))
+            
+        # Finally delete organizations
         await session.execute(text("DELETE FROM organizations"))
         await session.commit()
 
         try:
             yield session
         finally:
-            await session.rollback()
+            # Don't rollback here as it would undo committed fixture data
             await session.close()
 
 
 @pytest.fixture(scope="function")
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """Create a test client with a clean database session."""
+async def client(test_engine) -> AsyncGenerator[AsyncClient, None]:
+    """Create a test client with proper session management."""
 
     async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
-        try:
-            yield db_session
-        finally:
-            await db_session.rollback()
+        # Create a new session for each API request
+        async_session = sessionmaker(
+            test_engine, class_=AsyncSession, expire_on_commit=False
+        )
+        async with async_session() as session:
+            try:
+                yield session
+                await session.commit()  # Commit the transaction if no exceptions occurred
+            except Exception:
+                await session.rollback()  # Rollback in case of exceptions
+                raise
+            finally:
+                await session.close()
 
     # Import the main app with all middleware
     from app.main import app as main_app
@@ -202,6 +220,14 @@ async def test_user(request, db_session: AsyncSession) -> User:
 @pytest_asyncio.fixture
 async def test_superuser(db_session: AsyncSession) -> User:
     """Create a test superuser."""
+    # Check if superuser already exists
+    query = select(User).where(User.email == "test_super_user@example.com")
+    result = await db_session.execute(query)
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
+        return existing_user
+    
     user = User(
         email="test_super_user@example.com",
         hashed_password=get_password_hash("admin123"),
@@ -218,7 +244,13 @@ async def test_superuser(db_session: AsyncSession) -> User:
 @pytest_asyncio.fixture
 async def test_organization(db_session: AsyncSession, test_user: User) -> Organization:
     """Create a test organization."""
-    org = Organization(name="Test Organization", created_by=test_user.id)
+    org = Organization(
+        name="Test Organization", 
+        created_by=test_user.id,
+        updated_by=test_user.id,
+        is_active=True,
+        is_deleted=False,
+    )
     db_session.add(org)
     await db_session.commit()
     await db_session.refresh(org)
@@ -242,6 +274,7 @@ async def test_site(
         is_deleted=False,
     )
     db_session.add(site)
+    await db_session.flush()  # Ensure the site is written to the database
     await db_session.commit()
     await db_session.refresh(site)
     return site
