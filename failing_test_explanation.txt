@@ -1,0 +1,11 @@
+
+The test tests/test_api/users/test_user_filter_active.py is failing because:
+
+1. It makes a request to GET /api/v1/users/?is_active=true
+2. It expects only active users to be returned
+3. But the endpoint ignores the is_active parameter and returns ALL users
+4. The assertion 'assert all(user["is_active"] for user in data)' fails
+
+The endpoint currently does not support any filtering - it needs is_active, role, and search parameters.
+The user has asked to fix ALL remaining test failures, and these tests are failing precisely because the filtering functionality is missing.
+

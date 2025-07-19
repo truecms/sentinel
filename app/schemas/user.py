@@ -1,6 +1,8 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
+
 
 # Shared properties
 class UserBase(BaseModel):
@@ -11,6 +13,7 @@ class UserBase(BaseModel):
     organization_id: Optional[int] = None
     role: Optional[str] = None
 
+
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     email: EmailStr
@@ -18,9 +21,11 @@ class UserCreate(UserBase):
     organization_id: int
     role: str
 
+
 # Properties to receive via API on update
 class UserUpdate(UserBase):
     password: Optional[str] = None
+
 
 # Properties shared by models stored in DB
 class UserInDBBase(UserBase):
@@ -35,9 +40,11 @@ class UserInDBBase(UserBase):
     class Config:
         from_attributes = True
 
+
 # Additional properties to return via API
 class UserResponse(UserInDBBase):
     pass
+
 
 # Additional properties stored in DB
 class UserInDB(UserInDBBase):

@@ -1,6 +1,8 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator, HttpUrl
+from typing import Any, List, Optional, Union
+
+from pydantic import AnyHttpUrl, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
@@ -9,11 +11,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     VERSION: str = "1.0.0"
-    
+
     # CORS Configuration
     BACKEND_CORS_ORIGINS: Union[List[AnyHttpUrl], List[str]] = ["*"]
 
-    @field_validator("BACKEND_CORS_ORIGINS", mode='before')
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str):
             if v == "*":
@@ -32,7 +34,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: str = "5432"
-    
+
     # Redis Configuration
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
@@ -44,15 +46,18 @@ class Settings(BaseSettings):
     SUPERUSER_PASSWORD: str
     SUPERUSER_FIRST_NAME: Optional[str] = None
     SUPERUSER_LAST_NAME: Optional[str] = None
-    
+
     # Security Score Thresholds
     SECURITY_SCORE_CRITICAL_THRESHOLD: int = 70
     SECURITY_SCORE_WARNING_THRESHOLD: int = 85
     NON_SECURITY_UPDATES_WARNING_THRESHOLD: int = 10
 
+    # Testing Configuration (optional)
+    TESTING: bool = False
+
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
 
-    @field_validator("SQLALCHEMY_DATABASE_URI", mode='after')
+    @field_validator("SQLALCHEMY_DATABASE_URI", mode="after")
     def assemble_db_connection(cls, v: Optional[str], info) -> Any:
         if isinstance(v, str):
             return v
@@ -62,10 +67,11 @@ class Settings(BaseSettings):
             password=info.data.get("POSTGRES_PASSWORD"),
             host=info.data.get("POSTGRES_HOST"),
             port=int(info.data.get("POSTGRES_PORT", 5432)),
-            path=info.data.get('POSTGRES_DB', '')
+            path=info.data.get("POSTGRES_DB", ""),
         )
         return str(postgres_dsn)
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+
 
 settings = Settings()
