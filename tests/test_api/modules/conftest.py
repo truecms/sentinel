@@ -78,17 +78,17 @@ async def test_module_version(
     version = ModuleVersion(
         module_id=test_module.id,
         version_string="1.0.0",
-        semantic_version="1.0.0",
         release_date=datetime(2024, 1, 1),
         is_security_update=False,
-        release_notes_link="https://drupal.org/project/test_module/releases/1.0.0",
-        drupal_core_compatibility=["9.x", "10.x"],
+        release_notes="https://drupal.org/project/test_module/releases/1.0.0",
+        drupal_core_compatibility="9.x,10.x",
         created_by=test_user.id,
         updated_by=test_user.id,
         is_active=True,
         is_deleted=False,
     )
     db_session.add(version)
+    await db_session.flush()  # Ensure the version is written to the database
     await db_session.commit()
     await db_session.refresh(version)
     return version
@@ -102,17 +102,17 @@ async def test_security_version(
     version = ModuleVersion(
         module_id=test_module.id,
         version_string="1.1.0",
-        semantic_version="1.1.0",
         release_date=datetime(2024, 2, 1),
         is_security_update=True,
-        release_notes_link="https://drupal.org/project/test_module/releases/1.1.0",
-        drupal_core_compatibility=["9.x", "10.x"],
+        release_notes="https://drupal.org/project/test_module/releases/1.1.0",
+        drupal_core_compatibility="9.x,10.x",
         created_by=test_user.id,
         updated_by=test_user.id,
         is_active=True,
         is_deleted=False,
     )
     db_session.add(version)
+    await db_session.flush()  # Ensure the version is written to the database
     await db_session.commit()
     await db_session.refresh(version)
     return version
@@ -126,17 +126,17 @@ async def test_latest_version(
     version = ModuleVersion(
         module_id=test_module.id,
         version_string="2.0.0",
-        semantic_version="2.0.0",
         release_date=datetime(2024, 6, 1),
         is_security_update=False,
-        release_notes_link="https://drupal.org/project/test_module/releases/2.0.0",
-        drupal_core_compatibility=["10.x", "11.x"],
+        release_notes="https://drupal.org/project/test_module/releases/2.0.0",
+        drupal_core_compatibility="10.x,11.x",
         created_by=test_user.id,
         updated_by=test_user.id,
         is_active=True,
         is_deleted=False,
     )
     db_session.add(version)
+    await db_session.flush()  # Ensure the version is written to the database
     await db_session.commit()
     await db_session.refresh(version)
     return version
@@ -438,11 +438,10 @@ async def org_test_module_version(
     version = ModuleVersion(
         module_id=org_test_module.id,
         version_string="1.0.0",
-        semantic_version="1.0.0",
         release_date=datetime(2024, 1, 1),
         is_security_update=False,
-        release_notes_link="https://drupal.org/project/org_test_module/releases/1.0.0",
-        drupal_core_compatibility=["9.x", "10.x"],
+        release_notes="https://drupal.org/project/org_test_module/releases/1.0.0",
+        drupal_core_compatibility="9.x,10.x",
         created_by=org_admin.id,
         updated_by=org_admin.id,
         is_active=True,
@@ -466,7 +465,8 @@ async def org_test_latest_version(
         version_string="2.0.0",
         release_date=datetime(2024, 6, 1),
         is_security_update=False,
-        release_notes_link="https://drupal.org/project/org_test_module/releases/2.0.0",
+        release_notes="https://drupal.org/project/org_test_module/releases/2.0.0",
+        drupal_core_compatibility="10.x,11.x",
         created_by=org_admin.id,
         updated_by=org_admin.id,
         is_active=True,
