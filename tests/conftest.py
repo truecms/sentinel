@@ -133,29 +133,26 @@ async def db_session(test_engine) -> AsyncSession:
         await session.execute(text("DELETE FROM user_organizations"))
         await session.execute(text("DELETE FROM site_modules"))
         
-        # Clear foreign key references in dependent tables
+        # Clear ALL foreign key references before deleting anything
         await session.execute(text("UPDATE sites SET created_by = NULL, updated_by = NULL"))
         await session.execute(text("UPDATE modules SET created_by = NULL, updated_by = NULL"))
         await session.execute(text("UPDATE module_versions SET created_by = NULL, updated_by = NULL"))
         await session.execute(text("UPDATE organizations SET created_by = NULL, updated_by = NULL"))
-        await session.commit()  # Commit the updates before deletes
+        await session.execute(text("UPDATE users SET organization_id = NULL"))
+        await session.commit()  # Commit all the nullifications
         
-        # Delete in reverse dependency order
+        # Now delete in reverse dependency order
         await session.execute(text("DELETE FROM sites"))
         await session.execute(text("DELETE FROM module_versions"))
         await session.execute(text("DELETE FROM modules"))
-        await session.commit()  # Commit the deletes before user operations
-        
-        # Clear user-organization references before deleting
-        await session.execute(text("UPDATE users SET organization_id = NULL"))
         
         # Delete all users except superuser
         if superuser_id:
             await session.execute(text(f"DELETE FROM users WHERE id != {superuser_id}"))
         else:
             await session.execute(text("DELETE FROM users"))
-            
-        # Finally delete organizations
+        
+        # Finally delete organizations (after users since we cleared the FKs)
         await session.execute(text("DELETE FROM organizations"))
         await session.commit()
 
@@ -203,7 +200,10 @@ async def test_user(request, db_session: AsyncSession) -> User:
     """Create a test user with a unique email."""
     timestamp = int(time.time() * 1000)  # Use milliseconds for more uniqueness
     test_name = request.node.name if request else "default"
-    email = f"test_user_{test_name}_{timestamp}@example.com"
+    # Truncate test name if needed to avoid email length issues
+    if len(test_name) > 20:
+        test_name = test_name[:20]
+    email = f"test_usr_{test_name}_{timestamp}@example.com"
 
     user = User(
         email=email,
@@ -218,18 +218,18 @@ async def test_user(request, db_session: AsyncSession) -> User:
 
 
 @pytest_asyncio.fixture
-async def test_superuser(db_session: AsyncSession) -> User:
-    """Create a test superuser."""
-    # Check if superuser already exists
-    query = select(User).where(User.email == "test_super_user@example.com")
-    result = await db_session.execute(query)
-    existing_user = result.scalar_one_or_none()
-    
-    if existing_user:
-        return existing_user
+async def test_superuser(request, db_session: AsyncSession) -> User:
+    """Create a test superuser with a unique email."""
+    # Generate unique email for this test
+    timestamp = int(time.time() * 1000)  # Use milliseconds for more uniqueness
+    test_name = request.node.name if request else "default"
+    # Truncate test name if needed to avoid email length issues
+    if len(test_name) > 20:
+        test_name = test_name[:20]
+    email = f"test_su_{test_name}_{timestamp}@example.com"
     
     user = User(
-        email="test_super_user@example.com",
+        email=email,
         hashed_password=get_password_hash("admin123"),
         is_active=True,
         is_superuser=True,
@@ -288,17 +288,24 @@ def user_token_headers(test_user: User) -> dict:
 
 
 @pytest.fixture
-def superuser_token_headers(test_superuser: User) -> dict:
+async def superuser_token_headers(test_superuser: User) -> dict:
     """Create authorization headers with superuser JWT token."""
     access_token = create_access_token(data={"sub": test_superuser.email})
     return {"Authorization": f"Bearer {access_token}"}
 
 
 @pytest_asyncio.fixture
-async def test_regular_user(db_session: AsyncSession) -> User:
-    """Create a regular (non-superuser) test user."""
+async def test_regular_user(request, db_session: AsyncSession) -> User:
+    """Create a regular (non-superuser) test user with unique email."""
+    timestamp = int(time.time() * 1000)  # Use milliseconds for more uniqueness
+    test_name = request.node.name if request else "default"
+    # Truncate test name if needed to avoid email length issues
+    if len(test_name) > 20:
+        test_name = test_name[:20]
+    email = f"test_reg_{test_name}_{timestamp}@example.com"
+    
     user = User(
-        email="test_regular_user@example.com",
+        email=email,
         hashed_password=get_password_hash("test123"),
         is_active=True,
         is_superuser=False,
