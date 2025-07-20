@@ -84,7 +84,7 @@ async def register(
     # Add user-organization association
     await db.execute(
         user_organization.insert().values(
-            user_id=user.id, organization_id=organization.id
+            user_id=user.id, organization_id=organization.id, is_default=True
         )
     )
     await db.commit()
