@@ -205,44 +205,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
-              <NavLink
-                key={item.label}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                      : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
-                  }`
-                }
-              >
-                <div className="flex items-center space-x-3">
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <AnimatePresence>
-                    {!isCollapsed && (
-                      <motion.span
-                        initial="collapsed"
-                        animate="expanded"
-                        exit="collapsed"
-                        variants={contentVariants}
-                        className="text-sm font-medium"
-                      >
-                        {item.label}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </div>
-                {!isCollapsed && item.badge && (
-                  <span
-                    className={`
-                      px-2 py-0.5 text-xs font-medium rounded-full
-                      ${getBadgeClasses(item.badgeType)}
-                    `}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
+              item.subItems ? (
+                <button
+                  key={item.label}
+                  onClick={item.onToggle}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  <div className="flex items-center space-x-3">
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.span
+                          initial="collapsed"
+                          animate="expanded"
+                          exit="collapsed"
+                          variants={contentVariants}
+                          className="text-sm font-medium"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </button>
+              ) : (
+                <NavLink
+                  key={item.label}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
+                      isActive
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
+                        : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                    }`
+                  }
+                >
+                  <div className="flex items-center space-x-3">
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.span
+                          initial="collapsed"
+                          animate="expanded"
+                          exit="collapsed"
+                          variants={contentVariants}
+                          className="text-sm font-medium"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  {!isCollapsed && item.badge && (
+                    <span
+                      className={`
+                        px-2 py-0.5 text-xs font-medium rounded-full
+                        ${getBadgeClasses(item.badgeType)}
+                      `}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </NavLink>
+              )
             ))}
           </nav>
 
