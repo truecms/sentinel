@@ -56,18 +56,26 @@ const initialState: AuthState = {
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: LoginCredentials) => {
-    const formData = new FormData();
-    formData.append('username', credentials.email);
-    formData.append('password', credentials.password);
+  async (credentials: LoginCredentials, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('username', credentials.email);
+      formData.append('password', credentials.password);
 
-    const response = await apiClient.post<LoginResponse>('/auth/access-token', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      const response = await apiClient.post<LoginResponse>('/auth/access-token', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        // Pass the entire error response so we can handle it properly
+        return rejectWithValue(error);
+      }
+      throw error;
+    }
   }
 );
 

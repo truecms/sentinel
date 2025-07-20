@@ -8,6 +8,7 @@ import type { RegisterFormData } from '../schemas/registerSchema';
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { signUp, isAuthenticated, loading } = useAuth();
+  const [error, setError] = React.useState<string | null>(null);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -18,6 +19,7 @@ export const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (data: RegisterFormData) => {
     try {
+      setError(null);
       await signUp({
         email: data.email,
         password: data.password,
@@ -27,9 +29,17 @@ export const RegisterPage: React.FC = () => {
       
       toast.success('Account created successfully! Welcome to Sentinel.');
       navigate('/app/dashboard', { replace: true });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      toast.error(errorMessage);
+    } catch (error: any) {
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || errorMessage;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      // Don't show toast if we're showing inline error
     }
   };
 
@@ -54,7 +64,7 @@ export const RegisterPage: React.FC = () => {
         </div>
         
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <RegisterForm onSubmit={handleSubmit} isLoading={loading} />
+          <RegisterForm onSubmit={handleSubmit} isLoading={loading} error={error} />
         </div>
 
         {/* Benefits section */}
