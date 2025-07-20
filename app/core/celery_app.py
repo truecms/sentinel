@@ -1,5 +1,7 @@
 """Celery configuration and app initialization."""
+
 import os
+
 from celery import Celery
 
 # Create Celery app
@@ -7,8 +9,14 @@ celery_app = Celery("monitoring_platform")
 
 # Configure Celery
 celery_app.conf.update(
-    broker_url=f"redis://{os.getenv('REDIS_HOST', 'localhost')}:{os.getenv('REDIS_PORT', 6379)}/0",
-    result_backend=f"redis://{os.getenv('REDIS_HOST', 'localhost')}:{os.getenv('REDIS_PORT', 6379)}/0",
+    broker_url=(
+        f"redis://{os.getenv('REDIS_HOST', 'localhost')}:"
+        f"{os.getenv('REDIS_PORT', 6379)}/0"
+    ),
+    result_backend=(
+        f"redis://{os.getenv('REDIS_HOST', 'localhost')}:"
+        f"{os.getenv('REDIS_PORT', 6379)}/0"
+    ),
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",

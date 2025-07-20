@@ -1,43 +1,58 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from pydantic import EmailStr, BaseModel
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
 
 from app.api import deps
 from app.core.security import get_password_hash, verify_password
-from app.schemas.user import UserCreate, UserUpdate, UserInDB, UserResponse
-from app.models.user import User
 from app.models.organization import Organization
+from app.models.user import User
 from app.models.user_organization import user_organization
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter()
+
 
 # Add new schema for user me update
 class UserMeUpdate(BaseModel):
     email: str | None = None
+
 
 @router.get("/", response_model=List[UserResponse])
 async def read_users(
     db: AsyncSession = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
+    is_active: bool | None = None,
+    role: str | None = None,
+    search: str | None = None,
     current_user: UserResponse = Depends(deps.get_current_user),
 ) -> Any:
     """Retrieve users."""
-    query = select(User).offset(skip).limit(limit)
+    query = select(User)
+    
+    # Apply filters
+    if is_active is not None:
+        query = query.where(User.is_active == is_active)
+    if role is not None:
+        query = query.where(User.role == role)
+    if search is not None:
+        query = query.where(User.email.ilike(f"%{search}%"))
+    
+    query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     users = result.scalars().all()
     return users
+
 
 @router.post("/", response_model=UserResponse)
 async def create_user(
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: UserCreate,
-    current_user: UserResponse = Depends(deps.get_current_user)
+    current_user: UserResponse = Depends(deps.get_current_user),
 ) -> Any:
     """Create new user."""
     # Check if user has permission
@@ -51,24 +66,24 @@ async def create_user(
     query = select(User).where(User.email == user_in.email)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
-    
+
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
-    
+
     # Check if organization exists
     query = select(Organization).where(Organization.id == user_in.organization_id)
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
-    
+
     if not organization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found",
         )
-    
+
     # Create user
     user = User(
         email=user_in.email,
@@ -76,7 +91,7 @@ async def create_user(
         is_superuser=user_in.is_superuser,
         organization_id=user_in.organization_id,
         role=user_in.role,
-        is_active=user_in.is_active
+        is_active=user_in.is_active,
     )
     db.add(user)
     await db.commit()
@@ -85,13 +100,13 @@ async def create_user(
     # Add user-organization association
     await db.execute(
         user_organization.insert().values(
-            user_id=user.id,
-            organization_id=user_in.organization_id
+            user_id=user.id, organization_id=user_in.organization_id
         )
     )
     await db.commit()
-    
+
     return user
+
 
 @router.put("/me", response_model=UserResponse)
 async def update_user_me(
@@ -111,15 +126,13 @@ async def update_user_me(
         result = await db.execute(query)
         existing_user = result.scalar_one_or_none()
         if existing_user:
-            raise HTTPException(
-                status_code=400,
-                detail="Email already registered"
-            )
+            raise HTTPException(status_code=400, detail="Email already registered")
         user.email = user_in.email
 
     await db.commit()
     await db.refresh(user)
     return user
+
 
 @router.put("/me/password", response_model=UserResponse)
 async def update_user_me_password(
@@ -136,10 +149,7 @@ async def update_user_me_password(
     user = result.scalar_one_or_none()
 
     if not verify_password(current_password, user.hashed_password):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid password"
-        )
+        raise HTTPException(status_code=400, detail="Invalid password")
 
     user.hashed_password = get_password_hash(new_password)
     db.add(user)
@@ -147,12 +157,14 @@ async def update_user_me_password(
     await db.refresh(user)
     return user
 
+
 @router.get("/me", response_model=UserResponse)
 async def read_user_me(
     current_user: UserResponse = Depends(deps.get_current_user),
 ) -> Any:
     """Get current user."""
     return current_user
+
 
 @router.get("/{user_id}", response_model=UserResponse)
 async def read_user_by_id(
@@ -164,13 +176,14 @@ async def read_user_by_id(
     query = select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
     return user
+
 
 @router.put("/{user_id}", response_model=UserResponse)
 async def update_user(
@@ -187,18 +200,18 @@ async def update_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Get user
     query = select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Update user fields
     if user_in.email is not None:
         user.email = user_in.email
@@ -210,35 +223,37 @@ async def update_user(
         user.role = user_in.role
     if user_in.organization_id is not None:
         # Check if organization exists
-        org_query = select(Organization).where(Organization.id == user_in.organization_id)
+        org_query = select(Organization).where(
+            Organization.id == user_in.organization_id
+        )
         org_result = await db.execute(org_query)
         organization = org_result.scalar_one_or_none()
-        
+
         if not organization:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Organization not found",
             )
-        
+
         # Update organization_id and user-organization association
         user.organization_id = user_in.organization_id
-        
+
         # Remove old association
         await db.execute(
             user_organization.delete().where(user_organization.c.user_id == user.id)
         )
-        
+
         # Add new association
         await db.execute(
             user_organization.insert().values(
-                user_id=user.id,
-                organization_id=user_in.organization_id
+                user_id=user.id, organization_id=user_in.organization_id
             )
         )
-    
+
     await db.commit()
     await db.refresh(user)
     return user
+
 
 @router.delete("/{user_id}", response_model=UserResponse)
 async def delete_user(
@@ -254,27 +269,35 @@ async def delete_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Get user
     query = select(User).where(User.id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
+    # Prevent deletion of superusers
+    if user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete superuser",
+        )
+
     # Delete user-organization associations first
     await db.execute(
         user_organization.delete().where(user_organization.c.user_id == user.id)
     )
-    
+
     # Delete user
     await db.delete(user)
     await db.commit()
     return user
+
 
 @router.get("/organization/{organization_id}/users", response_model=List[UserResponse])
 async def get_organization_users(
@@ -288,15 +311,19 @@ async def get_organization_users(
     query = select(Organization).where(Organization.id == organization_id)
     result = await db.execute(query)
     organization = result.scalar_one_or_none()
-    
+
     if not organization:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found",
         )
-    
+
     # Get users through user_organizations table
-    query = select(User).join(user_organization).where(user_organization.c.organization_id == organization_id)
+    query = (
+        select(User)
+        .join(user_organization)
+        .where(user_organization.c.organization_id == organization_id)
+    )
     result = await db.execute(query)
     users = result.scalars().all()
     return users

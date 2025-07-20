@@ -1,0 +1,207 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create environment file
+        run: |
+          echo "POSTGRES_SERVER=db" > .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "POSTGRES_USER=appuser832jdsf" >> .env
+          echo "POSTGRES_PASSWORD=app.password832jdsf" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
+          echo "JWT_SECRET_KEY=vka6tYama.FYAMUqjQYNzXtqCs7ZeibGHN_nxEqNtEkwQ*aPnvcRT_oowuuKw-zjXdHWqbZVd4A_hGXukU6DgztzZcjZ9FwydZ-4" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+          echo "BACKEND_CORS_ORIGINS=[\"*\"]" >> .env
+          echo "VERSION=1.0.0" >> .env
+          echo "SUPERUSER_EMAIL=admin@example.com" >> .env
+          echo "SUPERUSER_PASSWORD=admin123" >> .env
+          echo "TESTING=True" >> .env
+
+      - name: Start services
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+      - name: Wait for database to be ready
+        run: |
+          timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db pg_isready -U appuser832jdsf -d postgres; do echo "Waiting for database..."; sleep 2; done'
+
+      - name: Run database migrations
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api alembic upgrade head
+
+      - name: Create superuser
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api python scripts/ensure_superuser.py
+
+      - name: Run unit tests (services)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest tests/test_services/ -v --tb=short --no-cov
+
+      - name: Run model tests
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest tests/test_models/ -v --tb=short --no-cov
+
+      - name: Run API tests (excluding integration-heavy tests)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest tests/test_api/ -v --tb=short --no-cov \
+            -k "not test_full_sync and not test_sync_enhancements"
+
+      - name: Run integration tests
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest tests/integration/ -v --tb=short --no-cov
+
+      - name: Run other tests
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest tests/test_websocket.py tests/test_database_population_demo.py -v --tb=short --no-cov
+
+      - name: Show Docker logs on failure
+        if: failure()
+        run: |
+          echo "=== API Logs ==="
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs api
+          echo "=== Database Logs ==="
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs db
+          echo "=== Test Container Logs ==="
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs test
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
+
+  test-with-coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create environment file
+        run: |
+          echo "POSTGRES_SERVER=db" > .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "POSTGRES_USER=appuser832jdsf" >> .env
+          echo "POSTGRES_PASSWORD=app.password832jdsf" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
+          echo "JWT_SECRET_KEY=vka6tYama.FYAMUqjQYNzXtqCs7ZeibGHN_nxEqNtEkwQ*aPnvcRT_oowuuKw-zjXdHWqbZVd4A_hGXukU6DgztzZcjZ9FwydZ-4" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+          echo "BACKEND_CORS_ORIGINS=[\"*\"]" >> .env
+          echo "VERSION=1.0.0" >> .env
+          echo "SUPERUSER_EMAIL=admin@example.com" >> .env
+          echo "SUPERUSER_PASSWORD=admin123" >> .env
+          echo "TESTING=True" >> .env
+
+      - name: Start services
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d
+
+      - name: Wait for database to be ready
+        run: |
+          timeout 60 bash -c 'until docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T db pg_isready -U appuser832jdsf -d postgres; do echo "Waiting for database..."; sleep 2; done'
+
+      - name: Run database migrations
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api alembic upgrade head
+
+      - name: Create superuser
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T api python scripts/ensure_superuser.py
+
+      - name: Run tests with coverage
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T test \
+            pytest \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-fail-under=70 \
+            -v \
+            tests/test_services/ \
+            tests/test_models/ \
+            tests/integration/ \
+            tests/test_websocket.py \
+            tests/test_database_population_demo.py
+
+      - name: Copy coverage report from container
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml cp test:/app/coverage.xml ./coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create environment file
+        run: |
+          echo "POSTGRES_SERVER=db" > .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "POSTGRES_USER=appuser832jdsf" >> .env
+          echo "POSTGRES_PASSWORD=app.password832jdsf" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
+          echo "JWT_SECRET_KEY=vka6tYama.FYAMUqjQYNzXtqCs7ZeibGHN_nxEqNtEkwQ*aPnvcRT_oowuuKw-zjXdHWqbZVd4A_hGXukU6DgztzZcjZ9FwydZ-4" >> .env
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+          echo "BACKEND_CORS_ORIGINS=[\"*\"]" >> .env
+          echo "VERSION=1.0.0" >> .env
+          echo "SUPERUSER_EMAIL=admin@example.com" >> .env
+          echo "SUPERUSER_PASSWORD=admin123" >> .env
+
+      - name: Build test container
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml build test
+
+      - name: Run Black formatter check
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm test \
+            black --check --diff app/ tests/
+
+      - name: Run isort import sorting check
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm test \
+            isort --check-only --diff app/ tests/
+
+      - name: Run flake8 linting
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm test \
+            flake8 app/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+
+      - name: Run mypy type checking
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml run --rm test \
+            mypy app/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
