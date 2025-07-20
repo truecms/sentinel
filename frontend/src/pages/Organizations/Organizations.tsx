@@ -30,6 +30,8 @@ export const Organizations: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createLoading, setCreateLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -60,18 +62,29 @@ export const Organizations: React.FC = () => {
 
   const handleCreateOrganization = async () => {
     try {
+      setCreateError(null);
+      setCreateLoading(true);
       await apiClient.post('/organizations/', formData);
       toast.success('Organization created successfully');
       setShowCreateModal(false);
       setFormData({ name: '', description: '' });
       fetchOrganizations();
     } catch (error: any) {
+      let errorMessage = 'Failed to create organization';
+      
       if (error.response?.status === 403) {
-        toast.error('Only administrators can create new organizations');
-      } else {
-        const message = error.response?.data?.detail || error.message || 'Failed to create organization';
-        toast.error(message);
+        errorMessage = 'Only administrators can create new organizations';
+      } else if (error.response?.status === 409 || error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || errorMessage;
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+      
+      setCreateError(errorMessage);
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -211,10 +224,30 @@ export const Organizations: React.FC = () => {
       {/* Create Organization Modal */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setCreateError(null);
+          setFormData({ name: '', description: '' });
+        }}
         title="Create New Organization"
       >
         <div className="space-y-4">
+          {createError && (
+            <div className="rounded-md bg-red-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    {createError}
+                  </h3>
+                </div>
+              </div>
+            </div>
+          )}
           <Input
             label="Organization Name"
             value={formData.name}
@@ -248,7 +281,8 @@ export const Organizations: React.FC = () => {
             <Button
               variant="primary"
               onClick={handleCreateOrganization}
-              disabled={!formData.name.trim()}
+              disabled={!formData.name.trim() || createLoading}
+              isLoading={createLoading}
             >
               Create Organization
             </Button>

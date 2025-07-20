@@ -205,7 +205,23 @@ async def create_organization(
     result = await db.execute(query)
     organization = result.unique().scalar_one()
 
-    return organization
+    # Create response with uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": False  # New org is not default
+    }
+    
+    return OrganizationResponse(**org_dict)
 
 
 @router.get("/by-uuid/{organization_uuid}", response_model=OrganizationResponse)
@@ -233,13 +249,17 @@ async def read_organization_by_uuid(
         )
 
     # Check if user has access to this organization
-    if (
-        not current_user.is_superuser
-        and current_user.organization_id != organization.id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+    if not current_user.is_superuser:
+        # Check if user belongs to this organization through user_organization table
+        user_org_query = select(user_organization.c.user_id).where(
+            user_organization.c.user_id == current_user.id,
+            user_organization.c.organization_id == organization.id
         )
+        user_org_result = await db.execute(user_org_query)
+        if not user_org_result.scalar():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+            )
 
     # Get the is_default status for this user-organization relationship
     default_query = select(user_organization.c.is_default).where(
@@ -293,13 +313,17 @@ async def read_organization(
         )
 
     # Check if user has access to this organization
-    if (
-        not current_user.is_superuser
-        and current_user.organization_id != organization_id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+    if not current_user.is_superuser:
+        # Check if user belongs to this organization through user_organization table
+        user_org_query = select(user_organization.c.user_id).where(
+            user_organization.c.user_id == current_user.id,
+            user_organization.c.organization_id == organization_id
         )
+        user_org_result = await db.execute(user_org_query)
+        if not user_org_result.scalar():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+            )
 
     # Get the is_default status for this user-organization relationship
     default_query = select(user_organization.c.is_default).where(
@@ -429,7 +453,31 @@ async def update_organization(
     result = await db.execute(query)
     organization = result.unique().scalar_one()
 
-    return organization
+    # Get the is_default status for this user-organization relationship
+    default_query = select(user_organization.c.is_default).where(
+        user_organization.c.user_id == current_user.id,
+        user_organization.c.organization_id == organization.id
+    )
+    default_result = await db.execute(default_query)
+    is_default = default_result.scalar() or False
+    
+    # Create response with is_default and uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": is_default
+    }
+    
+    return OrganizationResponse(**org_dict)
 
 
 @router.delete("/{organization_id}", response_model=OrganizationDeleteResponse)
