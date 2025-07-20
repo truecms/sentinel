@@ -42,6 +42,10 @@ docker compose exec api alembic upgrade head
 
 ## Key Points
 
+### Docker Commands
+- **IMPORTANT:** Use `docker compose` instead of `docker-compose` (without hyphen)
+- This applies to all Docker Compose commands throughout the project
+
 ### Database
 - Uses `postgres` database (NOT `application_db`)
 - Alembic handles all migrations

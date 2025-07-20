@@ -114,15 +114,22 @@ export const refreshToken = createAsyncThunk<
 export const register = createAsyncThunk(
   'auth/register',
   async (data: RegisterData) => {
-    const payload = {
-      email: data.email,
-      password: data.password,
-      full_name: data.full_name,
-      organization_name: data.organization_name,
-    };
+    try {
+      const payload = {
+        email: data.email,
+        password: data.password,
+        full_name: data.full_name,
+        organization_name: data.organization_name,
+      };
 
-    const response = await apiClient.post<User>('/auth/register', payload);
-    return response.data;
+      const response = await apiClient.post<User>('/auth/register', payload);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      throw error;
+    }
   }
 );
 

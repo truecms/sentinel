@@ -23,11 +23,13 @@ export function useWebSocketConnection() {
       return;
     }
 
-    // Connect to WebSocket
+    // Connect to WebSocket - disabled for now until backend is ready
     const connectWebSocket = async () => {
       try {
         setConnectionStatus('connecting');
-        await websocketService.connect();
+        // TODO: Enable when WebSocket backend is implemented
+        // await websocketService.connect();
+        setConnectionStatus('disconnected');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Connection failed');
         setConnectionStatus('disconnected');
@@ -57,7 +59,9 @@ export function useWebSocketConnection() {
       try {
         setError(null);
         setConnectionStatus('connecting');
-        await websocketService.connect();
+        // TODO: Enable when WebSocket backend is implemented
+        // await websocketService.connect();
+        setConnectionStatus('disconnected');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Reconnection failed');
         setConnectionStatus('disconnected');

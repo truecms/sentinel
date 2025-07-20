@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, update
+from sqlalchemy import select, update, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -57,7 +58,35 @@ async def read_organizations(
     result = await db.execute(query)
     organizations = result.unique().scalars().all()
 
-    return organizations
+    # For each organization, check if it's the user's default
+    org_responses = []
+    for org in organizations:
+        # Get the is_default status for this user-organization relationship
+        default_query = select(user_organization.c.is_default).where(
+            user_organization.c.user_id == current_user.id,
+            user_organization.c.organization_id == org.id
+        )
+        default_result = await db.execute(default_query)
+        is_default = default_result.scalar() or False
+        
+        # Create response with is_default and uuid
+        org_dict = {
+            "id": org.id,
+            "uuid": str(org.uuid),
+            "name": org.name,
+            "description": org.description,
+            "is_active": org.is_active,
+            "is_deleted": org.is_deleted,
+            "created_at": org.created_at,
+            "created_by": org.created_by,
+            "updated_at": org.updated_at,
+            "updated_by": org.updated_by,
+            "users": org.users,
+            "is_default": is_default
+        }
+        org_responses.append(OrganizationResponse(**org_dict))
+
+    return org_responses
 
 
 @router.post("/", response_model=OrganizationResponse)
@@ -179,6 +208,66 @@ async def create_organization(
     return organization
 
 
+@router.get("/by-uuid/{organization_uuid}", response_model=OrganizationResponse)
+async def read_organization_by_uuid(
+    organization_uuid: UUID,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """Get a specific organization by UUID."""
+    query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(
+            Organization.uuid == organization_uuid,
+            Organization.is_active,
+            ~Organization.is_deleted,
+        )
+    )
+    result = await db.execute(query)
+    organization = result.scalar_one_or_none()
+
+    if not organization:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found"
+        )
+
+    # Check if user has access to this organization
+    if (
+        not current_user.is_superuser
+        and current_user.organization_id != organization.id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
+        )
+
+    # Get the is_default status for this user-organization relationship
+    default_query = select(user_organization.c.is_default).where(
+        user_organization.c.user_id == current_user.id,
+        user_organization.c.organization_id == organization.id
+    )
+    default_result = await db.execute(default_query)
+    is_default = default_result.scalar() or False
+    
+    # Create response with is_default and uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": is_default
+    }
+    
+    return OrganizationResponse(**org_dict)
+
+
 @router.get("/{organization_id}", response_model=OrganizationResponse)
 async def read_organization(
     organization_id: int,
@@ -212,7 +301,31 @@ async def read_organization(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
-    return organization
+    # Get the is_default status for this user-organization relationship
+    default_query = select(user_organization.c.is_default).where(
+        user_organization.c.user_id == current_user.id,
+        user_organization.c.organization_id == organization.id
+    )
+    default_result = await db.execute(default_query)
+    is_default = default_result.scalar() or False
+    
+    # Create response with is_default and uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": is_default
+    }
+    
+    return OrganizationResponse(**org_dict)
 
 
 @router.put("/{organization_id}", response_model=OrganizationResponse)
@@ -385,6 +498,155 @@ async def delete_organization(
         "organization_id": organization.id,
         "name": organization.name,
     }
+
+
+@router.post("/{organization_id}/set-default", response_model=OrganizationResponse)
+async def set_default_organization(
+    organization_id: int,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """Set an organization as the user's default."""
+    # Check if user belongs to this organization
+    query = select(user_organization.c.user_id).where(
+        user_organization.c.user_id == current_user.id,
+        user_organization.c.organization_id == organization_id
+    )
+    result = await db.execute(query)
+    if not result.scalar():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't belong to this organization"
+        )
+    
+    # First, unset all default organizations for this user
+    unset_query = (
+        update(user_organization)
+        .where(user_organization.c.user_id == current_user.id)
+        .values(is_default=False)
+    )
+    await db.execute(unset_query)
+    
+    # Then set this organization as default
+    set_query = (
+        update(user_organization)
+        .where(
+            user_organization.c.user_id == current_user.id,
+            user_organization.c.organization_id == organization_id
+        )
+        .values(is_default=True)
+    )
+    await db.execute(set_query)
+    await db.commit()
+    
+    # Return the updated organization
+    org_query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(Organization.id == organization_id)
+    )
+    result = await db.execute(org_query)
+    organization = result.unique().scalar_one()
+    
+    # Create response with is_default=True and uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": True
+    }
+    
+    return OrganizationResponse(**org_dict)
+
+
+@router.post("/by-uuid/{organization_uuid}/set-default", response_model=OrganizationResponse)
+async def set_default_organization_by_uuid(
+    organization_uuid: UUID,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """Set an organization as the user's default using UUID."""
+    # Get organization by UUID
+    org_query = select(Organization).where(
+        Organization.uuid == organization_uuid,
+        Organization.is_active,
+        ~Organization.is_deleted
+    )
+    result = await db.execute(org_query)
+    organization = result.scalar_one_or_none()
+    
+    if not organization:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+    
+    # Check if user belongs to this organization
+    query = select(user_organization.c.user_id).where(
+        user_organization.c.user_id == current_user.id,
+        user_organization.c.organization_id == organization.id
+    )
+    result = await db.execute(query)
+    if not result.scalar():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't belong to this organization"
+        )
+    
+    # First, unset all default organizations for this user
+    unset_query = (
+        update(user_organization)
+        .where(user_organization.c.user_id == current_user.id)
+        .values(is_default=False)
+    )
+    await db.execute(unset_query)
+    
+    # Then set this organization as default
+    set_query = (
+        update(user_organization)
+        .where(
+            user_organization.c.user_id == current_user.id,
+            user_organization.c.organization_id == organization.id
+        )
+        .values(is_default=True)
+    )
+    await db.execute(set_query)
+    await db.commit()
+    
+    # Return the updated organization
+    org_query = (
+        select(Organization)
+        .options(selectinload(Organization.users))
+        .where(Organization.id == organization.id)
+    )
+    result = await db.execute(org_query)
+    organization = result.unique().scalar_one()
+    
+    # Create response with is_default=True and uuid
+    org_dict = {
+        "id": organization.id,
+        "uuid": str(organization.uuid),
+        "name": organization.name,
+        "description": organization.description,
+        "is_active": organization.is_active,
+        "is_deleted": organization.is_deleted,
+        "created_at": organization.created_at,
+        "created_by": organization.created_by,
+        "updated_at": organization.updated_at,
+        "updated_by": organization.updated_by,
+        "users": organization.users,
+        "is_default": True
+    }
+    
+    return OrganizationResponse(**org_dict)
 
 
 @router.get("/{organization_id}/sites", response_model=List[schemas.SiteResponse])

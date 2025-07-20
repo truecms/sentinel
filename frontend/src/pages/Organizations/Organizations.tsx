@@ -14,6 +14,7 @@ import { apiClient } from '../../utils/api';
 
 interface Organization {
   id: number;
+  uuid: string;
   name: string;
   description?: string;
   is_active: boolean;
@@ -74,9 +75,9 @@ export const Organizations: React.FC = () => {
     }
   };
 
-  const handleSetDefault = async (orgId: number) => {
+  const handleSetDefault = async (orgUuid: string) => {
     try {
-      // TODO: Implement set default organization API endpoint
+      await apiClient.post(`/organizations/by-uuid/${orgUuid}/set-default`);
       toast.success('Default organization updated');
       fetchOrganizations();
     } catch (error) {
@@ -137,7 +138,7 @@ export const Organizations: React.FC = () => {
             <Card
               key={org.id}
               className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/app/organizations/${org.id}`)}
+              onClick={() => navigate(`/app/organizations/${org.uuid}`)}
             >
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-start">
@@ -194,7 +195,7 @@ export const Organizations: React.FC = () => {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSetDefault(org.id);
+                        handleSetDefault(org.uuid);
                       }}
                     >
                       Set as Default

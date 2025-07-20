@@ -47,6 +47,8 @@ class OrganizationInDBBase(OrganizationBase):
 # Additional properties to return via API
 class OrganizationResponse(OrganizationInDBBase):
     users: Optional[List[UserResponse]] = []
+    is_default: Optional[bool] = False
+    uuid: str  # Public UUID for URLs
     # We'll add sites later when we create the Site schema
     # sites: List[SiteResponse] = []
 

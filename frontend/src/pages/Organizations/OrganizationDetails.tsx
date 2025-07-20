@@ -23,6 +23,7 @@ import { apiClient } from '../../utils/api';
 
 interface Organization {
   id: number;
+  uuid: string;
   name: string;
   description?: string;
   is_active: boolean;
@@ -61,7 +62,7 @@ export const OrganizationDetails: React.FC = () => {
   const fetchOrganization = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/organizations/${id}`);
+      const response = await apiClient.get(`/organizations/by-uuid/${id}`);
       setOrganization(response.data);
       setFormData({
         name: response.data.name,
@@ -77,7 +78,8 @@ export const OrganizationDetails: React.FC = () => {
 
   const handleUpdate = async () => {
     try {
-      await apiClient.put(`/organizations/${id}`, formData);
+      // Use the numeric ID from the organization object for the update
+      await apiClient.put(`/organizations/${organization?.id}`, formData);
       toast.success('Organization updated successfully');
       setEditing(false);
       fetchOrganization();
@@ -89,7 +91,8 @@ export const OrganizationDetails: React.FC = () => {
 
   const handleDelete = async () => {
     try {
-      await apiClient.delete(`/organizations/${id}`);
+      // Use the numeric ID from the organization object for the delete
+      await apiClient.delete(`/organizations/${organization?.id}`);
       toast.success('Organization deleted successfully');
       navigate('/app/organizations');
     } catch (error: any) {

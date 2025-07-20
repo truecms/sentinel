@@ -50,7 +50,7 @@ async def register(
         logger.warning(f"User already exists: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists",
+            detail="An account with this email already exists. Please sign in instead.",
         )
 
     # Check if organization already exists
@@ -61,7 +61,7 @@ async def register(
     if existing_organization:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Organization with this name already exists",
+            detail="An organization with this name already exists. Please choose a different name.",
         )
 
     # Create user first (without organization)
