@@ -39,6 +39,7 @@
     "recharts": "^3.0.2",
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.1",
+    "tdd-guard": "^0.5.1",
     "zod": "^3.25.75"
   },
   "devDependencies": {
@@ -52,7 +53,7 @@
     "@types/react-grid-layout": "^1.3.5",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.5.2",
-    "eslint": "^9.29.0",
+    "eslint": "^9.31.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",

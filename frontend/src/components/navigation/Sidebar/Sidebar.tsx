@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,6 +10,8 @@ import {
   BarChart3,
   X,
   Building2,
+  Users,
+  ChevronDown,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,17 +22,28 @@ interface SidebarProps {
   sitesCount?: number;
   modulesCount?: number;
   organizationsCount?: number;
+  usersCount?: number;
 }
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
-  path: string;
+  path?: string;
   badge?: string | number;
   badgeType?: 'info' | 'warning' | 'danger' | 'success';
+  expanded?: boolean;
+  onToggle?: () => void;
+  subItems?: NavItem[];
 }
 
-const getNavItems = (sitesCount?: number, modulesCount?: number, organizationsCount?: number): NavItem[] => [
+const getNavItems = (
+  sitesCount?: number,
+  modulesCount?: number,
+  organizationsCount?: number,
+  usersCount?: number,
+  organizationsExpanded?: boolean,
+  setOrganizationsExpanded?: (expanded: boolean) => void
+): NavItem[] => [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -39,9 +52,24 @@ const getNavItems = (sitesCount?: number, modulesCount?: number, organizationsCo
   {
     label: 'Organizations',
     icon: Building2,
-    path: '/app/organizations',
-    badge: organizationsCount !== undefined ? organizationsCount : undefined,
-    badgeType: 'info',
+    expanded: organizationsExpanded,
+    onToggle: () => setOrganizationsExpanded?.(!organizationsExpanded),
+    subItems: [
+      {
+        label: 'Organizations',
+        icon: Building2,
+        path: '/app/organizations',
+        badge: organizationsCount !== undefined ? organizationsCount : undefined,
+        badgeType: 'info',
+      },
+      {
+        label: 'Users',
+        icon: Users,
+        path: '/app/organizations/users',
+        badge: usersCount !== undefined ? usersCount : undefined,
+        badgeType: 'info',
+      },
+    ],
   },
   {
     label: 'Sites',
@@ -92,8 +120,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   sitesCount,
   modulesCount,
   organizationsCount,
+  usersCount,
 }) => {
-  const navItems = getNavItems(sitesCount, modulesCount, organizationsCount);
+  const [organizationsExpanded, setOrganizationsExpanded] = useState(false);
+  const navItems = getNavItems(
+    sitesCount,
+    modulesCount,
+    organizationsCount,
+    usersCount,
+    organizationsExpanded,
+    setOrganizationsExpanded
+  );
   const sidebarVariants = {
     open: { x: 0 },
     closed: { x: '-100%' },
@@ -168,44 +205,132 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
-                    isActive
-                      ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
-                      : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
-                  }`
-                }
-              >
-                <div className="flex items-center space-x-3">
-                  <item.icon className="w-5 h-5 flex-shrink-0" />
-                  <AnimatePresence>
+              item.subItems ? (
+                <div key={item.label}>
+                  <button
+                    onClick={item.onToggle}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <item.icon className="w-5 h-5 flex-shrink-0" />
+                      <AnimatePresence>
+                        {!isCollapsed && (
+                          <motion.span
+                            initial="collapsed"
+                            animate="expanded"
+                            exit="collapsed"
+                            variants={contentVariants}
+                            className="text-sm font-medium"
+                          >
+                            {item.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </div>
                     {!isCollapsed && (
-                      <motion.span
-                        initial="collapsed"
-                        animate="expanded"
-                        exit="collapsed"
-                        variants={contentVariants}
-                        className="text-sm font-medium"
+                      <motion.div
+                        animate={{ rotate: item.expanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        {item.label}
-                      </motion.span>
+                        <ChevronDown className="w-4 h-4 text-neutral-500" />
+                      </motion.div>
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {item.expanded && item.subItems && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pl-4 space-y-1 mt-1">
+                          {item.subItems.map((subItem) => (
+                            <NavLink
+                              key={subItem.path}
+                              to={subItem.path}
+                              className={({ isActive }) =>
+                                `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
+                                  isActive
+                                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
+                                    : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                                }`
+                              }
+                            >
+                              <div className="flex items-center space-x-3">
+                                <subItem.icon className="w-4 h-4 flex-shrink-0" />
+                                <AnimatePresence>
+                                  {!isCollapsed && (
+                                    <motion.span
+                                      initial="collapsed"
+                                      animate="expanded"
+                                      exit="collapsed"
+                                      variants={contentVariants}
+                                      className="text-sm font-medium"
+                                    >
+                                      {subItem.label}
+                                    </motion.span>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                              {!isCollapsed && subItem.badge && (
+                                <span
+                                  className={`
+                                    px-2 py-0.5 text-xs font-medium rounded-full
+                                    ${getBadgeClasses(subItem.badgeType)}
+                                  `}
+                                >
+                                  {subItem.badge}
+                                </span>
+                              )}
+                            </NavLink>
+                          ))}
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-                {!isCollapsed && item.badge && (
-                  <span
-                    className={`
-                      px-2 py-0.5 text-xs font-medium rounded-full
-                      ${getBadgeClasses(item.badgeType)}
-                    `}
-                  >
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
+              ) : (
+                <NavLink
+                  key={item.label}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
+                      isActive
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-400'
+                        : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                    }`
+                  }
+                >
+                  <div className="flex items-center space-x-3">
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.span
+                          initial="collapsed"
+                          animate="expanded"
+                          exit="collapsed"
+                          variants={contentVariants}
+                          className="text-sm font-medium"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  {!isCollapsed && item.badge && (
+                    <span
+                      className={`
+                        px-2 py-0.5 text-xs font-medium rounded-full
+                        ${getBadgeClasses(item.badgeType)}
+                      `}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </NavLink>
+              )
             ))}
           </nav>
 

@@ -304,7 +304,7 @@ async def get_organization_users(
     *,
     db: AsyncSession = Depends(deps.get_db),
     organization_id: int,
-    current_user: UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """Get all users in an organization."""
     # Check if organization exists
@@ -316,6 +316,13 @@ async def get_organization_users(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found",
+        )
+    
+    # Check permissions - superusers or org_admin for this organization
+    if not current_user.is_superuser and not current_user.has_role("org_admin", organization_id=organization_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
         )
 
     # Get users through user_organizations table

@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.redis import get_redis
 from app.db.session import get_db as get_db_session
 from app.models.api_key import ApiKey
+from app.models.role import UserRole
 from app.models.site import Site
 from app.models.user import User
 
@@ -57,7 +58,10 @@ async def get_current_user(
     query = (
         select(User)
         .where(User.email == token_data.sub)
-        .options(selectinload(User.organizations))
+        .options(
+            selectinload(User.organizations),
+            selectinload(User.user_roles).selectinload(UserRole.role)
+        )
     )
     result = await db.execute(query)
     user = result.scalar_one_or_none()
@@ -99,7 +103,10 @@ async def _authenticate_jwt_token(db: AsyncSession, token: str) -> User:
     query = (
         select(User)
         .where(User.email == token_data.sub)
-        .options(selectinload(User.organizations))
+        .options(
+            selectinload(User.organizations),
+            selectinload(User.user_roles).selectinload(UserRole.role)
+        )
     )
     result = await db.execute(query)
     user = result.scalar_one_or_none()
