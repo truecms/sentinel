@@ -88,29 +88,10 @@ async def register(
         )
     )
     await db.commit()
-    
-    # Assign org_admin role to the user who creates the organization
-    from app.models.role import Role, UserRole
-    
-    # Get org_admin role
-    role_query = select(Role).where(Role.name == "org_admin")
-    result = await db.execute(role_query)
-    org_admin_role = result.scalar_one_or_none()
-    
-    if org_admin_role:
-        # Create user role assignment
-        user_role = UserRole.assign_role(
-            user_id=user.id,
-            role_id=org_admin_role.id,
-            organization_id=organization.id,
-            assigned_by_id=user.id  # Self-assigned during registration
-        )
-        db.add(user_role)
-        await db.commit()
-        logger.info(f"Assigned org_admin role to user: {user_data.email}")
 
     logger.info(f"User registered successfully: {user_data.email}")
     return UserResponse.model_validate(user)
+
 
 @router.post("/access-token")
 async def login_access_token(

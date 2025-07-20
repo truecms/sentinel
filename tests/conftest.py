@@ -132,6 +132,7 @@ async def db_session(test_engine) -> AsyncSession:
         # First, remove all associations
         await session.execute(text("DELETE FROM user_organizations"))
         await session.execute(text("DELETE FROM site_modules"))
+        await session.execute(text("DELETE FROM user_roles"))  # Clean up RBAC assignments
         
         # Clear ALL foreign key references before deleting anything
         await session.execute(text("UPDATE sites SET created_by = NULL, updated_by = NULL"))
