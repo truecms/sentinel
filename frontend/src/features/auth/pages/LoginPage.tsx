@@ -9,6 +9,7 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, isAuthenticated, loading } = useAuth();
+  const [error, setError] = React.useState<string | null>(null);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -20,14 +21,25 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (data: LoginFormData) => {
     try {
+      setError(null);
       await signIn(data.email, data.password, data.remember);
       // Redirect to intended page or dashboard
       const from = location.state?.from?.pathname || '/app/dashboard';
       navigate(from, { replace: true });
       toast.success('Welcome back!');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Invalid email or password';
-      toast.error(errorMessage);
+    } catch (error: any) {
+      let errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      
+      if (error.response?.status === 401) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.response?.status === 400) {
+        errorMessage = error.response?.data?.detail || 'An error occurred. Please try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      // Don't show toast if we're showing inline error
     }
   };
 
@@ -50,7 +62,7 @@ export const LoginPage: React.FC = () => {
           </div>
           
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <LoginForm onSubmit={handleSubmit} isLoading={loading} />
+            <LoginForm onSubmit={handleSubmit} isLoading={loading} error={error} />
             
             <div className="mt-6">
               <div className="relative">

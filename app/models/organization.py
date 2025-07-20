@@ -1,6 +1,8 @@
 from datetime import datetime
+import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.models.base import Base
@@ -11,6 +13,7 @@ class Organization(Base):
     __tablename__ = "organizations"
 
     id = Column(Integer, primary_key=True, index=True)
+    uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
     name = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     is_active = Column(Boolean(), default=True)

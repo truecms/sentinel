@@ -5,6 +5,7 @@ import { TopBar, Sidebar, MobileNav, Breadcrumbs } from '../../components/naviga
 import type { BreadcrumbItem } from '../../components/navigation/Breadcrumbs/Breadcrumbs';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { useSiteCount } from '../../hooks/useSiteCount';
+import { useOrganizationCount } from '../../hooks/useOrganizationCount';
 
 interface DashboardLayoutProps {
   breadcrumbs?: BreadcrumbItem[];
@@ -14,6 +15,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
   const location = useLocation();
   const { user } = useAuth();
   const { siteCount } = useSiteCount();
+  const { organizationCount } = useOrganizationCount();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -78,6 +80,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleSidebarCollapse}
             sitesCount={siteCount ?? undefined}
+            organizationsCount={organizationCount ?? undefined}
           />
         </div>
 
@@ -86,6 +89,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ breadcrumbs = 
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           sitesCount={siteCount ?? undefined}
+          organizationsCount={organizationCount ?? undefined}
         />
 
         {/* Main Content */}

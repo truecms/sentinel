@@ -14,6 +14,10 @@ export const useAuth = () => {
       if (login.fulfilled.match(result)) {
         return result.payload;
       }
+      // If we have a rejected action with payload, it contains the axios error
+      if (login.rejected.match(result) && result.payload) {
+        throw result.payload;
+      }
       throw new Error(result.error?.message || 'Login failed');
     },
     [dispatch]

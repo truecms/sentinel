@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, Table
 
 from app.models.base import Base
 
@@ -10,4 +10,5 @@ user_organization = Table(
     Column(
         "organization_id", Integer, ForeignKey("organizations.id"), primary_key=True
     ),
+    Column("is_default", Boolean, default=False, nullable=False),
 )

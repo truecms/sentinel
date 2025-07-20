@@ -1,4 +1,5 @@
 export { Dashboard } from './Dashboard'
+export { Organizations } from './Organizations'
 export { Sites } from './Sites'
 export { Modules } from './Modules'
 export { Reports } from './Reports'

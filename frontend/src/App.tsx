@@ -5,7 +5,8 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { toastConfig } from './components/common/Toast'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import PublicLayout from './components/layout/PublicLayout'
-import { Dashboard, Sites, Modules, Reports, Settings } from './pages'
+import { Dashboard, Sites, Modules, Reports, Settings, Organizations } from './pages'
+import { OrganizationDetails } from './pages/Organizations/OrganizationDetails'
 import LandingPage from './features/public/pages/LandingPage'
 import FeaturesPage from './features/public/pages/FeaturesPage'
 import PricingPage from './features/public/pages/PricingPage'
@@ -43,6 +44,8 @@ function App() {
               <Route element={<DashboardLayout />}>
                 <Route index element={<Navigate to="/app/dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="organizations" element={<Organizations />} />
+                <Route path="organizations/:id" element={<OrganizationDetails />} />
                 <Route path="sites" element={<Sites />} />
                 <Route path="modules" element={<Modules />} />
                 <Route path="reports" element={<Reports />} />

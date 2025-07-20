@@ -56,18 +56,26 @@ const initialState: AuthState = {
 // Async thunks
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: LoginCredentials) => {
-    const formData = new FormData();
-    formData.append('username', credentials.email);
-    formData.append('password', credentials.password);
+  async (credentials: LoginCredentials, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('username', credentials.email);
+      formData.append('password', credentials.password);
 
-    const response = await apiClient.post<LoginResponse>('/auth/access-token', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      const response = await apiClient.post<LoginResponse>('/auth/access-token', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        // Pass the entire error response so we can handle it properly
+        return rejectWithValue(error);
+      }
+      throw error;
+    }
   }
 );
 
@@ -114,15 +122,22 @@ export const refreshToken = createAsyncThunk<
 export const register = createAsyncThunk(
   'auth/register',
   async (data: RegisterData) => {
-    const payload = {
-      email: data.email,
-      password: data.password,
-      full_name: data.full_name,
-      organization_name: data.organization_name,
-    };
+    try {
+      const payload = {
+        email: data.email,
+        password: data.password,
+        full_name: data.full_name,
+        organization_name: data.organization_name,
+      };
 
-    const response = await apiClient.post<User>('/auth/register', payload);
-    return response.data;
+      const response = await apiClient.post<User>('/auth/register', payload);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+      throw error;
+    }
   }
 );
 
