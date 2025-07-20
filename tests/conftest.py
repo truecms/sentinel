@@ -614,3 +614,48 @@ async def site_with_security_issues(
         "security_modules": security_test_data["security_modules"],
         "advisory_data": security_test_data["advisory_data"],
     }
+
+
+@pytest_asyncio.fixture
+async def load_sample_data(db_session: AsyncSession):
+    """Load sample data for integration tests.
+    
+    This fixture can be used in CI/CD to populate the database with realistic test data.
+    Set the environment variable LOAD_SAMPLE_DATA=true to enable it.
+    """
+    import os
+    from pathlib import Path
+    
+    # Check if we should load sample data (e.g., in CI/CD or when explicitly requested)
+    if os.getenv("LOAD_SAMPLE_DATA") != "true":
+        return
+    
+    # Get the path to the sample data SQL file
+    sql_file_path = Path(__file__).parent / "fixtures" / "sample_data.sql"
+    
+    if not sql_file_path.exists():
+        print(f"Sample data file not found: {sql_file_path}")
+        return
+    
+    # Read the SQL file
+    with open(sql_file_path, 'r') as f:
+        sql_content = f.read()
+    
+    # Execute the SQL content using text() to handle raw SQL
+    try:
+        # Split the SQL content by semicolons and execute each statement
+        # This is necessary because execute() doesn't handle multiple statements well
+        statements = [stmt.strip() for stmt in sql_content.split(';') if stmt.strip()]
+        
+        for statement in statements:
+            if statement.upper().startswith(('BEGIN', 'COMMIT')):
+                # Skip transaction control statements as they're handled by SQLAlchemy
+                continue
+            await db_session.execute(text(statement))
+        
+        await db_session.commit()
+        print("Sample data loaded successfully")
+    except Exception as e:
+        print(f"Failed to load sample data: {e}")
+        await db_session.rollback()
+        raise

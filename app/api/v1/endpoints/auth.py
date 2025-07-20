@@ -110,7 +110,7 @@ async def login_access_token(
         logger.warning(f"User not found: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Invalid email or password. Please check your credentials and try again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -118,7 +118,7 @@ async def login_access_token(
         logger.warning(f"Password verification failed for user: {user.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Invalid email or password. Please check your credentials and try again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

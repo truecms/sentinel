@@ -81,13 +81,13 @@ async def get_modules(
         versions_result = await crud_module_version.get_module_versions(
             db, module.id, limit=1000
         )
-        versions_count = len(versions_result[0])
+        versions_count = versions_result[1]  # Use total count, not length of first page
 
         # Get sites count
         sites_result = await crud_site_module.get_module_sites(
             db, module.id, limit=1000
         )
-        sites_count = len(sites_result[0])
+        sites_count = sites_result[1]  # Use total count, not length of first page
 
         # Get latest version
         latest_version = await crud_module_version.get_latest_version(db, module.id)

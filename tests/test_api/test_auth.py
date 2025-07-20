@@ -32,7 +32,7 @@ async def test_login_invalid_password(client: AsyncClient, test_user: User):
         data={"username": test_user.email, "password": "wrongpassword"},
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Incorrect email or password"
+    assert response.json()["detail"] == "Invalid email or password. Please check your credentials and try again."
 
 
 async def test_login_invalid_email(client: AsyncClient):
@@ -42,7 +42,7 @@ async def test_login_invalid_email(client: AsyncClient):
         data={"username": "nonexistent@example.com", "password": TEST_PASSWORD},
     )
     assert response.status_code == 401
-    assert response.json()["detail"] == "Incorrect email or password"
+    assert response.json()["detail"] == "Invalid email or password. Please check your credentials and try again."
 
 
 async def test_login_inactive_user(client: AsyncClient, db_session: AsyncSession):
