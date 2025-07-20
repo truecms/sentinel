@@ -87,4 +87,19 @@ describe('Sidebar', () => {
     // For now, just verify the button is clickable
     expect(organizationsButton).toBeInTheDocument()
   })
+
+  it('should show chevron icon for expandable items', () => {
+    render(
+      <SidebarWithRouter
+        {...defaultProps}
+        organizationsCount={5}
+      />
+    )
+    
+    const organizationsButton = screen.getByRole('button', { name: /organizations/i })
+    
+    // Should have a chevron icon
+    const chevron = organizationsButton.querySelector('.lucide-chevron-down')
+    expect(chevron).toBeInTheDocument()
+  })
 })

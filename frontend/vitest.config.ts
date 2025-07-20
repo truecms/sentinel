@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { VitestReporter } from 'tdd-guard'
 
 export default defineConfig({
   plugins: [react()],
@@ -18,5 +19,6 @@ export default defineConfig({
         '**/mockData.ts',
       ],
     },
+    reporters: ['default', new VitestReporter()],
   },
 })
