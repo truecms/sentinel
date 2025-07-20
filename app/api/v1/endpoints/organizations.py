@@ -25,7 +25,7 @@ router = APIRouter()
 @router.get("/", response_model=List[OrganizationResponse])
 async def read_organizations(
     db: AsyncSession = Depends(deps.get_db),
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
     skip: int = 0,
     limit: int = 100,
     name: Optional[str] = None,
@@ -65,15 +65,31 @@ async def create_organization(
     *,
     db: AsyncSession = Depends(deps.get_db),
     organization_in: OrganizationCreate,
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """Create new organization."""
-    # Check if user has permission
+    # Check if user has permission - superusers or org_admins can create new organizations
+    from app.models.role import UserRole, Role
+    
+    # Check if user is superuser
     if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
+        # Check if user has org_admin role in any organization
+        user_roles_query = (
+            select(UserRole)
+            .join(Role)
+            .where(
+                UserRole.user_id == current_user.id,
+                Role.name == "org_admin"
+            )
         )
+        result = await db.execute(user_roles_query)
+        has_org_admin_role = result.first() is not None
+        
+        if not has_org_admin_role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions. Only administrators can create organizations.",
+            )
 
     # Check if organization exists
     query = select(Organization).where(
@@ -100,6 +116,34 @@ async def create_organization(
     db.add(organization)
     await db.commit()
     await db.refresh(organization)
+    
+    # Add the creator to the organization
+    await db.execute(
+        user_organization.insert().values(
+            user_id=current_user.id,
+            organization_id=organization.id,
+            is_default=False  # Not default since user already has a default org
+        )
+    )
+    
+    # Assign org_admin role to the creator in this organization
+    from app.models.role import Role, UserRole
+    
+    # Get org_admin role
+    role_query = select(Role).where(Role.name == "org_admin")
+    result = await db.execute(role_query)
+    org_admin_role = result.scalar_one_or_none()
+    
+    if org_admin_role:
+        # Create user role assignment
+        user_role = UserRole.assign_role(
+            user_id=current_user.id,
+            role_id=org_admin_role.id,
+            organization_id=organization.id,
+            assigned_by_id=current_user.id  # Self-assigned
+        )
+        db.add(user_role)
+        await db.commit()
 
     # Add users to organization if specified
     if organization_in.users:
@@ -139,7 +183,7 @@ async def create_organization(
 async def read_organization(
     organization_id: int,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ):
     """Get a specific organization by id."""
     query = (
@@ -177,11 +221,23 @@ async def update_organization(
     db: AsyncSession = Depends(deps.get_db),
     organization_id: int,
     organization_in: OrganizationUpdate,
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """Update an organization."""
-    # Check if user has permission
-    if not current_user.is_superuser:
+    # Check if user has permission using RBAC
+    from app.models.role import UserRole
+    
+    # Get the actual User model instance with roles loaded
+    user_query = (
+        select(User)
+        .options(selectinload(User.user_roles).selectinload(UserRole.role))
+        .where(User.id == current_user.id)
+    )
+    result = await db.execute(user_query)
+    user = result.scalar_one()
+    
+    # Check if user has org_admin role for this organization or is superuser
+    if not user.is_superuser and not user.has_role("org_admin", organization_id=organization_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
@@ -266,7 +322,7 @@ async def update_organization(
 @router.delete("/{organization_id}", response_model=OrganizationDeleteResponse)
 async def delete_organization(
     organization_id: int,
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
     db: AsyncSession = Depends(deps.get_db),
 ):
     """Delete an organization."""
@@ -287,7 +343,21 @@ async def delete_organization(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found"
         )
-    if not current_user.is_superuser:
+    
+    # Check if user has permission using RBAC
+    from app.models.role import UserRole
+    
+    # Get the actual User model instance with roles loaded
+    user_query = (
+        select(User)
+        .options(selectinload(User.user_roles).selectinload(UserRole.role))
+        .where(User.id == current_user.id)
+    )
+    result = await db.execute(user_query)
+    user = result.scalar_one()
+    
+    # Check if user has org_admin role for this organization or is superuser
+    if not user.is_superuser and not user.has_role("org_admin", organization_id=organization_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
@@ -321,7 +391,7 @@ async def delete_organization(
 async def read_organization_sites(
     organization_id: int,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: schemas.UserResponse = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user),
     skip: int = 0,
     limit: int = 100,
 ):

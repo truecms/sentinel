@@ -31,10 +31,10 @@ This is a FastAPI-based monitoring and reporting platform providing REST API end
 
 ```bash
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Run database migrations
-docker-compose exec api alembic upgrade head
+docker compose exec api alembic upgrade head
 
 # Access API documentation
 # http://localhost:8000/docs
@@ -208,7 +208,7 @@ REDIS_URL=redis://localhost:6379
 ## Troubleshooting
 
 ### Common Issues
-- **Issue 1:** [Description and solution]
+- **Docker Commands:** Use `docker compose` instead of `docker-compose` (without hyphen)
 - **Issue 2:** [Description and solution]
 - **Issue 3:** [Description and solution]
 

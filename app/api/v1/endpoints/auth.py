@@ -56,27 +56,45 @@ async def register(
     # Check if organization already exists
     query = select(Organization).where(Organization.name == user_data.organization_name)
     result = await db.execute(query)
-    organization = result.scalar_one_or_none()
+    existing_organization = result.scalar_one_or_none()
 
-    # Create organization if it doesn't exist
-    if not organization:
-        organization = Organization(name=user_data.organization_name, is_active=True)
-        db.add(organization)
-        await db.commit()
-        await db.refresh(organization)
-        logger.info(f"Created new organization: {user_data.organization_name}")
+    if existing_organization:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization with this name already exists",
+        )
 
-    # Create user
+    # Create user first (without organization)
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=security.get_password_hash(user_data.password),
         is_active=True,
         is_superuser=False,
-        organization_id=organization.id,
-        role="viewer",  # Default role for new users
+        organization_id=None,  # Will be set after organization creation
+        role="org_admin",  # User who creates organization becomes org_admin
     )
 
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    
+    # Now create organization with the user as creator
+    organization = Organization(
+        name=user_data.organization_name,
+        description=f"Organization for {user_data.full_name or user_data.email}",
+        is_active=True,
+        is_deleted=False,
+        created_by=user.id,
+        updated_by=user.id
+    )
+    db.add(organization)
+    await db.commit()
+    await db.refresh(organization)
+    logger.info(f"Created new organization: {user_data.organization_name}")
+    
+    # Update user with organization
+    user.organization_id = organization.id
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -88,6 +106,14 @@ async def register(
         )
     )
     await db.commit()
+    
+    # Update organization created_by and updated_by if we just created it
+    if organization.created_by == 1:  # Temporary ID we used
+        organization.created_by = user.id
+        organization.updated_by = user.id
+        db.add(organization)
+        await db.commit()
+        logger.info(f"Updated organization {organization.name} with creator user ID {user.id}")
     
     # Assign org_admin role to the user who creates the organization
     from app.models.role import Role, UserRole

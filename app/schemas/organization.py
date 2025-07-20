@@ -36,7 +36,7 @@ class OrganizationInDBBase(OrganizationBase):
     id: int
     name: str
     created_at: datetime
-    created_by: int
+    created_by: Optional[int] = None
     updated_at: datetime
     updated_by: Optional[int] = None
 

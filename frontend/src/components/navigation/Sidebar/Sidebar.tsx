@@ -9,6 +9,7 @@ import {
   Settings,
   BarChart3,
   X,
+  Building2,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,11 @@ const getNavItems = (sitesCount?: number, modulesCount?: number): NavItem[] => [
     label: 'Dashboard',
     icon: LayoutDashboard,
     path: '/app/dashboard',
+  },
+  {
+    label: 'Organizations',
+    icon: Building2,
+    path: '/app/organizations',
   },
   {
     label: 'Sites',
