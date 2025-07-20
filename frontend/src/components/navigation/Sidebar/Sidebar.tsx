@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -10,6 +10,8 @@ import {
   BarChart3,
   X,
   Building2,
+  Users,
+  ChevronDown,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,17 +22,28 @@ interface SidebarProps {
   sitesCount?: number;
   modulesCount?: number;
   organizationsCount?: number;
+  usersCount?: number;
 }
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
-  path: string;
+  path?: string;
   badge?: string | number;
   badgeType?: 'info' | 'warning' | 'danger' | 'success';
+  expanded?: boolean;
+  onToggle?: () => void;
+  subItems?: NavItem[];
 }
 
-const getNavItems = (sitesCount?: number, modulesCount?: number, organizationsCount?: number): NavItem[] => [
+const getNavItems = (
+  sitesCount?: number,
+  modulesCount?: number,
+  organizationsCount?: number,
+  usersCount?: number,
+  organizationsExpanded?: boolean,
+  setOrganizationsExpanded?: (expanded: boolean) => void
+): NavItem[] => [
   {
     label: 'Dashboard',
     icon: LayoutDashboard,
@@ -39,9 +52,24 @@ const getNavItems = (sitesCount?: number, modulesCount?: number, organizationsCo
   {
     label: 'Organizations',
     icon: Building2,
-    path: '/app/organizations',
-    badge: organizationsCount !== undefined ? organizationsCount : undefined,
-    badgeType: 'info',
+    expanded: organizationsExpanded,
+    onToggle: () => setOrganizationsExpanded?.(!organizationsExpanded),
+    subItems: [
+      {
+        label: 'Organizations',
+        icon: Building2,
+        path: '/app/organizations',
+        badge: organizationsCount !== undefined ? organizationsCount : undefined,
+        badgeType: 'info',
+      },
+      {
+        label: 'Users',
+        icon: Users,
+        path: '/app/organizations/users',
+        badge: usersCount !== undefined ? usersCount : undefined,
+        badgeType: 'info',
+      },
+    ],
   },
   {
     label: 'Sites',
@@ -92,8 +120,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   sitesCount,
   modulesCount,
   organizationsCount,
+  usersCount,
 }) => {
-  const navItems = getNavItems(sitesCount, modulesCount, organizationsCount);
+  const [organizationsExpanded, setOrganizationsExpanded] = useState(false);
+  const navItems = getNavItems(
+    sitesCount,
+    modulesCount,
+    organizationsCount,
+    usersCount,
+    organizationsExpanded,
+    setOrganizationsExpanded
+  );
   const sidebarVariants = {
     open: { x: 0 },
     closed: { x: '-100%' },
@@ -169,7 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <NavLink
-                key={item.path}
+                key={item.label}
                 to={item.path}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3 py-2 rounded-lg transition-all group ${
